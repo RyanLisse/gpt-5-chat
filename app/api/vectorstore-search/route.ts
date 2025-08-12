@@ -13,7 +13,8 @@ type SearchBody = {
 };
 
 // Helper: attempt to normalize one result item from any of the potential OpenAI responses.
-function normalizeItem(item: any) {
+// Exported for unit tests.
+export function normalizeItem(item: any) {
   // We try several likely shapes to extract fields safely.
   const documentId =
     item?.document_id || item?.documentId || item?.id || item?.file_id || '';
@@ -44,8 +45,28 @@ function normalizeItem(item: any) {
 }
 
 // Helper: sort results by descending score
-function sortByScoreDesc(a: { score: number }, b: { score: number }) {
+// Exported for unit tests.
+export function sortByScoreDesc(a: { score: number }, b: { score: number }) {
   return b.score - a.score;
+}
+
+// Helper: derive a friendly error message from various error shapes without leaking details.
+// Exported for unit tests.
+export function deriveFriendlyError(error: any) {
+  const message =
+    typeof error?.message === 'string'
+      ? error.message
+      : 'Failed to query the vector store.';
+  const isAuthError = /401|unauthorized|invalid api key/i.test(String(message));
+  const isNotFound = /404|not found|no such vector/i.test(String(message));
+
+  const friendly = isAuthError
+    ? 'Authentication failed. Check server OpenAI API key.'
+    : isNotFound
+      ? 'Vector store not found. Verify the ID.'
+      : 'Unable to retrieve results. Please try again.';
+
+  return friendly;
 }
 
 export async function POST(req: NextRequest) {
@@ -138,18 +159,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ results, status: 'success' });
   } catch (error: any) {
     // Map different error shapes to a single, friendly message without leaking secrets
-    const message =
-      typeof error?.message === 'string'
-        ? error.message
-        : 'Failed to query the vector store.';
-    const isAuthError = /401|unauthorized|invalid api key/i.test(String(message));
-    const isNotFound = /404|not found|no such vector/i.test(String(message));
-
-    const friendly = isAuthError
-      ? 'Authentication failed. Check server OpenAI API key.'
-      : isNotFound
-        ? 'Vector store not found. Verify the ID.'
-        : 'Unable to retrieve results. Please try again.';
+    const friendly = deriveFriendlyError(error);
 
     return NextResponse.json(
       { results: [], error: friendly, status: 'error' },
@@ -157,4 +167,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

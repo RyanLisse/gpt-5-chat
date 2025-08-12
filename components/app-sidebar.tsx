@@ -12,10 +12,13 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { SidebarTopRow } from '@/components/sidebar-top-row';
+import Link from 'next/link';
+import { BookText } from 'lucide-react';
 
 export function AppSidebar() {
   const { open, openMobile } = useSidebar();
@@ -35,6 +38,16 @@ export function AppSidebar() {
 
           <SidebarMenuItem>
             <SearchChatsButton />
+          </SidebarMenuItem>
+
+          {/* Static navigation link to Vector Store search UI */}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Vector Store">
+              <Link href="/vectorstore" className="flex items-center gap-2">
+                <BookText className="size-4" />
+                <span>Vector Store</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
