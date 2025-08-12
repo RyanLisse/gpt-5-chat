@@ -10,6 +10,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { SidebarUserNav } from './sidebar-user-nav';
 import type { User } from 'next-auth';
+import Link from 'next/link';
+import { BookText } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
@@ -51,6 +53,13 @@ function PureChatHeader({
       )}
 
       <div className="ml-auto flex items-center gap-2">
+        {/* Quick link to Vector Store search UI */}
+        <Button variant="ghost" size="sm" className="p-2 h-8" asChild>
+          <Link href="/vectorstore" className="flex items-center gap-1">
+            <BookText className="h-4 w-4" />
+            <span className="hidden sm:inline">Vector Store</span>
+          </Link>
+        </Button>
         <Button variant="ghost" size="sm" className="p-2 h-8 w-8" asChild>
           <a
             href="https://github.com/franciscomoretti/sparka"
