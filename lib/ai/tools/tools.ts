@@ -4,15 +4,13 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
-import { tavilyWebSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
-import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
-import { deepResearch } from './deep-research/deep-research';
+// deepResearch and codeInterpreter removed for simplified MVP
 
 export function getTools({
   dataStream,
@@ -59,15 +57,7 @@ export function getTools({
     //   dataStream,
     // }),
     retrieve,
-    webSearch: tavilyWebSearch({ dataStream, writeTopLevelUpdates: true }),
     stockChart,
-    codeInterpreter,
     generateImage: generateImage({ attachments, lastGeneratedImage }),
-    deepResearch: deepResearch({
-      session,
-      dataStream,
-      messageId,
-      messages: contextForLLM,
-    }),
   };
 }

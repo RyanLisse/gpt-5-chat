@@ -1,6 +1,7 @@
 'use server';
 
 import { generateText } from 'ai';
+import { withTrace } from '@/lib/observability/langsmith';
 
 import { getLanguageModel } from '@/lib/ai/providers';
 import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
@@ -11,16 +12,18 @@ export async function generateTitleFromUserMessage({
 }: {
   message: ChatMessage;
 }) {
-  const { text: title } = await generateText({
-    model: getLanguageModel(DEFAULT_TITLE_MODEL),
-    system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
-    - ensure it is not more than 80 characters long
-    - the title should be a summary of the user's message
-    - do not use quotes or colons`,
-    prompt: JSON.stringify(message),
-    experimental_telemetry: { isEnabled: true },
-  });
+  const { text: title } = await withTrace('actions.generateTitleFromUserMessage', async () =>
+    generateText({
+      model: getLanguageModel(DEFAULT_TITLE_MODEL),
+      system: `\n
+      - you will generate a short title based on the first message a user begins a conversation with
+      - ensure it is not more than 80 characters long
+      - the title should be a summary of the user's message
+      - do not use quotes or colons`,
+      prompt: JSON.stringify(message),
+      experimental_telemetry: { isEnabled: true },
+    }),
+  );
 
   return title;
 }

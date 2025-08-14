@@ -20,6 +20,7 @@ import {
 } from '@/trpc/init';
 import { z } from 'zod';
 import { generateText } from 'ai';
+import { withTrace } from '@/lib/observability/langsmith';
 import { getLanguageModel } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import {
@@ -219,18 +220,20 @@ export const chatRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const { text: title } = await generateText({
-        model: getLanguageModel(DEFAULT_TITLE_MODEL),
-        system: `\n
+      const traced = (await withTrace('chat.generateTitle', async () =>
+        generateText({
+          model: getLanguageModel(DEFAULT_TITLE_MODEL),
+          system: `\n
         - you will generate a short title based on the first message a user begins a conversation with
         - ensure it is not more than 80 characters long
         - the title should be a summary of the user's message
         - do not use quotes or colons`,
-        prompt: input.message,
-        experimental_telemetry: { isEnabled: true },
-      });
+          prompt: input.message,
+          experimental_telemetry: { isEnabled: true },
+        }),
+      )) as any;
 
-      return { title };
+      return { title: traced.text };
     }),
 
   getPublicChat: publicProcedure

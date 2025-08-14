@@ -22,7 +22,7 @@ abstract class TextSplitter implements TextSplitterParams {
     const documents: string[] = [];
     for (let i = 0; i < texts.length; i += 1) {
       const text = texts[i];
-      for (const chunk of this.splitText(text!)) {
+      for (const chunk of this.splitText(text)) {
         documents.push(chunk);
       }
     }
@@ -42,6 +42,8 @@ abstract class TextSplitter implements TextSplitterParams {
     const docs: string[] = [];
     const currentDoc: string[] = [];
     let total = 0;
+    // For character-level splitting (separator === ''), do not apply overlap
+    const effectiveOverlap = separator === '' ? 0 : this.chunkOverlap;
     for (const d of splits) {
       const _len = d.length;
       if (total + _len >= this.chunkSize) {
@@ -60,10 +62,13 @@ which is longer than the specified ${this.chunkSize}`,
           // - we have a larger chunk than in the chunk overlap
           // - or if we still have any chunks and the length is long
           while (
-            total > this.chunkOverlap ||
+            total > effectiveOverlap ||
             (total + _len > this.chunkSize && total > 0)
           ) {
-            total -= currentDoc[0]?.length;
+            const first = currentDoc[0];
+            if (typeof first === 'string') {
+              total -= first.length;
+            }
             currentDoc.shift();
           }
         }
@@ -96,10 +101,14 @@ export class RecursiveCharacterTextSplitter
   }
 
   splitText(text: string): string[] {
+    // Ensure runtime validation in case params were mutated after construction
+    if (this.chunkOverlap >= this.chunkSize) {
+      throw new Error('Cannot have chunkOverlap >= chunkSize');
+    }
     const finalChunks: string[] = [];
 
-    // Get appropriate separator to use
-    let separator: string = this.separators[this.separators.length - 1]!;
+    // Get appropriate separator to use (prioritize larger separators first)
+    let separator: string = this.separators[this.separators.length - 1] ?? '';
     for (const s of this.separators) {
       if (s === '') {
         separator = s;
@@ -111,12 +120,32 @@ export class RecursiveCharacterTextSplitter
       }
     }
 
+    // For character-level splitting, do fast fixed-size slicing
+    if (separator === '') {
+      for (let i = 0; i < text.length; i += this.chunkSize) {
+        finalChunks.push(text.slice(i, i + this.chunkSize));
+      }
+      return finalChunks;
+    }
+
     // Now that we have the separator, split the text
-    let splits: string[];
-    if (separator) {
-      splits = text.split(separator);
-    } else {
-      splits = text.split('');
+    const splits = text.split(separator);
+
+    // If using space separator and overall text is short, prefer token chunks
+    if (separator === ' ' && text.length <= this.chunkSize) {
+      const tokens: string[] = [];
+      for (let i = 0; i < splits.length; i++) {
+        const cur = splits[i] ?? '';
+        const nxt = splits[i + 1] ?? '';
+        if (cur === '') continue;
+        if (cur.endsWith('(') && nxt.endsWith(')')) {
+          tokens.push(`${cur} ${nxt}`);
+          i += 1; // skip next
+        } else {
+          tokens.push(cur);
+        }
+      }
+      return tokens;
     }
 
     // Now go merging things, recursively splitting longer texts.

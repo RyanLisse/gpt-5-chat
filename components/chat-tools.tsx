@@ -11,7 +11,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import { getModelDefinition } from '@/lib/ai/all-models';
-import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { toolDefinitions, enabledTools } from './chat-features-definitions';
 import type { UiToolName } from '@/lib/ai/types';
 
@@ -25,8 +24,8 @@ export function ResponsiveTools({
   selectedModelId: string;
 }) {
   const { data: session } = useSession();
+  // Guest mode: allow tools without requiring login
   const isAnonymous = !session?.user;
-  const [showLoginPopover, setShowLoginPopover] = useState(false);
 
   const { hasReasoningModel, hasUnspecifiedFeatures } = (() => {
     try {
@@ -46,16 +45,7 @@ export function ResponsiveTools({
   const activeTool = tools;
 
   const setTool = (tool: UiToolName | null) => {
-    if (tool === 'deepResearch' && hasReasoningModel) {
-      return;
-    }
-
     if (hasUnspecifiedFeatures && tool !== null) {
-      return;
-    }
-
-    if (isAnonymous && tool !== null) {
-      setShowLoginPopover(true);
       return;
     }
 
@@ -64,26 +54,7 @@ export function ResponsiveTools({
 
   return (
     <div className="flex items-center gap-1 @[400px]:gap-2">
-      {isAnonymous ? (
-        <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="gap-1 @[400px]:gap-2 p-1.5 h-fit rounded-full"
-            >
-              <Settings2 size={14} />
-              <span className="hidden @[400px]:inline">Tools</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" align="start">
-            <LoginPrompt
-              title="Sign in to use Tools"
-              description="Access web search, deep research, and more to get better answers."
-            />
-          </PopoverContent>
-        </Popover>
-      ) : (
+      {true ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -103,10 +74,8 @@ export function ResponsiveTools({
           >
             {enabledTools.map((key) => {
               const tool = toolDefinitions[key];
-              const isDeepResearchDisabled =
-                key === 'deepResearch' && hasReasoningModel;
               const isToolDisabled =
-                hasUnspecifiedFeatures || isDeepResearchDisabled;
+                hasUnspecifiedFeatures;
               const Icon = tool.icon;
               return (
                 <DropdownMenuItem
@@ -126,17 +95,12 @@ export function ResponsiveTools({
                   {hasUnspecifiedFeatures && (
                     <span className="text-xs opacity-60">(not supported)</span>
                   )}
-                  {!hasUnspecifiedFeatures && isDeepResearchDisabled && (
-                    <span className="text-xs opacity-60">
-                      (for non-reasoning models)
-                    </span>
-                  )}
                 </DropdownMenuItem>
               );
             })}
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
+      ) : null}
 
       {activeTool && (
         <>

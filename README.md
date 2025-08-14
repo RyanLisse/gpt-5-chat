@@ -10,13 +10,11 @@
 
 [**Try Sparka AI**](https://sparka.ai)
 
-
 </div>
 
 ![sparka_gif_demo](https://github.com/user-attachments/assets/34a03eed-58fa-4b1e-b453-384351b1c08c)
 
-Access every major AI assistant Claude, GPT-4, Gemini, Grok, and 20+ models through one interface. Get capabilities like document analysis, image generation, code execution, and research tools without managing multiple subscriptions. Try instantly, no signup required.
-
+Access every major AI assistant Claude, GPT-4, Gemini, Grok, and 20+ models through one interface. Get capabilities like document analysis and image generation without managing multiple subscriptions. Try instantly, no signup required.
 
 ## ✨ Features
 
@@ -38,18 +36,14 @@ Access every major AI assistant Claude, GPT-4, Gemini, Grok, and 20+ models thro
 
 - **🔗 Chat Sharing** - Share conversations with others and collaborate on AI-assisted projects.
 
-- **🔭 Deep Research** - Comprehensive research with real-time web search, source analysis, and cited findings.
-
-- **⚡ Code Execution** - Run Python, JavaScript, and more in secure sandboxes.
-
 - **📄 Document Creation** - Generate and edit documents, spreadsheets, and presentations.
-
 
 ## 🛠️ Tech Stack
 
 Sparka AI is built with modern technologies for scalability and performance:
 
 ### **Frontend**
+
 - **Next.js 15**: App Router with React Server Components
 - **TypeScript**: Full type safety and developer experience
 - **Tailwind CSS**: Responsive, utility-first styling
@@ -58,6 +52,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 - **Zustand**: Lightweight state management
 
 ### **Backend**
+
 - **Vercel AI SDK**: Unified AI provider integration
 - **tRPC**: End-to-end typesafe APIs
 - **Drizzle ORM**: Type-safe database operations
@@ -65,13 +60,14 @@ Sparka AI is built with modern technologies for scalability and performance:
 - **Redis**: Caching and real-time features
 
 ### **AI Integration**
+
 - **AI SDK v5**: Latest Vercel AI SDK for unified provider integration
 - **AI SDK Gateway**: Models from various AI providers with automatic fallbacks
-
 
 ## 🚀 Getting Started
 
 ### **Prerequisites**
+
 - Node.js 18+ or Bun
 - PostgreSQL database
 - Redis (optional, for scaling)
@@ -79,6 +75,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 ### **Quick Start**
 
 1. **Clone and Install**
+
    ```bash
    git clone https://github.com/franciscomoretti/sparka.git
    cd sparka
@@ -86,23 +83,25 @@ Sparka AI is built with modern technologies for scalability and performance:
    ```
 
 2. **Environment Setup**
+
    ```bash
    cp .env.example .env.local
    # Configure your environment variables
    ```
 
 3. **Database Setup**
+
    ```bash
    bun run db:migrate
    ```
 
 4. **Development Server**
+
    ```bash
    bun dev
    ```
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
-
 
 ## 🙏 Acknowledgements
 
@@ -110,4 +109,3 @@ Sparka AI was built on the shoulders of giants. We're deeply grateful to these o
 
 - **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - Core architecture and AI SDK integration patterns
 - **[Scira](https://github.com/zaidmukaddam/scira)** - AI-powered search engine
-
