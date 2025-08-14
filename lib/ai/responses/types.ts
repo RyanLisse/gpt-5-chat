@@ -19,6 +19,58 @@ export type ToolResult = {
 export type ConversationState = {
   conversationId: string;
   previousResponseId?: string | null;
+  userId?: string;
+  contextMetadata?: {
+    turnCount: number;
+    lastActivity: string;
+    totalTokens: number;
+    relevanceScore?: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+  version?: number;
+};
+
+// AGENT 2: Interface Definitions for London School TDD
+export interface IPersistenceProvider {
+  saveConversation(conversationId: string, state: ConversationState): Promise<void>;
+  getConversation(conversationId: string): Promise<ConversationState | null>;
+  deleteConversation(conversationId: string): Promise<void>;
+  cleanupExpiredConversations(olderThanHours: number): Promise<number>;
+}
+
+export interface IContextManager {
+  optimizeContext(metadata: ContextOptimizationInput): Promise<ContextOptimizationResult>;
+  truncateContext(conversationId: string, maxTokens: number): Promise<ContextTruncationResult>;
+  calculateRelevanceScore(conversationId: string): Promise<number>;
+  summarizeContext(conversationId: string): Promise<string>;
+}
+
+export type ContextOptimizationInput = {
+  conversationId?: string;
+  turnCount: number;
+  totalTokens: number;
+  maxTokens: number;
+  lastActivity?: string;
+};
+
+export type ContextOptimizationResult = {
+  shouldTruncate: boolean;
+  relevanceScore: number;
+  recommendedSummary?: string;
+  tokensToRemove?: number;
+};
+
+export type ContextTruncationResult = {
+  tokensRemoved: number;
+  turnsRemoved: number;
+  summaryCreated?: string;
+};
+
+export type ConversationResponse = {
+  id: string;
+  content: string;
+  metadata?: Record<string, unknown>;
 };
 
 export type ResponseChunk = {

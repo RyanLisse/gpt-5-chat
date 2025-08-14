@@ -17,7 +17,7 @@ describe('streaming event mapping', () => {
 
   it('maps tool calls and annotations to corresponding chunk types', () => {
     const events: OpenAIStreamEvent[] = [
-      { type: 'response.tool_call', name: 'file_search', arguments: { query: 'x' } },
+      { type: 'response.tool_call', name: 'file_search', args: { query: 'x' } },
       { type: 'response.annotation', annotation: { source: 'file_search', id: 'doc_1' } },
     ];
     const chunks = parseStreamEvents(events);

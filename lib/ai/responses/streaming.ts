@@ -4,7 +4,7 @@ import type { ResponseChunk } from './types';
 export type OpenAIStreamEvent =
   | { type: 'response.output_text.delta'; delta: string }
   | { type: 'response.output_text.done' }
-  | { type: 'response.tool_call'; name: string; arguments: unknown }
+  | { type: 'response.tool_call'; name: string; args: unknown }
   | { type: 'response.annotation'; annotation: unknown };
 
 export function mapEventToChunks(evt: OpenAIStreamEvent): ResponseChunk[] {
@@ -14,7 +14,7 @@ export function mapEventToChunks(evt: OpenAIStreamEvent): ResponseChunk[] {
     case 'response.output_text.done':
       return []; // marker only, no chunk needed for now
     case 'response.tool_call':
-      return [{ type: 'tool_invocation', data: { name: evt.name, arguments: evt.arguments } }];
+      return [{ type: 'tool_invocation', data: { name: evt.name, args: evt.args } }];
     case 'response.annotation':
       return [{ type: 'annotation', data: evt.annotation }];
     default:
