@@ -137,3 +137,20 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+// AGENT 3: Conversation State persistence for OpenAI Responses API
+export const conversationState = pgTable('ConversationState', {
+  conversationId: varchar('conversationId', { length: 256 }).primaryKey().notNull(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id, {
+      onDelete: 'cascade',
+    }),
+  previousResponseId: varchar('previousResponseId', { length: 256 }),
+  contextMetadata: json('contextMetadata'),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  version: integer('version').notNull().default(1),
+});
+
+export type DBConversationState = InferSelectModel<typeof conversationState>;
