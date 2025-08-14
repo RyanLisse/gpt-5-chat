@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { ResponsesAPIClient } from '@/lib/ai/responses/client';
 import type { ResponseRequest } from '@/lib/ai/responses/types';
 

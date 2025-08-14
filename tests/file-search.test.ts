@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect } from 'vitest';
 import { ResponsesAPIClient } from '@/lib/ai/responses/client';
-import { FileSearchService } from '@/lib/ai/responses/file-search';
+import { parseFileSearchCitations } from '@/lib/ai/responses/file-search';
 import type { ResponseRequest } from '@/lib/ai/responses/types';
 
 describe('file_search mapping and parsing', () => {
@@ -51,7 +51,7 @@ describe('file_search mapping and parsing', () => {
       ],
     };
 
-    const { annotations, toolResults } = FileSearchService.parseCitations(mockResponse);
+    const { annotations, toolResults } = parseFileSearchCitations(mockResponse);
     expect(annotations.length).toBe(1);
     expect(annotations[0].type).toBe('citation');
     expect((annotations[0].data as any).documentId).toBe('doc_1');
