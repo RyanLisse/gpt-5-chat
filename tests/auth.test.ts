@@ -3,13 +3,24 @@ if (process.env.PLAYWRIGHT === '1') {
   const { getUnixTime } = require('date-fns');
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const { test, expect } = require('@playwright/test') as typeof import('@playwright/test');
+  
+  // TDD London School: Proper interface contracts for page objects
+  interface AuthPageInterface {
+    page: import('@playwright/test').Page;
+    gotoLogin(): Promise<void>;
+    gotoRegister(): Promise<void>;
+    register(email: string, password: string): Promise<void>;
+    login(email: string, password: string): Promise<void>;
+    expectToastToContain(text: string): Promise<void>;
+  }
 
   const testEmail = `test-${getUnixTime(new Date())}@playwright.com`;
   const testPassword = generateId();
 
-  class AuthPage {
-    /** @param {import('@playwright/test').Page} page */
-    constructor(page) {
+  class AuthPage implements AuthPageInterface {
+    public readonly page: import('@playwright/test').Page;
+    
+    constructor(page: import('@playwright/test').Page) {
       this.page = page;
     }
 
@@ -23,7 +34,7 @@ if (process.env.PLAYWRIGHT === '1') {
       await expect(this.page.getByRole('heading')).toContainText('Sign Up');
     }
 
-    async register(email, password) {
+    async register(email: string, password: string): Promise<void> {
       await this.gotoRegister();
       await this.page.getByPlaceholder('user@acme.com').click();
       await this.page.getByPlaceholder('user@acme.com').fill(email);
@@ -32,7 +43,7 @@ if (process.env.PLAYWRIGHT === '1') {
       await this.page.getByRole('button', { name: 'Sign Up' }).click();
     }
 
-    async login(email, password) {
+    async login(email: string, password: string): Promise<void> {
       await this.gotoLogin();
       await this.page.getByPlaceholder('user@acme.com').click();
       await this.page.getByPlaceholder('user@acme.com').fill(email);
@@ -41,26 +52,25 @@ if (process.env.PLAYWRIGHT === '1') {
       await this.page.getByRole('button', { name: 'Sign In' }).click();
     }
 
-    async expectToastToContain(text) {
+    async expectToastToContain(text: string): Promise<void> {
       await expect(this.page.getByTestId('toast')).toContainText(text);
     }
   }
 
   test.describe
     .serial('authentication', () => {
-      /** @type {AuthPage} */
-      let authPage;
+      let authPage: AuthPage;
 
-      test.beforeEach(async ({ page }) => {
+      test.beforeEach(async ({ page }: { page: import('@playwright/test').Page }) => {
         authPage = new AuthPage(page);
       });
 
-      test('redirect to login page when unauthenticated', async ({ page }) => {
+      test('redirect to login page when unauthenticated', async ({ page }: { page: import('@playwright/test').Page }) => {
         await page.goto('/');
         await expect(page.getByRole('heading')).toContainText('Sign In');
       });
 
-      test('register a test account', async ({ page }) => {
+      test('register a test account', async ({ page }: { page: import('@playwright/test').Page }) => {
         await authPage.register(testEmail, testPassword);
         await expect(page).toHaveURL('/');
         await authPage.expectToastToContain('Account created successfully!');
@@ -71,7 +81,7 @@ if (process.env.PLAYWRIGHT === '1') {
         await authPage.expectToastToContain('Account already exists!');
       });
 
-      test('log into account', async ({ page }) => {
+      test('log into account', async ({ page }: { page: import('@playwright/test').Page }) => {
         await authPage.login(testEmail, testPassword);
 
         await page.waitForURL('/');
@@ -79,7 +89,7 @@ if (process.env.PLAYWRIGHT === '1') {
         await expect(page.getByPlaceholder('Send a message...')).toBeVisible();
       });
 
-      test('can register new user', async ({ page }) => {
+      test('can register new user', async ({ page }: { page: import('@playwright/test').Page }) => {
         const newEmail = `test-${generateId()}@test.com`;
         await authPage.gotoLogin();
         await authPage.register(newEmail, testPassword);

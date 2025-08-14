@@ -73,8 +73,6 @@ function PureSuggestedActions({
                 {
                   body: {
                     data: {
-                      deepResearch: false,
-                      webSearch: false,
                       reason: false,
                       generateImage: false,
                       writeOrCode: false,

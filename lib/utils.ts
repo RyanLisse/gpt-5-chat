@@ -46,8 +46,7 @@ export function findLastArtifact(
     msg.parts?.forEach((part) => {
       if (
         part.type === 'tool-createDocument' ||
-        part.type === 'tool-updateDocument' ||
-        part.type === 'tool-deepResearch'
+        part.type === 'tool-updateDocument'
       ) {
         if (part.state === 'output-available') {
           allArtifacts.push({
@@ -186,7 +185,7 @@ export function getLanguageFromFileName(fileName: string): string {
 
 export function getAttachmentsFromMessage(message: ChatMessage): Attachment[] {
   return message.parts
-    .filter<FileUIPart>((part) => part.type === 'file')
+    .filter((part): part is FileUIPart => part.type === 'file')
     .map((part) => ({
       name: part.filename || '',
       url: part.url,
@@ -196,7 +195,7 @@ export function getAttachmentsFromMessage(message: ChatMessage): Attachment[] {
 
 export function getTextContentFromMessage(message: ChatMessage): string {
   return message.parts
-    .filter<TextPart>((part) => part.type === 'text')
+    .filter((part): part is TextPart => part.type === 'text')
     .map((part) => part.text)
     .join('');
 }

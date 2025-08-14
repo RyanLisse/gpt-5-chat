@@ -43,16 +43,6 @@ export function DataStreamHandler({ id }: { id: string }) {
     lastProcessedIndex.current = dataStream.length - 1;
 
     newDeltas.forEach((delta) => {
-      // Clear deepResearch tool when a research process completes
-      if (delta.type === 'data-researchUpdate') {
-        const update: any = (delta as any).data;
-        if (update?.type === 'completed') {
-          setSelectedTool((current) =>
-            current === 'deepResearch' ? null : current,
-          );
-        }
-      }
-
       const artifactDefinition = artifactDefinitions.find(
         (artifactDefinition) => artifactDefinition.kind === artifact.kind,
       );

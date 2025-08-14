@@ -104,7 +104,7 @@ const Tool = ({
           onHoverEnd={() => {
             if (selectedTool !== description) setIsHovered(false);
           }}
-          onKeyDown={(event) => {
+          onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
             if (event.key === 'Enter') {
               handleSelect();
             }
@@ -344,8 +344,6 @@ const PureToolbar = ({
         // TODO: Data should come from default data
         body: {
           data: {
-            deepResearch: false,
-            webSearch: false,
             reason: false,
             generateImage: false,
             writeOrCode: false,

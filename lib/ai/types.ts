@@ -57,6 +57,7 @@ type generateImageTool = InferUITool<ReturnType<typeof generateImage>>;
 type stockChartTool = InferUITool<typeof stockChart>;
 type retrieveTool = InferUITool<typeof retrieve>;
 
+
 export type ChatTools = {
   getWeather: weatherTool;
   createDocument: createDocumentTool;

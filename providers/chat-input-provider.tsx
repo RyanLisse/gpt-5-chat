@@ -113,8 +113,8 @@ export function ChatInputProvider({
       if (hasUnspecifiedFeatures && selectedTool !== null) {
         setSelectedTool(null);
       }
-      // If switching to a reasoning model and deep research is selected, disable it
-      else if (hasReasoning && selectedTool === 'deepResearch') {
+      // If switching to a reasoning model, clear incompatible selected tools if any
+      else if (hasReasoning && selectedTool !== null) {
         setSelectedTool(null);
       }
 
@@ -171,10 +171,8 @@ export function ChatInputProvider({
         clearInput();
       }
 
-      // deepResearch stays active until the research process completes (handled via DataStreamHandler)
-      if (selectedTool !== 'deepResearch') {
-        resetData();
-      }
+      // Reset selected tool after submission
+      resetData();
     },
     [clearAttachments, clearInput, selectedTool, resetData],
   );

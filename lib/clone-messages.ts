@@ -60,28 +60,7 @@ function updateDocumentReferencesInMessageParts<
     if (Array.isArray(parts)) {
       // TODO: refactor these part copying into a helper function to avoid triplication
       updatedParts = parts.map((part) => {
-        if (part.type === 'tool-deepResearch') {
-          if (part.state !== 'output-available') {
-            return part;
-          }
-          if (part.output?.format === 'report') {
-            const oldDocId = part.output?.id;
-            const newDocId = documentIdMap.get(oldDocId);
-            if (newDocId) {
-              return {
-                ...part,
-                output: {
-                  ...part.output,
-                  id: newDocId,
-                },
-              };
-            } else {
-              throw new Error(`Document ID ${oldDocId} not found in mapping`);
-            }
-          } else {
-            return part;
-          }
-        } else if (part.type === 'tool-updateDocument') {
+        if (part.type === 'tool-updateDocument') {
           if (part.state !== 'output-available') {
             return part;
           }

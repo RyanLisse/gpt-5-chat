@@ -18,7 +18,13 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { FaviconGroup } from './favicon-group';
 
-import type { SearchResultItem } from '@/lib/ai/tools/research-updates-schema';
+// Minimal local type for a web search result (legacy UI)
+type SearchResultItem = {
+  url: string;
+  title: string;
+  content?: string;
+  source?: 'web' | 'academic' | 'x';
+};
 import { Favicon } from './favicon';
 import { getFaviconUrl } from '@/lib/url-utils';
 
@@ -39,7 +45,7 @@ const SourcesList = ({
         >
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0 mt-1">
-              <Favicon url={getFaviconUrl(source)} />
+              <Favicon url={getFaviconUrl(source as any)} />
             </div>
             <div className="flex flex-col gap-1">
               <h4 className="text-sm font-medium leading-tight">

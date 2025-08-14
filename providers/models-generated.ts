@@ -262,7 +262,7 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'anthropic/claude-4-opus',
+    id: 'anthropic/claude-3-opus',
     object: 'model',
     owned_by: 'anthropic',
     name: 'Claude 4 Opus',
@@ -279,7 +279,7 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'anthropic/claude-4-sonnet',
+    id: 'anthropic/claude-3.5-sonnet',
     object: 'model',
     owned_by: 'anthropic',
     name: 'Claude 4 Sonnet',

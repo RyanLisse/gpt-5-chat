@@ -22,22 +22,6 @@ export function addExplicitToolRequestToMessages(
       explicitlyRequestedTools,
     );
     toolsToRequest = explicitlyRequestedTools;
-  } else if (
-    lastAssistantMessage?.parts &&
-    lastAssistantMessage.parts.length > 0
-  ) {
-    // 2. Unfinished deep research if it's unfinished
-    for (const part of lastAssistantMessage.parts) {
-      if (part.type === 'tool-deepResearch') {
-        if (
-          part.state === 'output-available' &&
-          part.output.format === 'clarifying_questions'
-        ) {
-          toolsToRequest = ['deepResearch'];
-          break; // Found it, no need to continue looping
-        }
-      }
-    }
   }
 
   if (toolsToRequest.length > 0) {

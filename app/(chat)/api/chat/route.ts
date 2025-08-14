@@ -1,24 +1,17 @@
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  JsonToSseTransformStream,
-  streamText,
-  stepCountIs,
-} from 'ai';
+import { convertToModelMessages } from 'ai';
 import { replaceFilePartUrlByBinaryDataInMessages } from '@/lib/utils/download-assets';
 import { auth } from '@/app/(auth)/auth';
-import { systemPrompt } from '@/lib/ai/prompts';
+// Removed systemPrompt: not used with Responses API path
 import {
   getChatById,
   saveChat,
   getUserById,
   saveMessage,
-  updateMessage,
   getMessageById,
 } from '@/lib/db/queries';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import { getTools } from '@/lib/ai/tools/tools';
+// Removed getTools: not used with Responses API path
 import { toolsDefinitions, allTools } from '@/lib/ai/tools/tools-definitions';
 import type { ToolName, ChatMessage } from '@/lib/ai/types';
 import type { NextRequest } from 'next/server';
@@ -26,15 +19,12 @@ import {
   filterAffordableTools,
   getBaseModelCostByModelId,
 } from '@/lib/credits/credits-utils';
-import { getLanguageModel, getModelProviderOptions } from '@/lib/ai/providers';
+// Removed getLanguageModel/getModelProviderOptions: not used with Responses API path
 import type { CreditReservation } from '@/lib/credits/credit-reservation';
 import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
-import {
-  createResumableStreamContext,
-  type ResumableStreamContext,
-} from 'resumable-stream';
+// Removed resumable-stream imports: streaming disabled for Responses API MVP
 
-import { after } from 'next/server';
+// 'after' was only used for resumable streams; not needed in Responses API path
 import {
   getAnonymousSession,
   createAnonymousSession,
@@ -42,7 +32,7 @@ import {
 } from '@/lib/anonymous-session-server';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
-import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
+// Removed markdownJoinerTransform: not used with Responses API path
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 import type { ModelId } from '@/lib/ai/model-id';
 import { calculateMessagesTokens } from '@/lib/ai/token-utils';
@@ -52,6 +42,8 @@ import { getRecentGeneratedImage } from './getRecentGeneratedImage';
 import { getCreditReservation } from './getCreditReservation';
 import { filterReasoningParts } from './filterReasoningParts';
 import { getThreadUpToMessageId } from './getThreadUpToMessageId';
+import { createResponsesClient } from '@/lib/ai/responses/client';
+import type { ResponseRequest, Annotation as ResponsesAnnotation } from '@/lib/ai/responses/types';
 
 // Create shared Redis clients for resumable stream and cleanup
 let redisPublisher: any = null;
@@ -66,34 +58,7 @@ if (process.env.REDIS_URL) {
   })();
 }
 
-let globalStreamContext: ResumableStreamContext | null = null;
-
-export function getStreamContext() {
-  if (!globalStreamContext) {
-    try {
-      globalStreamContext = createResumableStreamContext({
-        waitUntil: after,
-        keyPrefix: 'sparka-ai:resumable-stream',
-        ...(redisPublisher && redisSubscriber
-          ? {
-              publisher: redisPublisher,
-              subscriber: redisSubscriber,
-            }
-          : {}),
-      });
-    } catch (error: any) {
-      if (error.message.includes('REDIS_URL')) {
-        console.log(
-          ' > Resumable streams are disabled due to missing REDIS_URL',
-        );
-      } else {
-        console.error(error);
-      }
-    }
-  }
-
-  return globalStreamContext;
-}
+// Resumable stream context removed in Responses API MVP (non-streaming)
 
 export function getRedisSubscriber() {
   return redisSubscriber;
@@ -289,12 +254,7 @@ export async function POST(request: NextRequest) {
     }
 
     let explicitlyRequestedTools: ToolName[] | null = null;
-    if (selectedTool === 'deepResearch')
-      explicitlyRequestedTools = ['deepResearch'];
-    // else if (selectedTool === 'reason') explicitlyRequestedTool = 'reasonSearch';
-    else if (selectedTool === 'webSearch')
-      explicitlyRequestedTools = ['webSearch'];
-    else if (selectedTool === 'generateImage')
+    if (selectedTool === 'generateImage')
       explicitlyRequestedTools = ['generateImage'];
     else if (selectedTool === 'createDocument')
       explicitlyRequestedTools = ['createDocument', 'updateDocument'];
@@ -337,15 +297,6 @@ export async function POST(request: NextRequest) {
     if (!modelDefinition.features) {
       activeTools = [];
     } else {
-      // Let's not allow deepResearch if the model support reasoning (it's expensive and slow)
-      if (
-        modelDefinition.features.reasoning &&
-        activeTools.some((tool: ToolName) => tool === 'deepResearch')
-      ) {
-        activeTools = activeTools.filter(
-          (tool: ToolName) => tool !== 'deepResearch',
-        );
-      }
     }
 
     if (
@@ -407,7 +358,7 @@ export async function POST(request: NextRequest) {
     addExplicitToolRequestToMessages(
       messages,
       activeTools,
-      explicitlyRequestedTools,
+      explicitlyRequestedTools ?? [],
     );
 
     // Filter out reasoning parts to ensure compatibility between different models
@@ -435,255 +386,91 @@ export async function POST(request: NextRequest) {
     // Ensure cleanup on any unhandled errors
     try {
       const messageId = generateUUID();
-      const streamId = generateUUID();
 
-      // Record this new stream so we can resume later - use Redis for all users
-      if (redisPublisher) {
-        const keyPrefix = isAnonymous
-          ? `sparka-ai:anonymous-stream:${chatId}:${streamId}`
-          : `sparka-ai:stream:${chatId}:${streamId}`;
+      // Build Responses API request
+      const selectedOrDefaultModel = (selectedModelId ?? 'openai/gpt-5-mini') as ModelId;
 
-        await redisPublisher.setEx(
-          keyPrefix,
-          600, // 10 minutes TTL
-          JSON.stringify({ chatId, streamId, createdAt: Date.now() }),
-        );
-      }
+      // Concatenate text from recent messages; ignore non-text parts for MVP
+      const textInput = contextForLLM
+        .map((m: any) => {
+          const content = Array.isArray(m.content) ? m.content : [{ type: 'text', text: m.content }];
+          return content
+            .filter((c: any) => c.type === 'text' && typeof c.text === 'string')
+            .map((c: any) => c.text)
+            .join('\n');
+        })
+        .join('\n\n');
 
+      const client = createResponsesClient({
+        openai: {
+          apiKey: process.env.OPENAI_API_KEY,
+          baseURL: process.env.OPENAI_BASE_URL,
+        },
+      });
+
+      const req: ResponseRequest = {
+        model: selectedOrDefaultModel.replace('openai/', ''),
+        input: textInput,
+        tools: [{ type: 'file_search', config: {} }],
+        store: false,
+        metadata: {
+          chatId,
+          userId: userId || 'anonymous',
+        },
+      };
+
+      const res = await client.createResponse(req);
+
+      // Construct assistant message
+      const assistantMessage: ChatMessage = {
+        id: messageId,
+        chatId,
+        role: 'assistant',
+        parts: [
+          { type: 'text', text: res.outputText },
+          ...res.annotations.map((a: ResponsesAnnotation) => ({ type: 'annotation', data: a } as any)),
+        ],
+        attachments: [],
+        createdAt: new Date(),
+        annotations: [],
+        isPartial: false,
+        parentMessageId: userMessage.id,
+        selectedModel: selectedOrDefaultModel,
+        selectedTool: 'file_search' as any,
+      } as any;
+
+      // Persist assistant message
       if (!isAnonymous) {
-        // Save placeholder assistant message immediately (needed for document creation)
-        await saveMessage({
-          _message: {
-            id: messageId,
-            chatId: chatId,
-            role: 'assistant',
-            parts: [], // Empty placeholder
-            attachments: [],
-            createdAt: new Date(),
-            annotations: [],
-            isPartial: true,
-            parentMessageId: userMessage.id,
-            selectedModel: selectedModelId,
-            selectedTool: null,
-          },
-        });
+        await saveMessage({ _message: assistantMessage as any });
       }
 
-      // Build the data stream that will emit tokens
-      const stream = createUIMessageStream<ChatMessage>({
-        execute: ({ writer: dataStream }) => {
-          const result = streamText({
-            model: getLanguageModel(selectedModelId),
-            system: systemPrompt(),
-            messages: contextForLLM,
-            stopWhen: [
-              stepCountIs(5),
-              ({ steps }) => {
-                return steps.some((step) => {
-                  const toolResults = step.content;
-                  // Don't stop if the tool result is a clarifying question
-                  return toolResults.some(
-                    (toolResult) =>
-                      toolResult.type === 'tool-result' &&
-                      toolResult.toolName === 'deepResearch' &&
-                      (toolResult.output as any).format === 'report',
-                  );
-                });
-              },
-            ],
+      // Finalize/reserve credits: add tool cost if defined
+      const toolCost = 0; // no per-call tool costing implemented for file_search here
+      const actualCost = baseModelCost + toolCost;
+      if (reservation) {
+        await reservation.finalize(actualCost);
+      }
 
-            activeTools: activeTools,
-            experimental_transform: markdownJoinerTransform(),
-            experimental_telemetry: {
-              isEnabled: true,
-              functionId: 'chat-response',
-            },
-            tools: getTools({
-              dataStream,
-              session: {
-                user: {
-                  id: userId || undefined,
-                },
-                expires: 'noop',
-              },
-              contextForLLM: contextForLLM,
-              messageId,
-              selectedModel: selectedModelId,
-              attachments: userMessage.parts.filter(
-                (part) => part.type === 'file',
-              ),
-              lastGeneratedImage,
-            }),
-            onError: (error) => {
-              console.error('streamText error', error);
-            },
-            abortSignal: abortController.signal, // Pass abort signal to streamText
-            ...(modelDefinition.features?.fixedTemperature
-              ? {
-                  temperature: modelDefinition.features.fixedTemperature,
-                }
-              : {}),
-
-            providerOptions: getModelProviderOptions(selectedModelId),
+      // Return as single-event SSE for client compatibility
+      const encoder = new TextEncoder();
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          const payload = JSON.stringify({
+            type: 'message',
+            data: assistantMessage,
           });
-
-          result.consumeStream();
-
-          const initialMetadata = {
-            createdAt: new Date(),
-            parentMessageId: userMessage.id,
-            isPartial: false,
-            selectedModel: selectedModelId,
-          };
-
-          dataStream.merge(
-            result.toUIMessageStream({
-              sendReasoning: true,
-              messageMetadata: ({ part }) => {
-                // send custom information to the client on start:
-                if (part.type === 'start') {
-                  return initialMetadata;
-                }
-
-                // when the message is finished, send additional information:
-                if (part.type === 'finish') {
-                  return {
-                    ...initialMetadata,
-                    isPartial: false,
-                  };
-                }
-              },
-            }),
-          );
-        },
-        generateId: () => messageId,
-        onFinish: async ({ messages, isContinuation, responseMessage }) => {
-          // Clear timeout since we finished successfully
-          clearTimeout(timeoutId);
-
-          if (userId) {
-            const actualCost =
-              baseModelCost +
-              messages
-                .flatMap((message) => message.parts)
-                .reduce((acc, toolResult) => {
-                  if (!toolResult.type.startsWith('tool-')) {
-                    return acc;
-                  }
-
-                  const toolDef =
-                    toolsDefinitions[
-                      toolResult.type.replace('tool-', '') as ToolName
-                    ];
-
-                  if (!toolDef) {
-                    return acc;
-                  }
-
-                  return acc + toolDef.cost;
-                }, 0);
-            const assistantMessage = responseMessage; // TODO: Fix this in ai sdk v5 - responseMessage is not a UIMessage
-            try {
-              // TODO: Validate if this is correct ai sdk v5
-              const assistantMessage = messages.at(-1);
-
-              if (!assistantMessage) {
-                throw new Error('No assistant message found!');
-              }
-
-              if (!isAnonymous) {
-                await updateMessage({
-                  _message: {
-                    id: assistantMessage.id,
-                    chatId: chatId,
-                    role: assistantMessage.role ?? '',
-                    parts: assistantMessage.parts ?? [],
-
-                    attachments: [],
-                    createdAt: new Date(),
-                    annotations: [],
-                    isPartial: false,
-                    parentMessageId: userMessage.id,
-                    selectedModel: selectedModelId,
-                    selectedTool: null,
-                  },
-                });
-              }
-
-              // Finalize credit usage: deduct actual cost, release reservation
-              if (reservation) {
-                await reservation.finalize(actualCost);
-              }
-            } catch (error) {
-              console.error('Failed to save chat or finalize credits:', error);
-              // Still release the reservation on error
-              if (reservation) {
-                await reservation.cleanup();
-              }
-            }
-          }
-        },
-
-        onError: (error) => {
-          // Clear timeout on error
-          clearTimeout(timeoutId);
-          console.error('onError', error);
-          // Release reserved credits on error (fire and forget)
-          if (reservation) {
-            reservation.cleanup();
-          }
-          if (anonymousSession) {
-            anonymousSession.remainingCredits += baseModelCost;
-            setAnonymousSession(anonymousSession);
-          }
-          return 'Oops, an error occured!';
+          controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+          controller.close();
         },
       });
 
-      after(async () => {
-        // Cleanup to happen after the POST response is sent
-        // Set TTL on Redis keys to auto-expire after 10 minutes
-        if (redisPublisher) {
-          try {
-            const keyPattern = `sparka-ai:resumable-stream:rs:sentinel:${streamId}*`;
-            const keys = await redisPublisher.keys(keyPattern);
-            if (keys.length > 0) {
-              // Set 5 minute expiration on all stream-related keys
-              await Promise.all(
-                keys.map((key: string) => redisPublisher.expire(key, 300)),
-              );
-            }
-          } catch (error) {
-            console.error('Failed to set TTL on stream keys:', error);
-          }
-        }
-
-        try {
-          // Clean up stream info from Redis for all users
-          if (redisPublisher) {
-            const keyPrefix = isAnonymous
-              ? `sparka-ai:anonymous-stream:${chatId}:${streamId}`
-              : `sparka-ai:stream:${chatId}:${streamId}`;
-
-            await redisPublisher.expire(keyPrefix, 300);
-          }
-        } catch (cleanupError) {
-          console.error('Failed to cleanup stream record:', cleanupError);
-        }
+      return new Response(body, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
       });
-
-      const streamContext = getStreamContext();
-
-      if (streamContext) {
-        console.log('RESPONSE > POST /api/chat: Returning resumable stream');
-        return new Response(
-          await streamContext.resumableStream(streamId, () =>
-            stream.pipeThrough(new JsonToSseTransformStream()),
-          ),
-        );
-      } else {
-        return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
-      }
     } catch (error) {
       clearTimeout(timeoutId);
       console.error('error found in try block', error);

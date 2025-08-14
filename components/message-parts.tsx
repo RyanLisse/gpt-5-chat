@@ -9,9 +9,7 @@ import { MessageReasoning } from './message-reasoning';
 import { Retrieve } from './retrieve';
 import { ReadDocument } from './read-document';
 import { StockChartMessage } from './stock-chart-message';
-import { CodeInterpreterMessage } from './code-interpreter-message';
 import { GeneratedImage } from './generated-image';
-import { ResearchUpdates } from './message-annotations';
 import type { ChatMessage } from '@/lib/ai/types';
 import { chatStore } from '@/lib/stores/chat-store';
 
@@ -33,8 +31,7 @@ const isLastArtifact = (
       for (const part of message.parts) {
         if (
           (part.type === 'tool-createDocument' ||
-            part.type === 'tool-updateDocument' ||
-            part.type === 'tool-deepResearch') &&
+            part.type === 'tool-updateDocument') &&
           part.state === 'output-available'
         ) {
           lastArtifact = {
@@ -51,28 +48,6 @@ const isLastArtifact = (
   return lastArtifact?.toolCallId === currentToolCallId;
 };
 
-const collectResearchUpdates = (
-  parts: ChatMessage['parts'],
-  toolCallId: string,
-  toolType: 'tool-deepResearch' | 'tool-webSearch',
-) => {
-  const startIdx = parts.findIndex(
-    (p) => p.type === toolType && p.toolCallId === toolCallId,
-  );
-  if (startIdx === -1) return [];
-
-  const endIdx = parts.findIndex(
-    (p, i) =>
-      i > startIdx &&
-      (p.type === 'tool-deepResearch' || p.type === 'tool-webSearch'),
-  );
-
-  const sliceEnd = endIdx === -1 ? parts.length : endIdx;
-  return parts
-    .slice(startIdx + 1, sliceEnd)
-    .filter((p) => p.type === 'data-researchUpdate')
-    .map((u) => u.data);
-};
 
 export function PureMessageParts({
   message,
@@ -362,26 +337,6 @@ export function PureMessageParts({
       }
     }
 
-    if (type === 'tool-codeInterpreter') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            <CodeInterpreterMessage result={null} args={input} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <CodeInterpreterMessage result={output} args={input} />
-          </div>
-        );
-      }
-    }
 
     if (type === 'tool-generateImage') {
       const { toolCallId, state } = part;
@@ -403,87 +358,6 @@ export function PureMessageParts({
       }
     }
 
-    if (type === 'tool-deepResearch') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-deepResearch',
-        );
-        return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        const shouldShowFullPreview = isLastArtifact(
-          chatStore.getState().messages,
-          toolCallId,
-        );
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-deepResearch',
-        );
-
-        if (output.format === 'report') {
-          return (
-            <div key={toolCallId}>
-              <div className="mb-2">
-                <ResearchUpdates updates={updates} />
-              </div>
-              {shouldShowFullPreview ? (
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  result={output}
-                  args={input}
-                  messageId={message.id}
-                  type="create"
-                />
-              ) : (
-                <DocumentToolResult
-                  type="create"
-                  result={output}
-                  isReadonly={isReadonly}
-                  messageId={message.id}
-                />
-              )}
-            </div>
-          );
-        }
-      }
-    }
-
-    if (type === 'tool-webSearch') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-webSearch',
-        );
-        return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-webSearch',
-        );
-        return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
-          </div>
-        );
-      }
-    }
 
     return null;
   });

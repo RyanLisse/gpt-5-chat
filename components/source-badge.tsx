@@ -7,7 +7,13 @@ import {
 } from '@/components/ui/tooltip';
 import { Favicon } from './favicon';
 import { getDomainFromUrl, getFaviconUrl } from '@/lib/url-utils';
-import type { SearchResultItem } from '@/lib/ai/tools/research-updates-schema';
+
+// Minimal local type for a web search result (legacy UI)
+type SearchResultItem = {
+  url: string;
+  title: string;
+  content?: string;
+};
 
 export function WebSourceBadge({ result }: { result: SearchResultItem }) {
   return (
@@ -18,7 +24,7 @@ export function WebSourceBadge({ result }: { result: SearchResultItem }) {
             variant="secondary"
             className="gap-1 max-w-[200px] truncate text-xs"
           >
-            <Favicon url={getFaviconUrl(result)} className="size-3" />
+            <Favicon url={getFaviconUrl(result as any)} className="size-3" />
             <span className="italic">{getDomainFromUrl(result.url)}</span>
             <span className="text-xs text-muted-foreground">
               {result.title}
@@ -28,7 +34,7 @@ export function WebSourceBadge({ result }: { result: SearchResultItem }) {
       </TooltipTrigger>
       <TooltipContent className="max-w-xs p-3 space-y-1">
         <div className="flex items-center gap-2">
-          <Favicon url={getFaviconUrl(result)} className="size-4" />
+          <Favicon url={getFaviconUrl(result as any)} className="size-4" />
           <p className="font-semibold ">{result.title}</p>
         </div>
         <p className="text-xs text-muted-foreground ">{result.url}</p>

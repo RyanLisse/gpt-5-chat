@@ -1,4 +1,4 @@
-import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import React, { type Dispatch, type SetStateAction } from 'react';
 import { Settings2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { Button } from './ui/button';
@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+// removed unused Popover imports
 import { Separator } from './ui/separator';
 import { getModelDefinition } from '@/lib/ai/all-models';
 import { toolDefinitions, enabledTools } from './chat-features-definitions';
@@ -54,7 +54,7 @@ export function ResponsiveTools({
 
   return (
     <div className="flex items-center gap-1 @[400px]:gap-2">
-      {true ? (
+      {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -100,7 +100,7 @@ export function ResponsiveTools({
             })}
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : null}
+      }
 
       {activeTool && (
         <>

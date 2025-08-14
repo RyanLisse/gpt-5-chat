@@ -4,7 +4,14 @@ import {
   ToolActionKind,
   ToolActionContent,
 } from './tool-action';
-import type { WebSearchUpdate } from '@/lib/ai/tools/research-updates-schema';
+
+// Minimal local copy of the shape used by this component (legacy WebSearch update)
+type WebSearchUpdate = {
+  results?: Array<{
+    url: string;
+    title: string;
+  }>;
+};
 
 // Base interface for all tool actions
 interface BaseToolActionProps {
