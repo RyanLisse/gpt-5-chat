@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
-import { uploadFile, extractFilenameFromUrl } from '@/lib/blob';
+import { extractFilenameFromUrl, uploadFile } from '@/lib/blob';
 
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
@@ -64,10 +64,10 @@ export async function POST(request: Request) {
         ...data,
         pathname: cleanFilename || filename,
       });
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: 'Failed to process request' },
       { status: 500 },

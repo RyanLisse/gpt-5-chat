@@ -1,17 +1,16 @@
 'use client';
+import { BookText, LogIn, Share } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { User } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { memo } from 'react';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { GitIcon } from './icons';
-import { memo } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { ShareButton } from './share-button';
-import { Share, LogIn } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { SidebarUserNav } from './sidebar-user-nav';
-import type { User } from 'next-auth';
-import Link from 'next/link';
-import { BookText } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 function PureChatHeader({
   chatId,
@@ -26,25 +25,25 @@ function PureChatHeader({
 }) {
   const router = useRouter();
   const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
 
   return (
-    <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
+    <header className="sticky top-0 flex items-center gap-2 bg-background px-2 py-1.5 md:px-2">
       <SidebarToggle />
 
       {!isReadonly && hasMessages && <ShareButton chatId={chatId} />}
       {isReadonly && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
-              <Share size={14} className="opacity-70" />
+            <div className="flex items-center gap-1.5 rounded-md bg-muted/50 px-2 py-1 text-muted-foreground text-sm">
+              <Share className="opacity-70" size={14} />
               <span>Shared</span>
             </div>
           </TooltipTrigger>
           <TooltipContent>
             <div className="text-center">
               <div className="font-medium">Shared Chat</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="mt-1 text-muted-foreground text-xs">
                 This is a shared chat
               </div>
             </div>
@@ -54,18 +53,18 @@ function PureChatHeader({
 
       <div className="ml-auto flex items-center gap-2">
         {/* Quick link to Vector Store search UI */}
-        <Button variant="ghost" size="sm" className="p-2 h-8" asChild>
-          <Link href="/vectorstore" className="flex items-center gap-1">
+        <Button asChild className="h-8 p-2" size="sm" variant="ghost">
+          <Link className="flex items-center gap-1" href="/vectorstore">
             <BookText className="h-4 w-4" />
             <span className="hidden sm:inline">Vector Store</span>
           </Link>
         </Button>
-        <Button variant="ghost" size="sm" className="p-2 h-8 w-8" asChild>
+        <Button asChild className="h-8 w-8 p-2" size="sm" variant="ghost">
           <a
-            href="https://github.com/franciscomoretti/sparka"
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex items-center justify-center"
+            href="https://github.com/franciscomoretti/sparka"
+            rel="noopener noreferrer"
+            target="_blank"
           >
             <GitIcon />
           </a>
@@ -77,15 +76,15 @@ function PureChatHeader({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
-                size="sm"
                 className="h-8 px-3"
                 onClick={() => {
                   router.push('/login');
                   router.refresh();
                 }}
+                size="sm"
+                variant="outline"
               >
-                <LogIn className="h-4 w-4 mr-2" />
+                <LogIn className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Sign in</span>
               </Button>
             </TooltipTrigger>

@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
-import { 
-  checkDatabaseHealth, 
-  getDatabaseConnectionState 
+import {
+  checkDatabaseHealth,
+  getDatabaseConnectionState,
 } from '@/lib/db/client';
 
 export async function GET() {
   try {
     const startTime = Date.now();
-    
+
     // Check database health
     const dbHealth = await checkDatabaseHealth();
     const connectionState = getDatabaseConnectionState();
-    
+
     const totalTime = Date.now() - startTime;
-    
+
     const healthStatus = {
       status: dbHealth.status === 'healthy' ? 'ok' : 'degraded',
       timestamp: new Date().toISOString(),
@@ -40,12 +40,9 @@ export async function GET() {
 
     // Return appropriate status code based on health
     const statusCode = healthStatus.status === 'ok' ? 200 : 503;
-    
+
     return NextResponse.json(healthStatus, { status: statusCode });
-    
   } catch (error) {
-    console.error('[Health Check] Error:', error);
-    
     return NextResponse.json(
       {
         status: 'error',
@@ -56,7 +53,7 @@ export async function GET() {
           server: { status: 'error' },
         },
       },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

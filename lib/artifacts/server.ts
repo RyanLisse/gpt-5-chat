@@ -1,22 +1,22 @@
+import type { Session } from 'next-auth';
 import { codeDocumentHandler } from '@/lib/artifacts/code/server';
 import { sheetDocumentHandler } from '@/lib/artifacts/sheet/server';
 import { textDocumentHandler } from '@/lib/artifacts/text/server';
-import type { Document } from '../db/schema';
-import { saveDocument } from '../db/queries';
-import type { Session } from 'next-auth';
 import type { ModelId } from '../ai/model-id';
 import type { StreamWriter } from '../ai/types';
+import { saveDocument } from '../db/queries';
+import type { Document } from '../db/schema';
 import type { ArtifactKind } from './artifact-kind';
 
-export interface SaveDocumentProps {
+export type SaveDocumentProps = {
   id: string;
   title: string;
   kind: ArtifactKind;
   content: string;
   userId: string;
-}
+};
 
-export interface CreateDocumentCallbackProps {
+export type CreateDocumentCallbackProps = {
   id: string;
   title: string;
   dataStream: StreamWriter;
@@ -25,22 +25,22 @@ export interface CreateDocumentCallbackProps {
   prompt: string;
   messageId: string;
   selectedModel: ModelId;
-}
+};
 
-export interface UpdateDocumentCallbackProps {
+export type UpdateDocumentCallbackProps = {
   document: Document;
   description: string;
   dataStream: StreamWriter;
   session: Session;
   messageId: string;
   selectedModel: ModelId;
-}
+};
 
-export interface DocumentHandler<T = ArtifactKind> {
+export type DocumentHandler<T = ArtifactKind> = {
   kind: T;
   onCreateDocument: (args: CreateDocumentCallbackProps) => Promise<void>;
   onUpdateDocument: (args: UpdateDocumentCallbackProps) => Promise<void>;
-}
+};
 
 export function createDocumentHandler<T extends ArtifactKind>(config: {
   kind: T;
@@ -87,7 +87,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
 /*
  * Use this array to define the document handlers for each artifact kind.
  */
-export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
+export const documentHandlersByArtifactKind: DocumentHandler[] = [
   textDocumentHandler,
   codeDocumentHandler,
   sheetDocumentHandler,

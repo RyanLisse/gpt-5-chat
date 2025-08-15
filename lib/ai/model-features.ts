@@ -1,6 +1,6 @@
 import type { ImageModelId, ModelId } from '@/lib/ai/model-id';
 
-export interface ModelFeatures {
+export type ModelFeatures = {
   reasoning: boolean;
   functionCalling: boolean;
   knowledgeCutoff?: Date;
@@ -16,7 +16,7 @@ export interface ModelFeatures {
     audio: boolean;
   };
   fixedTemperature?: number;
-}
+};
 
 export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
   'anthropic/claude-3-opus': {

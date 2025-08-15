@@ -1,14 +1,14 @@
 'use client';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import type React from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-interface ImageModalProps {
+type ImageModalProps = {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
   imageName?: string;
-}
+};
 
 export function ImageModal({
   isOpen,
@@ -17,14 +17,14 @@ export function ImageModal({
   imageName,
 }: ImageModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog onOpenChange={onClose} open={isOpen}>
       <DialogContent>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={imageUrl}
           alt={imageName ?? 'Expanded image'}
-          className="max-w-full max-h-[90vh] object-contain rounded-lg"
+          className="max-h-[90vh] max-w-full rounded-lg object-contain"
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          src={imageUrl}
         />
       </DialogContent>
     </Dialog>

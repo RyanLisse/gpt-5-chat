@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-interface LinkMarkdownProps {
+type LinkMarkdownProps = {
   href: string;
   children: React.ReactNode;
   className?: string;
-}
+};
 
 export function LinkMarkdown({
   href,
@@ -18,10 +18,10 @@ export function LinkMarkdown({
   if (isExternal) {
     return (
       <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
         className={cn('text-blue-500 hover:underline', className)}
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
         {...props}
       >
         {children}
@@ -31,8 +31,8 @@ export function LinkMarkdown({
 
   return (
     <Link
-      href={href}
       className={cn('text-blue-500 hover:underline', className)}
+      href={href}
       {...props}
     >
       {children}

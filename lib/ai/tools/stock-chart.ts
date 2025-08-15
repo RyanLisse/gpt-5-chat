@@ -1,6 +1,6 @@
-import z from 'zod';
-import { tool } from 'ai';
 import CodeInterpreter from '@e2b/code-interpreter';
+import { tool } from 'ai';
+import z from 'zod';
 
 export const stockChart = tool({
   description: `Generate a line stock chart and fetch price data via Python (yfinance + matplotlib).
@@ -54,11 +54,6 @@ Avoid:
     stock_symbols: string[];
     interval: string;
   }) => {
-    console.log('Code:', code);
-    console.log('Title:', title);
-    console.log('Icon:', icon);
-    console.log('Stock symbols:', stock_symbols);
-    console.log('Interval:', interval);
     const sandbox = await CodeInterpreter.create(
       process.env.SANDBOX_TEMPLATE_ID as string,
     );
@@ -81,24 +76,17 @@ Avoid:
       }
       if (execution.logs.stderr.length > 0) {
         message += `${execution.logs.stderr.join('\n')}\n`;
-        console.log('Error: ', execution.logs.stderr);
       }
     }
 
     if (execution.error) {
       message += `Error: ${execution.error}\n`;
-      console.log('Error: ', execution.error);
     }
-
-    console.log('Chart details: ', execution.results[0].chart);
     if (execution.results[0].chart) {
-      execution.results[0].chart.elements.map((element: any) => {
-        console.log(element.points);
-      });
+      execution.results[0].chart.elements.map((_element: any) => {});
     }
 
     if (execution.results[0].chart === null) {
-      console.log('No chart found');
     }
 
     return {

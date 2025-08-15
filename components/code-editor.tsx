@@ -1,10 +1,10 @@
 'use client';
 
-import { EditorView } from '@codemirror/view';
-import { EditorState, Transaction } from '@codemirror/state';
-import { python } from '@codemirror/lang-python';
 import { javascript } from '@codemirror/lang-javascript';
+import { python } from '@codemirror/lang-python';
+import { EditorState, Transaction } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import React, { memo, useEffect, useRef } from 'react';
 import type { Suggestion } from '@/lib/db/schema';
@@ -15,7 +15,7 @@ type EditorProps = {
   status: 'streaming' | 'idle';
   isCurrentVersion: boolean;
   currentVersionIndex: number;
-  suggestions: Array<Suggestion>;
+  suggestions: Suggestion[];
   isReadonly?: boolean;
   language?: string;
 };
@@ -128,22 +128,34 @@ function PureCodeEditor({
 
   return (
     <div
-      className="relative not-prose w-full pb-[calc(80dvh)] text-sm"
+      className="not-prose relative w-full pb-[calc(80dvh)] text-sm"
       ref={containerRef}
     />
   );
 }
 
 function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
-  if (prevProps.suggestions !== nextProps.suggestions) return false;
-  if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex)
+  if (prevProps.suggestions !== nextProps.suggestions) {
     return false;
-  if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) return false;
-  if (prevProps.status === 'streaming' && nextProps.status === 'streaming')
+  }
+  if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
     return false;
-  if (prevProps.content !== nextProps.content) return false;
-  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-  if (prevProps.language !== nextProps.language) return false;
+  }
+  if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
+    return false;
+  }
+  if (prevProps.status === 'streaming' && nextProps.status === 'streaming') {
+    return false;
+  }
+  if (prevProps.content !== nextProps.content) {
+    return false;
+  }
+  if (prevProps.isReadonly !== nextProps.isReadonly) {
+    return false;
+  }
+  if (prevProps.language !== nextProps.language) {
+    return false;
+  }
 
   return true;
 }

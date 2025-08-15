@@ -1,27 +1,26 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
-import { ChatHeader } from '@/components/chat-header';
-import { cn, generateUUID, fetchWithErrorHandlers } from '@/lib/utils';
-import { Artifact } from './artifact';
-import { MultimodalInput } from './multimodal-input';
-import { Messages } from './messages';
-import { useArtifactSelector } from '@/hooks/use-artifact';
-import { toast } from 'sonner';
-import { useTRPC } from '@/trpc/react';
-import { useSession } from 'next-auth/react';
-
-import { useSidebar } from '@/components/ui/sidebar';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
-import { CloneChatButton } from '@/components/clone-chat-button';
-import type { ChatMessage } from '@/lib/ai/types';
-import { useDataStream } from './data-stream-provider';
-import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
-import { useEffect, useMemo } from 'react';
-import { DefaultChatTransport } from 'ai';
 import { useChat } from '@ai-sdk/react';
+import { useQuery } from '@tanstack/react-query';
+import { DefaultChatTransport } from 'ai';
+import { useSession } from 'next-auth/react';
+import { useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import { ChatHeader } from '@/components/chat-header';
+import { CloneChatButton } from '@/components/clone-chat-button';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
+import { useArtifactSelector } from '@/hooks/use-artifact';
+import { useAutoResume } from '@/hooks/use-auto-resume';
+import type { ChatMessage } from '@/lib/ai/types';
+import { chatState, chatStore, ZustandChat } from '@/lib/stores/chat-store';
+import { cn, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
+import { useTRPC } from '@/trpc/react';
+import { Artifact } from './artifact';
+import { useDataStream } from './data-stream-provider';
+import { Messages } from './messages';
+import { MultimodalInput } from './multimodal-input';
 
-function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
+function useRecreateChat(id: string, initialMessages: ChatMessage[]) {
   useEffect(() => {
     if (id !== chatStore.getState().id) {
       chatStore.getState().setNewChat(id, initialMessages || []);
@@ -35,7 +34,7 @@ export function Chat({
   isReadonly,
 }: {
   id: string;
-  initialMessages: Array<ChatMessage>;
+  initialMessages: ChatMessage[];
   isReadonly: boolean;
 }) {
   const trpc = useTRPC();
@@ -48,11 +47,10 @@ export function Chat({
   // If the id is different from the stored id, reset the chat with new messages
   useRecreateChat(id, initialMessages);
 
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
   const isLoading = id !== chatStore.getState().id;
 
   const chat = useMemo(() => {
-    console.log('renewing chat');
     return new ZustandChat<ChatMessage>({
       state: chatState,
 
@@ -61,7 +59,6 @@ export function Chat({
       // sendExtraMessageFields: true,
       generateId: generateUUID,
       onFinish: ({ message }) => {
-        console.log('onFinish message', message);
         saveChatMessage({
           message,
           chatId: id,
@@ -82,11 +79,9 @@ export function Chat({
         },
       }),
       onData: (dataPart) => {
-        console.log('onData', dataPart);
         setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       },
       onError: (error) => {
-        console.error(error);
         const cause = error.cause;
         if (cause && typeof cause === 'string') {
           toast.error(error.message ?? 'An error occured, please try again!', {
@@ -102,22 +97,23 @@ export function Chat({
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({
       // @ts-expect-error #private property required but not really
-      chat: chat,
+      chat,
       experimental_throttle: 100,
     });
-
-  console.log('messages', messages);
   // Auto-resume functionality
   useAutoResume({
     autoResume: true,
-    initialMessages: initialMessages,
+    initialMessages,
     resumeStream,
   });
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
     enabled:
-      messages.length >= 2 && !isReadonly && !!session?.user && !isLoading,
+      messages.length >= 2 &&
+      !isReadonly &&
+      Boolean(session?.user) &&
+      !isLoading,
   });
 
   const { state } = useSidebar();
@@ -127,48 +123,48 @@ export function Chat({
     <>
       <div
         className={cn(
-          '@container flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
+          '@container flex h-dvh min-w-0 max-w-screen flex-col bg-background md:max-w-[calc(100vw-var(--sidebar-width))]',
           state === 'collapsed' && 'md:max-w-screen',
         )}
       >
         <ChatHeader
           chatId={id}
-          isReadonly={isReadonly}
           hasMessages={messages.length > 0}
+          isReadonly={isReadonly}
           user={session?.user}
         />
 
         <Messages
-          votes={votes}
-          sendMessage={sendMessage}
-          regenerate={regenerate}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
+          regenerate={regenerate}
+          sendMessage={sendMessage}
+          votes={votes}
         />
 
-        {!isReadonly ? (
+        {isReadonly ? (
+          <CloneChatButton chatId={id} className="w-full" />
+        ) : (
           <MultimodalInput
             chatId={id}
+            parentMessageId={chatStore.getState().getLastMessageId()}
+            sendMessage={sendMessage}
             status={status}
             stop={stop}
-            sendMessage={sendMessage}
-            parentMessageId={chatStore.getState().getLastMessageId()}
           />
-        ) : (
-          <CloneChatButton chatId={id} className="w-full" />
         )}
       </div>
 
       <Artifact
         chatId={id}
-        sendMessage={sendMessage}
+        isAuthenticated={Boolean(session?.user)}
+        isReadonly={isReadonly}
+        messages={messages}
         regenerate={regenerate}
+        sendMessage={sendMessage}
         status={status}
         stop={stop}
-        messages={messages}
         votes={votes}
-        isReadonly={isReadonly}
-        isAuthenticated={!!session?.user}
       />
     </>
   );

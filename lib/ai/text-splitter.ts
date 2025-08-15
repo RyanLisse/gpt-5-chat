@@ -1,8 +1,8 @@
-interface TextSplitterParams {
+type TextSplitterParams = {
   chunkSize: number;
 
   chunkOverlap: number;
-}
+};
 
 abstract class TextSplitter implements TextSplitterParams {
   chunkSize = 1000;
@@ -48,10 +48,6 @@ abstract class TextSplitter implements TextSplitterParams {
       const _len = d.length;
       if (total + _len >= this.chunkSize) {
         if (total > this.chunkSize) {
-          console.warn(
-            `Created a chunk of size ${total}, +
-which is longer than the specified ${this.chunkSize}`,
-          );
         }
         if (currentDoc.length > 0) {
           const doc = this.joinDocs(currentDoc, separator);
@@ -108,7 +104,7 @@ export class RecursiveCharacterTextSplitter
     const finalChunks: string[] = [];
 
     // Get appropriate separator to use (prioritize larger separators first)
-    let separator: string = this.separators[this.separators.length - 1] ?? '';
+    let separator: string = this.separators.at(-1) ?? '';
     for (const s of this.separators) {
       if (s === '') {
         separator = s;
@@ -137,7 +133,9 @@ export class RecursiveCharacterTextSplitter
       for (let i = 0; i < splits.length; i++) {
         const cur = splits[i] ?? '';
         const nxt = splits[i + 1] ?? '';
-        if (cur === '') continue;
+        if (cur === '') {
+          continue;
+        }
         if (cur.endsWith('(') && nxt.endsWith(')')) {
           tokens.push(`${cur} ${nxt}`);
           i += 1; // skip next

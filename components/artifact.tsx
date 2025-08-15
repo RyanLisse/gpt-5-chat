@@ -1,33 +1,33 @@
+import type { UseChatHelpers } from '@ai-sdk/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { formatDistance } from 'date-fns';
+import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'motion/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
-import type { Document, Vote } from '@/lib/db/schema';
-import { MultimodalInput } from './multimodal-input';
-import { Toolbar } from './toolbar';
-import { VersionFooter } from './version-footer';
-import { ArtifactActions } from './artifact-actions';
-import { ArtifactCloseButton } from './artifact-close-button';
-import { ArtifactMessages } from './artifact-messages';
-import { useSidebar } from './ui/sidebar';
-import { ScrollArea } from './ui/scroll-area';
+import { CloneChatButton } from '@/components/clone-chat-button';
+import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useArtifact } from '@/hooks/use-artifact';
+import type { ChatMessage } from '@/lib/ai/types';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import { codeArtifact } from '@/lib/artifacts/code/client';
 import { sheetArtifact } from '@/lib/artifacts/sheet/client';
 import { textArtifact } from '@/lib/artifacts/text/client';
-import equal from 'fast-deep-equal';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ChatMessage } from '@/lib/ai/types';
-import { useQueryClient } from '@tanstack/react-query';
-import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
-import { CloneChatButton } from '@/components/clone-chat-button';
-import { useTRPC } from '@/trpc/react';
+import type { Document, Vote } from '@/lib/db/schema';
 import { chatStore } from '@/lib/stores/chat-store';
-import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
+import { useTRPC } from '@/trpc/react';
+import { ArtifactActions } from './artifact-actions';
+import { ArtifactCloseButton } from './artifact-close-button';
+import { ArtifactMessages } from './artifact-messages';
+import { MultimodalInput } from './multimodal-input';
+import { Toolbar } from './toolbar';
+import { ScrollArea } from './ui/scroll-area';
+import { useSidebar } from './ui/sidebar';
+import { VersionFooter } from './version-footer';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
 
-export interface UIArtifact {
+export type UIArtifact = {
   title: string;
   documentId: string;
   kind: ArtifactKind;
@@ -41,7 +41,7 @@ export interface UIArtifact {
     width: number;
     height: number;
   };
-}
+};
 
 function PureArtifact({
   chatId,
@@ -55,8 +55,8 @@ function PureArtifact({
   isAuthenticated,
 }: {
   chatId: string;
-  messages: Array<ChatMessage>;
-  votes: Array<Vote> | undefined;
+  messages: ChatMessage[];
+  votes: Vote[] | undefined;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   regenerate: UseChatHelpers<ChatMessage>['regenerate'];
   status: UseChatHelpers<ChatMessage>['status'];
@@ -124,10 +124,14 @@ function PureArtifact({
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!documents) return;
+      if (!documents) {
+        return;
+      }
 
       const lastDocument = documents.at(-1);
-      if (!lastDocument) return;
+      if (!lastDocument) {
+        return;
+      }
 
       if (
         lastDocument?.content !== updatedContent &&
@@ -172,13 +176,19 @@ function PureArtifact({
   );
 
   function getDocumentContentById(index: number) {
-    if (!documents) return '';
-    if (!documents[index]) return '';
+    if (!documents) {
+      return '';
+    }
+    if (!documents[index]) {
+      return '';
+    }
     return documents[index].content ?? '';
   }
 
   const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) return;
+    if (!documents) {
+      return;
+    }
 
     if (type === 'latest') {
       setCurrentVersionIndex(documents.length - 1);
@@ -193,10 +203,8 @@ function PureArtifact({
       if (currentVersionIndex > 0) {
         setCurrentVersionIndex((index) => index - 1);
       }
-    } else if (type === 'next') {
-      if (currentVersionIndex < documents.length - 1) {
-        setCurrentVersionIndex((index) => index + 1);
-      }
+    } else if (type === 'next' && currentVersionIndex < documents.length - 1) {
+      setCurrentVersionIndex((index) => index + 1);
     }
   };
 
@@ -225,16 +233,18 @@ function PureArtifact({
   }
 
   useEffect(() => {
-    if (artifact.documentId !== 'init' && artifact.status !== 'streaming') {
-      if (artifactDefinition.initialize) {
-        artifactDefinition.initialize({
-          documentId: artifact.documentId,
-          setMetadata,
-          trpc,
-          queryClient,
-          isAuthenticated,
-        });
-      }
+    if (
+      artifact.documentId !== 'init' &&
+      artifact.status !== 'streaming' &&
+      artifactDefinition.initialize
+    ) {
+      artifactDefinition.initialize({
+        documentId: artifact.documentId,
+        setMetadata,
+        trpc,
+        queryClient,
+        isAuthenticated,
+      });
     }
   }, [
     artifact.documentId,
@@ -250,21 +260,21 @@ function PureArtifact({
     <AnimatePresence>
       {artifact.isVisible && (
         <motion.div
-          data-testid="artifact"
-          className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-transparent"
-          initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
+          className="fixed top-0 left-0 z-50 flex h-dvh w-dvw flex-row bg-transparent"
+          data-testid="artifact"
           exit={{ opacity: 0, transition: { delay: 0.4 } }}
+          initial={{ opacity: 1 }}
         >
           {!isMobile && (
             <motion.div
-              className="fixed bg-background h-dvh"
-              initial={{
+              animate={{ width: windowWidth, right: 0 }}
+              className="fixed h-dvh bg-background"
+              exit={{
                 width: isSidebarOpen ? windowWidth - 256 : windowWidth,
                 right: 0,
               }}
-              animate={{ width: windowWidth, right: 0 }}
-              exit={{
+              initial={{
                 width: isSidebarOpen ? windowWidth - 256 : windowWidth,
                 right: 0,
               }}
@@ -273,8 +283,6 @@ function PureArtifact({
 
           {!isMobile && (
             <motion.div
-              className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
-              initial={{ opacity: 0, x: 10, scale: 1 }}
               animate={{
                 opacity: 1,
                 x: 0,
@@ -286,72 +294,54 @@ function PureArtifact({
                   damping: 30,
                 },
               }}
+              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
               exit={{
                 opacity: 0,
                 x: 0,
                 scale: 1,
                 transition: { duration: 0 },
               }}
+              initial={{ opacity: 0, x: 10, scale: 1 }}
             >
               <AnimatePresence>
                 {!isCurrentVersion && (
                   <motion.div
-                    className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
-                    initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
+                    className="absolute top-0 left-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
                     exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }}
                   />
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center @container">
+              <div className="@container flex h-full flex-col items-center justify-between">
                 <ArtifactMessages
-                  votes={votes}
-                  sendMessage={sendMessage}
-                  regenerate={regenerate}
+                  artifactStatus={artifact.status}
                   isReadonly={isReadonly}
                   isVisible={true}
-                  artifactStatus={artifact.status}
+                  regenerate={regenerate}
+                  sendMessage={sendMessage}
+                  votes={votes}
                 />
 
-                {!isReadonly ? (
+                {isReadonly ? (
+                  <CloneChatButton chatId={chatId} />
+                ) : (
                   <MultimodalInput
                     chatId={chatId}
-                    status={status}
-                    stop={stop}
-                    sendMessage={sendMessage}
                     className=""
                     isEditMode={isReadonly}
                     parentMessageId={chatStore.getState().getLastMessageId()}
+                    sendMessage={sendMessage}
+                    status={status}
+                    stop={stop}
                   />
-                ) : (
-                  <CloneChatButton chatId={chatId} />
                 )}
               </div>
             </motion.div>
           )}
 
           <motion.div
-            className="fixed bg-background h-dvh flex flex-col overflow-y-auto md:border-l dark:border-zinc-700 border-zinc-200"
-            initial={
-              isMobile
-                ? {
-                    opacity: 1,
-                    x: artifact.boundingBox.left,
-                    y: artifact.boundingBox.top,
-                    height: artifact.boundingBox.height,
-                    width: artifact.boundingBox.width,
-                    borderRadius: 50,
-                  }
-                : {
-                    opacity: 1,
-                    x: artifact.boundingBox.left,
-                    y: artifact.boundingBox.top,
-                    height: artifact.boundingBox.height,
-                    width: artifact.boundingBox.width,
-                    borderRadius: 50,
-                  }
-            }
             animate={
               isMobile
                 ? {
@@ -387,6 +377,7 @@ function PureArtifact({
                     },
                   }
             }
+            className="fixed flex h-dvh flex-col overflow-y-auto border-zinc-200 bg-background md:border-l dark:border-zinc-700"
             exit={{
               opacity: 0,
               scale: 0.5,
@@ -397,20 +388,39 @@ function PureArtifact({
                 damping: 30,
               },
             }}
+            initial={
+              isMobile
+                ? {
+                    opacity: 1,
+                    x: artifact.boundingBox.left,
+                    y: artifact.boundingBox.top,
+                    height: artifact.boundingBox.height,
+                    width: artifact.boundingBox.width,
+                    borderRadius: 50,
+                  }
+                : {
+                    opacity: 1,
+                    x: artifact.boundingBox.left,
+                    y: artifact.boundingBox.top,
+                    height: artifact.boundingBox.height,
+                    width: artifact.boundingBox.width,
+                    borderRadius: 50,
+                  }
+            }
           >
-            <div className="p-2 flex flex-row justify-between items-start bg-background/80">
-              <div className="flex flex-row gap-4 items-start">
+            <div className="flex flex-row items-start justify-between bg-background/80 p-2">
+              <div className="flex flex-row items-start gap-4">
                 <ArtifactCloseButton />
 
                 <div className="flex flex-col">
                   <div className="font-medium">{artifact.title}</div>
 
                   {isContentDirty ? (
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-muted-foreground text-sm">
                       Saving changes...
                     </div>
                   ) : document ? (
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-muted-foreground text-sm">
                       {`Updated ${formatDistance(
                         new Date(document.createdAt),
                         new Date(),
@@ -420,7 +430,7 @@ function PureArtifact({
                       )}`}
                     </div>
                   ) : (
-                    <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                    <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
                   )}
                 </div>
               </div>
@@ -430,45 +440,45 @@ function PureArtifact({
                 currentVersionIndex={currentVersionIndex}
                 handleVersionChange={handleVersionChange}
                 isCurrentVersion={isCurrentVersion}
-                mode={mode}
-                metadata={metadata}
-                setMetadata={setMetadata}
                 isReadonly={isReadonly}
+                metadata={metadata}
+                mode={mode}
+                setMetadata={setMetadata}
               />
             </div>
 
-            <ScrollArea className="h-full !max-w-full">
+            <ScrollArea className="!max-w-full h-full">
               <div className="flex flex-col items-center bg-background/80">
                 <artifactDefinition.content
-                  title={artifact.title}
                   content={
                     isCurrentVersion
                       ? artifact.content
                       : getDocumentContentById(currentVersionIndex)
                   }
-                  mode={mode}
-                  status={artifact.status}
                   currentVersionIndex={currentVersionIndex}
-                  suggestions={[]}
-                  onSaveContent={saveContent}
-                  isInline={false}
-                  isCurrentVersion={isCurrentVersion}
                   getDocumentContentById={getDocumentContentById}
+                  isCurrentVersion={isCurrentVersion}
+                  isInline={false}
                   isLoading={isDocumentsFetching && !artifact.content}
-                  metadata={metadata}
-                  setMetadata={setMetadata}
                   isReadonly={isReadonly}
+                  metadata={metadata}
+                  mode={mode}
+                  onSaveContent={saveContent}
+                  setMetadata={setMetadata}
+                  status={artifact.status}
+                  suggestions={[]}
+                  title={artifact.title}
                 />
 
                 <AnimatePresence>
                   {isCurrentVersion && !isReadonly && (
                     <Toolbar
+                      artifactKind={artifact.kind}
                       isToolbarVisible={isToolbarVisible}
-                      setIsToolbarVisible={setIsToolbarVisible}
                       sendMessage={sendMessage}
+                      setIsToolbarVisible={setIsToolbarVisible}
                       status={status}
                       stop={stop}
-                      artifactKind={artifact.kind}
                     />
                   )}
                 </AnimatePresence>
@@ -476,7 +486,7 @@ function PureArtifact({
             </ScrollArea>
 
             <AnimatePresence>
-              {!isCurrentVersion && !isReadonly && (
+              {!(isCurrentVersion || isReadonly) && (
                 <VersionFooter
                   currentVersionIndex={currentVersionIndex}
                   documents={documents}
@@ -492,14 +502,30 @@ function PureArtifact({
 }
 
 export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
-  if (prevProps.regenerate !== nextProps.regenerate) return false;
-  if (prevProps.status !== nextProps.status) return false;
-  if (prevProps.stop !== nextProps.stop) return false;
-  if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (!equal(prevProps.messages, nextProps.messages.length)) return false;
-  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-  if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
+  if (prevProps.sendMessage !== nextProps.sendMessage) {
+    return false;
+  }
+  if (prevProps.regenerate !== nextProps.regenerate) {
+    return false;
+  }
+  if (prevProps.status !== nextProps.status) {
+    return false;
+  }
+  if (prevProps.stop !== nextProps.stop) {
+    return false;
+  }
+  if (!equal(prevProps.votes, nextProps.votes)) {
+    return false;
+  }
+  if (!equal(prevProps.messages, nextProps.messages.length)) {
+    return false;
+  }
+  if (prevProps.isReadonly !== nextProps.isReadonly) {
+    return false;
+  }
+  if (prevProps.isAuthenticated !== nextProps.isAuthenticated) {
+    return false;
+  }
 
   return true;
 });

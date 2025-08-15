@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ResponsesAPIClient } from '@/lib/ai/responses/client';
 import { parseFileSearchCitations } from '@/lib/ai/responses/file-search';
 import type { ResponseRequest } from '@/lib/ai/responses/types';
@@ -9,7 +9,10 @@ describe('file_search mapping and parsing', () => {
       model: 'gpt-4o',
       input: 'Find details',
       tools: [
-        { type: 'file_search', config: { vectorStoreIds: ['vs_123'], maxResults: 3 } },
+        {
+          type: 'file_search',
+          config: { vectorStoreIds: ['vs_123'], maxResults: 3 },
+        },
       ],
       store: true,
     };

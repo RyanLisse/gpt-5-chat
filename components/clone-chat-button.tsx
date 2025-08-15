@@ -1,15 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { useCloneChat } from '@/hooks/chat-sync-hooks';
-import { Loader2, Copy } from 'lucide-react';
+import { Copy, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { useCloneChat } from '@/hooks/chat-sync-hooks';
 
-interface CloneChatButtonProps {
+type CloneChatButtonProps = {
   chatId: string;
   className?: string;
-}
+};
 
 export function CloneChatButton({ chatId, className }: CloneChatButtonProps) {
   const router = useRouter();
@@ -23,30 +23,29 @@ export function CloneChatButton({ chatId, className }: CloneChatButtonProps) {
 
       router.push(`/chat/${result.chatId}`);
       toast.success('Chat saved to your chats!');
-    } catch (error) {
-      console.error('Failed to clone chat:', error);
+    } catch (_error) {
       toast.error('Failed to save chat. Please try again.');
     }
   };
 
   return (
-    <div className="flex justify-center  py-10 px-4 items-center m-auto">
+    <div className="m-auto flex items-center justify-center px-4 py-10">
       <Button
-        type="button"
-        onClick={handleCloneChat}
-        disabled={copyChat.isPending}
-        variant="default"
-        size="sm"
         className={className}
+        disabled={copyChat.isPending}
+        onClick={handleCloneChat}
+        size="sm"
+        type="button"
+        variant="default"
       >
         {copyChat.isPending ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Saving...
           </>
         ) : (
           <>
-            <Copy className="w-4 h-4 mr-2" />
+            <Copy className="mr-2 h-4 w-4" />
             Save to your chats
           </>
         )}

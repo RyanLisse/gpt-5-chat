@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { legacyChatModels } from '@/lib/ai/legacy-models';
 import { expect, type Page } from '@playwright/test';
+import { legacyChatModels } from '@/lib/ai/legacy-models';
 
 export class ChatPage {
-  constructor(private page: Page) {}
+  constructor(private readonly page: Page) {}
 
   public get sendButton() {
     return this.page.getByTestId('send-button');
@@ -111,7 +111,7 @@ export class ChatPage {
     const messageElements = await this.page
       .getByTestId('message-assistant')
       .all();
-    const lastMessageElement = messageElements[messageElements.length - 1];
+    const lastMessageElement = messageElements.at(-1);
 
     const content = await lastMessageElement
       .getByTestId('message-content')
@@ -150,7 +150,7 @@ export class ChatPage {
 
   async getRecentUserMessage() {
     const messageElements = await this.page.getByTestId('message-user').all();
-    const lastMessageElement = messageElements[messageElements.length - 1];
+    const lastMessageElement = messageElements.at(-1);
 
     const content = await lastMessageElement.innerText();
 

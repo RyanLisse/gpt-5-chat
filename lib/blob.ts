@@ -1,9 +1,9 @@
 import {
-  put,
-  list,
   del,
-  type PutBlobResult,
   type ListBlobResult,
+  list,
+  type PutBlobResult,
+  put,
 } from '@vercel/blob';
 import { BLOB_FILE_PREFIX } from './constants';
 
@@ -60,7 +60,7 @@ export async function deleteFilesByUrls(urls: string[]): Promise<void> {
 export function extractFilenameFromUrl(url: string): string | null {
   try {
     const parts = url.split('/');
-    const lastPart = parts[parts.length - 1];
+    const lastPart = parts.at(-1);
 
     // Remove query parameters if any
     const filename = lastPart.split('?')[0];

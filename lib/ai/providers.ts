@@ -1,14 +1,13 @@
-import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
-
-import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import type { AnthropicProviderOptions } from '@ai-sdk/anthropic';
-import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
-import { getImageModelDefinition, getModelDefinition } from './all-models';
 import { gateway } from '@ai-sdk/gateway';
-import type { ImageModelId, ModelId } from './model-id';
+import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
+import { type OpenAIResponsesProviderOptions, openai } from '@ai-sdk/openai';
+import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import { getModelAndProvider } from '../../providers/utils';
+import { getImageModelDefinition, getModelDefinition } from './all-models';
+import type { ImageModelId, ModelId } from './model-id';
 
-const telemetryConfig = {
+const _telemetryConfig = {
   telemetry: {
     isEnabled: true,
     functionId: 'get-language-model',
@@ -21,7 +20,6 @@ export const getLanguageModel = (modelId: ModelId) => {
 
   // Wrap with reasoning middleware if the model supports reasoning
   if (model.features?.reasoning && model.owned_by === 'xai') {
-    console.log('Wrapping reasoning middleware for', model.id);
     return wrapLanguageModel({
       model: languageProvider,
       middleware: extractReasoningMiddleware({ tagName: 'think' }),
@@ -41,7 +39,7 @@ export const getImageModel = (modelId: ImageModelId) => {
   throw new Error(`Provider ${model.owned_by} not supported`);
 };
 
-const MODEL_ALIASES = {
+const _MODEL_ALIASES = {
   'chat-model': getLanguageModel('openai/gpt-4o-mini'),
   'title-model': getLanguageModel('openai/gpt-4o-mini'),
   'artifact-model': getLanguageModel('openai/gpt-4o-mini'),
@@ -102,7 +100,7 @@ export const getModelProviderOptions = (
       return {
         google: {
           thinkingConfig: {
-            thinkingBudget: 10000,
+            thinkingBudget: 10_000,
           },
         },
       };

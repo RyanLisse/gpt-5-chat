@@ -1,20 +1,20 @@
 import 'server-only';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 
-interface RateLimitResult {
+type RateLimitResult = {
   success: boolean;
   remaining: number;
   resetTime: number;
   error?: string;
-}
+};
 
-interface RateLimitOptions {
+type RateLimitOptions = {
   identifier: string;
   limit: number;
   windowSize: number;
   redisClient: any;
   keyPrefix: string;
-}
+};
 
 async function checkRateLimit({
   identifier,
@@ -65,8 +65,7 @@ async function checkRateLimit({
       remaining: Math.max(0, limit - newCount),
       resetTime,
     };
-  } catch (error) {
-    console.error('Rate limit check failed:', error);
+  } catch (_error) {
     // Fail open - allow request if Redis is down
     return {
       success: true,

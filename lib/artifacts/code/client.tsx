@@ -1,5 +1,11 @@
-import { Artifact } from '@/components/create-artifact';
+import { toast } from 'sonner';
 import { CodeEditor } from '@/components/code-editor';
+import {
+  Console,
+  type ConsoleOutput,
+  type ConsoleOutputContent,
+} from '@/components/console';
+import { Artifact } from '@/components/create-artifact';
 import {
   CopyIcon,
   LogsIcon,
@@ -8,15 +14,9 @@ import {
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
-import { toast } from 'sonner';
-import { generateUUID, getLanguageFromFileName } from '@/lib/utils';
-import {
-  Console,
-  type ConsoleOutput,
-  type ConsoleOutputContent,
-} from '@/components/console';
-import { chatStore } from '@/lib/stores/chat-store';
 import { DEFAULT_CODE_EDITS_MODEL } from '@/lib/ai/all-models';
+import { chatStore } from '@/lib/stores/chat-store';
+import { generateUUID, getLanguageFromFileName } from '@/lib/utils';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -64,10 +64,10 @@ function detectRequiredHandlers(code: string): string[] {
   return handlers;
 }
 
-interface Metadata {
-  outputs: Array<ConsoleOutput>;
+type Metadata = {
+  outputs: ConsoleOutput[];
   language: string;
-}
+};
 
 export const codeArtifact = new Artifact<'code', Metadata>({
   kind: 'code',
@@ -106,12 +106,12 @@ export const codeArtifact = new Artifact<'code', Metadata>({
 
     return (
       <>
-        <div className="px-1 w-full">
+        <div className="w-full px-1">
           <CodeEditor
             {...props}
             content={content}
-            language={language}
             isReadonly={isReadonly}
+            language={language}
           />
         </div>
 
@@ -136,7 +136,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       description: 'Execute code',
       onClick: async ({ content, setMetadata, metadata }) => {
         const runId = generateUUID();
-        const outputContent: Array<ConsoleOutputContent> = [];
+        const outputContent: ConsoleOutputContent[] = [];
 
         setMetadata((metadata) => ({
           ...metadata,
@@ -227,7 +227,9 @@ export const codeArtifact = new Artifact<'code', Metadata>({
         }
       },
       isDisabled: ({ isReadonly, content, metadata }) => {
-        if (isReadonly) return true;
+        if (isReadonly) {
+          return true;
+        }
         const language = metadata?.language || 'python';
         return language !== 'python';
       },

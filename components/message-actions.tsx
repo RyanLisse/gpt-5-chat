@@ -1,8 +1,18 @@
+import type { UseChatHelpers } from '@ai-sdk/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import equal from 'fast-deep-equal';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { memo } from 'react';
+import { toast } from 'sonner';
 import { useCopyToClipboard } from 'usehooks-ts';
-
+import type { ChatMessage } from '@/lib/ai/types';
 import type { Vote } from '@/lib/db/schema';
-
+import { chatStore } from '@/lib/stores/chat-store';
+import { useMessageTree } from '@/providers/message-tree-provider';
+import { useTRPC } from '@/trpc/react';
 import { CopyIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { RetryButton } from './retry-button';
 import { Button } from './ui/button';
 import {
   Tooltip,
@@ -10,18 +20,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { toast } from 'sonner';
-import { useTRPC } from '@/trpc/react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMessageTree } from '@/providers/message-tree-provider';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import { RetryButton } from './retry-button';
-import { memo } from 'react';
-import equal from 'fast-deep-equal';
-import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
 
 export function PureMessageActions({
   chatId,
@@ -46,7 +44,7 @@ export function PureMessageActions({
   const { data: session } = useSession();
   const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
 
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
 
   const voteMessageMutation = useMutation(
     trpc.vote.voteMessage.mutationOptions({
@@ -62,7 +60,9 @@ export function PureMessageActions({
   const siblingInfo = getMessageSiblingInfo(messageId);
   const hasSiblings = siblingInfo && siblingInfo.siblings.length > 1;
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -70,14 +70,14 @@ export function PureMessageActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+              className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               onClick={async () => {
                 const message = chatStore
                   .getState()
                   .messages.find((m) => m.id === messageId);
-                if (!message) return;
+                if (!message) {
+                  return;
+                }
 
                 const textFromParts = message.parts
                   ?.filter((part) => part.type === 'text')
@@ -93,6 +93,8 @@ export function PureMessageActions({
                 await copyToClipboard(textFromParts);
                 toast.success('Copied to clipboard!');
               }}
+              size="sm"
+              variant="ghost"
             >
               <CopyIcon size={14} />
             </Button>
@@ -101,15 +103,15 @@ export function PureMessageActions({
         </Tooltip>
 
         {hasSiblings && (
-          <div className="flex gap-1 items-center justify-center">
+          <div className="flex items-center justify-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
-                  onClick={() => navigateToSibling(messageId, 'prev')}
+                  className="h-7 w-7 px-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   disabled={siblingInfo.siblingIndex === 0}
+                  onClick={() => navigateToSibling(messageId, 'prev')}
+                  size="sm"
+                  variant="ghost"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
@@ -124,13 +126,13 @@ export function PureMessageActions({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
-                  onClick={() => navigateToSibling(messageId, 'next')}
+                  className="h-7 w-7 px-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   disabled={
                     siblingInfo.siblingIndex === siblingInfo.siblings.length - 1
                   }
+                  onClick={() => navigateToSibling(messageId, 'next')}
+                  size="sm"
+                  variant="ghost"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
@@ -145,16 +147,14 @@ export function PureMessageActions({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  className="!pointer-events-auto h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   data-testid="message-upvote"
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
                   disabled={vote?.isUpvoted || !isAuthenticated}
                   onClick={() => {
                     toast.promise(
                       voteMessageMutation.mutateAsync({
                         chatId,
-                        messageId: messageId,
+                        messageId,
                         type: 'up' as const,
                       }),
                       {
@@ -164,6 +164,8 @@ export function PureMessageActions({
                       },
                     );
                   }}
+                  size="sm"
+                  variant="ghost"
                 >
                   <ThumbUpIcon size={14} />
                 </Button>
@@ -174,16 +176,14 @@ export function PureMessageActions({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  className="!pointer-events-auto h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   data-testid="message-downvote"
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
                   disabled={(vote && !vote.isUpvoted) || !session?.user}
                   onClick={() => {
                     toast.promise(
                       voteMessageMutation.mutateAsync({
                         chatId,
-                        messageId: messageId,
+                        messageId,
                         type: 'down' as const,
                       }),
                       {
@@ -193,6 +193,8 @@ export function PureMessageActions({
                       },
                     );
                   }}
+                  size="sm"
+                  variant="ghost"
                 >
                   <ThumbDownIcon size={14} />
                 </Button>
@@ -216,8 +218,8 @@ export function PureMessageActions({
                 .messages.find((m) => m.id === messageId);
               return (
                 message?.metadata?.selectedModel && (
-                  <div className="flex items-center ml-2">
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                  <div className="ml-2 flex items-center">
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground text-xs">
                       {message.metadata.selectedModel}
                     </span>
                   </div>
@@ -234,13 +236,27 @@ export function PureMessageActions({
 export const MessageActions = memo(
   PureMessageActions,
   (prevProps, nextProps) => {
-    if (!equal(prevProps.vote, nextProps.vote)) return false;
-    if (prevProps.chatId !== nextProps.chatId) return false;
-    if (prevProps.messageId !== nextProps.messageId) return false;
-    if (prevProps.role !== nextProps.role) return false;
-    if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
-    if (prevProps.sendMessage !== nextProps.sendMessage) return false;
+    if (!equal(prevProps.vote, nextProps.vote)) {
+      return false;
+    }
+    if (prevProps.chatId !== nextProps.chatId) {
+      return false;
+    }
+    if (prevProps.messageId !== nextProps.messageId) {
+      return false;
+    }
+    if (prevProps.role !== nextProps.role) {
+      return false;
+    }
+    if (prevProps.isLoading !== nextProps.isLoading) {
+      return false;
+    }
+    if (prevProps.isReadOnly !== nextProps.isReadOnly) {
+      return false;
+    }
+    if (prevProps.sendMessage !== nextProps.sendMessage) {
+      return false;
+    }
 
     return true;
   },

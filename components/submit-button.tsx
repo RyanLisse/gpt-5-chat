@@ -17,15 +17,15 @@ export function SubmitButton({
 
   return (
     <Button
-      type={pending ? 'button' : 'submit'}
       aria-disabled={pending || isSuccessful}
-      disabled={pending || isSuccessful}
       className="relative"
+      disabled={pending || isSuccessful}
+      type={pending ? 'button' : 'submit'}
     >
       {children}
 
       {(pending || isSuccessful) && (
-        <span className="animate-spin absolute right-4">
+        <span className="absolute right-4 animate-spin">
           <LoaderIcon />
         </span>
       )}

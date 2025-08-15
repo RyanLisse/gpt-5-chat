@@ -1,7 +1,7 @@
 import type { ImageModelId } from '@/lib/ai/model-id';
 import type { ProviderId } from './models-generated';
 
-export interface ImageModelData {
+export type ImageModelData = {
   id: ImageModelId;
   object: string;
   owned_by: ProviderId;
@@ -13,7 +13,7 @@ export interface ImageModelData {
     input: string; // Input price per token
     output: string; // Output price per token
   };
-}
+};
 
 // Define the data with proper typing
 export const imageModelsData: ImageModelData[] = [

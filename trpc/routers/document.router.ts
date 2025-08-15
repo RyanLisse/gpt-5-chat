@@ -1,18 +1,18 @@
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from '@/trpc/init';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import {
   getDocumentById,
   getDocumentsById,
   getPublicDocumentsById,
-  saveDocument,
   getSuggestionsByDocumentId,
+  saveDocument,
 } from '@/lib/db/queries';
-import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
-import { TRPCError } from '@trpc/server';
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from '@/trpc/init';
 
 export const documentRouter = createTRPCRouter({
   getDocuments: protectedProcedure
@@ -86,7 +86,7 @@ export const documentRouter = createTRPCRouter({
         throw new Error('Document not found');
       }
 
-      const document = await saveDocument({
+      const _document = await saveDocument({
         id: input.id,
         content: input.content,
         title: input.title,

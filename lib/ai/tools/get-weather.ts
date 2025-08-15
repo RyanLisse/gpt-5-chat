@@ -10,7 +10,10 @@ export const getWeather = tool({
   execute: async ({
     latitude,
     longitude,
-  }: { latitude: number; longitude: number }) => {
+  }: {
+    latitude: number;
+    longitude: number;
+  }) => {
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
     );
@@ -20,7 +23,7 @@ export const getWeather = tool({
   },
 });
 
-export interface WeatherAtLocation {
+export type WeatherAtLocation = {
   latitude: number;
   longitude: number;
   generationtime_ms: number;
@@ -56,4 +59,4 @@ export interface WeatherAtLocation {
     sunrise: string[];
     sunset: string[];
   };
-}
+};

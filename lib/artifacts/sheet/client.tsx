@@ -1,3 +1,5 @@
+import { parse, unparse } from 'papaparse';
+import { toast } from 'sonner';
 import { Artifact } from '@/components/create-artifact';
 import {
   CopyIcon,
@@ -11,8 +13,6 @@ import {
   DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL,
   DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL,
 } from '@/lib/ai/all-models';
-import { parse, unparse } from 'papaparse';
-import { toast } from 'sonner';
 import { chatStore } from '@/lib/stores/chat-store';
 
 type Metadata = any;
@@ -44,9 +44,9 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
         content={content}
         currentVersionIndex={currentVersionIndex}
         isCurrentVersion={isCurrentVersion}
+        isReadonly={isReadonly}
         saveContent={onSaveContent}
         status={status}
-        isReadonly={isReadonly}
       />
     );
   },

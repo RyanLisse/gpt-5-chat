@@ -32,19 +32,27 @@ export type ConversationState = {
 };
 
 // AGENT 2: Interface Definitions for London School TDD
-export interface IPersistenceProvider {
-  saveConversation(conversationId: string, state: ConversationState): Promise<void>;
+export type IPersistenceProvider = {
+  saveConversation(
+    conversationId: string,
+    state: ConversationState,
+  ): Promise<void>;
   getConversation(conversationId: string): Promise<ConversationState | null>;
   deleteConversation(conversationId: string): Promise<void>;
   cleanupExpiredConversations(olderThanHours: number): Promise<number>;
-}
+};
 
-export interface IContextManager {
-  optimizeContext(metadata: ContextOptimizationInput): Promise<ContextOptimizationResult>;
-  truncateContext(conversationId: string, maxTokens: number): Promise<ContextTruncationResult>;
+export type IContextManager = {
+  optimizeContext(
+    metadata: ContextOptimizationInput,
+  ): Promise<ContextOptimizationResult>;
+  truncateContext(
+    conversationId: string,
+    maxTokens: number,
+  ): Promise<ContextTruncationResult>;
   calculateRelevanceScore(conversationId: string): Promise<number>;
   summarizeContext(conversationId: string): Promise<string>;
-}
+};
 
 export type ContextOptimizationInput = {
   conversationId?: string;

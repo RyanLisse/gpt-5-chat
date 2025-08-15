@@ -1,13 +1,13 @@
 'use client';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { notFound } from 'next/navigation';
+import { memo, useMemo } from 'react';
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
-import { getDefaultThread } from '@/lib/thread-utils';
-import { useMemo, memo } from 'react';
-import { notFound } from 'next/navigation';
-import { ChatInputProvider } from '@/providers/chat-input-provider';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useTRPC } from '@/trpc/react';
 import type { UiToolName } from '@/lib/ai/types';
+import { getDefaultThread } from '@/lib/thread-utils';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
+import { useTRPC } from '@/trpc/react';
 
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   id,
@@ -21,12 +21,12 @@ const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   initialTool: UiToolName | null;
 }) {
   return (
-    <ChatInputProvider localStorageEnabled={true} initialTool={initialTool}>
+    <ChatInputProvider initialTool={initialTool} localStorageEnabled={true}>
       <Chat
-        key={id}
         id={id}
         initialMessages={initialMessages}
         isReadonly={isReadonly}
+        key={id}
       />
       <DataStreamHandler id={id} />
     </ChatInputProvider>
@@ -44,7 +44,9 @@ export function ChatPage({ id }: { id: string }) {
   );
 
   const initialThreadMessages = useMemo(() => {
-    if (!messages) return [];
+    if (!messages) {
+      return [];
+    }
     return getDefaultThread(
       messages.map((msg) => ({ ...msg, id: msg.id.toString() })),
     );
@@ -61,13 +63,11 @@ export function ChatPage({ id }: { id: string }) {
   }
 
   return (
-    <>
-      <MemoizedChatWrapper
-        id={chat.id}
-        initialMessages={initialThreadMessages}
-        isReadonly={false}
-        initialTool={initialTool}
-      />
-    </>
+    <MemoizedChatWrapper
+      id={chat.id}
+      initialMessages={initialThreadMessages}
+      initialTool={initialTool}
+      isReadonly={false}
+    />
   );
 }

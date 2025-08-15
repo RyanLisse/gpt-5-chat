@@ -1,15 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { DataUIPart } from 'ai';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import type { CustomUIDataTypes } from '@/lib/ai/types';
 
-interface DataStreamContextValue {
+type DataStreamContextValue = {
   dataStream: DataUIPart<CustomUIDataTypes>[];
   setDataStream: React.Dispatch<
     React.SetStateAction<DataUIPart<CustomUIDataTypes>[]>
   >;
-}
+};
 
 const DataStreamContext = createContext<DataStreamContextValue | null>(null);
 

@@ -1,8 +1,8 @@
 'use client';
 
+import { Coins, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { LogIn, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGetCredits } from '@/hooks/chat-sync-hooks';
 
@@ -10,11 +10,11 @@ export function SidebarCredits() {
   const { credits, isLoadingCredits } = useGetCredits();
   const { data: session } = useSession();
   const router = useRouter();
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
 
   if (isLoadingCredits) {
     return (
-      <div className="px-4 py-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+      <div className="rounded-lg bg-muted/50 px-4 py-3 text-muted-foreground text-sm">
         Loading credits...
       </div>
     );
@@ -24,7 +24,7 @@ export function SidebarCredits() {
 
   return (
     <div className="space-y-3">
-      <div className="px-4 py-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+      <div className="rounded-lg bg-muted/50 px-4 py-3 text-muted-foreground text-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4" />
@@ -36,12 +36,12 @@ export function SidebarCredits() {
 
       {!isAuthenticated && (
         <Button
-          variant="outline"
           className="w-full justify-start gap-2"
           onClick={() => {
             router.push('/login');
             router.refresh();
           }}
+          variant="outline"
         >
           <LogIn className="h-4 w-4" />
           Sign in to reset your limits

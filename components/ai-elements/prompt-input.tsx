@@ -1,5 +1,6 @@
 'use client';
 
+import type { ChatStatus } from 'ai';
 import { Loader2Icon, SendIcon, SquareIcon, XIcon } from 'lucide-react';
 import type {
   ComponentProps,
@@ -17,7 +18,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import type { ChatStatus } from 'ai';
 
 export type PromptInputProps = HTMLAttributes<HTMLFormElement>;
 
@@ -64,7 +64,7 @@ export const PromptInputTextarea = ({
     <Textarea
       className={cn(
         'w-full resize-none rounded-none border-none p-3 shadow-none outline-none ring-0',
-        'bg-transparent dark:bg-transparent field-sizing-content max-h-[6lh]',
+        'field-sizing-content max-h-[6lh] bg-transparent dark:bg-transparent',
         'focus-visible:ring-0',
         className,
       )}

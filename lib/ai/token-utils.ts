@@ -1,6 +1,6 @@
-import { RecursiveCharacterTextSplitter } from './text-splitter';
-import { getEncoding } from 'js-tiktoken';
 import type { ModelMessage } from 'ai';
+import { getEncoding } from 'js-tiktoken';
+import { RecursiveCharacterTextSplitter } from './text-splitter';
 
 const MinChunkSize = 140;
 const encoder = getEncoding('o200k_base');
@@ -78,7 +78,9 @@ export function truncateMessages(
   maxTokens: number,
   preserveSystemMessage = true,
 ): ModelMessage[] {
-  if (messages.length === 0) return messages;
+  if (messages.length === 0) {
+    return messages;
+  }
 
   // Always preserve system message if requested
   const systemMessage =
@@ -117,7 +119,7 @@ export function truncateMessages(
 
   // If we still don't fit and have messages, truncate the content of the last message
   if (currentTokens > availableTokens && truncatedMessages.length > 0) {
-    const lastMessage = truncatedMessages[truncatedMessages.length - 1];
+    const lastMessage = truncatedMessages.at(-1);
     if (
       typeof lastMessage.content === 'string' &&
       lastMessage.role !== 'tool'

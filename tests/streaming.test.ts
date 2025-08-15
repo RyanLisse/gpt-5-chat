@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { parseStreamEvents, type OpenAIStreamEvent } from '@/lib/ai/responses/streaming';
+import { describe, expect, it } from 'vitest';
+import {
+  type OpenAIStreamEvent,
+  parseStreamEvents,
+} from '@/lib/ai/responses/streaming';
 
 describe('streaming event mapping', () => {
   it('maps text deltas to text chunks and ignores done markers', () => {
@@ -18,7 +21,10 @@ describe('streaming event mapping', () => {
   it('maps tool calls and annotations to corresponding chunk types', () => {
     const events: OpenAIStreamEvent[] = [
       { type: 'response.tool_call', name: 'file_search', args: { query: 'x' } },
-      { type: 'response.annotation', annotation: { source: 'file_search', id: 'doc_1' } },
+      {
+        type: 'response.annotation',
+        annotation: { source: 'file_search', id: 'doc_1' },
+      },
     ];
     const chunks = parseStreamEvents(events);
     expect(chunks).toHaveLength(2);

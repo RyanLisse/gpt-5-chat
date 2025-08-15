@@ -2,28 +2,28 @@
 
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useMemo,
   useState,
-  useCallback,
-  type ReactNode,
 } from 'react';
-import type { ModelId } from '@/lib/ai/model-id';
 import { toast } from 'sonner';
+import type { ModelId } from '@/lib/ai/model-id';
 
-interface DefaultModelContextType {
+type DefaultModelContextType = {
   defaultModel: ModelId;
   changeModel: (modelId: ModelId) => Promise<void>;
-}
+};
 
 const DefaultModelContext = createContext<DefaultModelContextType | undefined>(
   undefined,
 );
 
-interface DefaultModelClientProviderProps {
+type DefaultModelClientProviderProps = {
   children: ReactNode;
   defaultModel: ModelId;
-}
+};
 
 export function DefaultModelProvider({
   children,
@@ -45,8 +45,7 @@ export function DefaultModelProvider({
           },
           body: JSON.stringify({ model: modelId }),
         });
-      } catch (error) {
-        console.error('Failed to save chat model:', error);
+      } catch (_error) {
         toast.error('Failed to save model preference');
         // Revert on error
         setCurrentModel(initialModel);

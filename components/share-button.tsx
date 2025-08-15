@@ -1,6 +1,9 @@
 'use client';
 
+import { Copy, GlobeIcon, Loader2, LockIcon, Share } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,16 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useSession } from 'next-auth/react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useGetChatById, useSetVisibility } from '@/hooks/chat-sync-hooks';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Copy, GlobeIcon, Loader2, LockIcon, Share } from 'lucide-react';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 type ShareStep = 'info' | 'shared';
@@ -87,7 +87,7 @@ function ShareDialogContent({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/20">
+            <div className="flex items-center gap-3 rounded-lg border bg-muted/20 p-3">
               {isPublic ? (
                 <>
                   <div className="text-green-600">
@@ -95,7 +95,7 @@ function ShareDialogContent({
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-sm">Public</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-muted-foreground text-xs">
                       Anyone with the link can access this chat
                     </div>
                   </div>
@@ -107,7 +107,7 @@ function ShareDialogContent({
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-sm">Private</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-muted-foreground text-xs">
                       Only you can access this chat
                     </div>
                   </div>
@@ -118,14 +118,14 @@ function ShareDialogContent({
               {isPublic ? (
                 <>
                   <Button
-                    variant="outline"
-                    onClick={handleUnshare}
                     className="flex-1"
                     disabled={isPending}
+                    onClick={handleUnshare}
+                    variant="outline"
                   >
                     {isPending ? (
                       <>
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 className="animate-spin" size={16} />
                         <span className="ml-2">Making Private...</span>
                       </>
                     ) : (
@@ -136,9 +136,9 @@ function ShareDialogContent({
                     )}
                   </Button>
                   <Button
-                    onClick={() => setStep('shared')}
                     className="flex-1"
                     disabled={isPending}
+                    onClick={() => setStep('shared')}
                   >
                     <GlobeIcon size={16} />
                     <span className="ml-2">Get Link</span>
@@ -146,13 +146,13 @@ function ShareDialogContent({
                 </>
               ) : (
                 <Button
-                  onClick={handleShare}
                   className="w-full"
                   disabled={isPending}
+                  onClick={handleShare}
                 >
                   {isPending ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" />
+                      <Loader2 className="animate-spin" size={16} />
                       <span className="ml-2">Sharing...</span>
                     </>
                   ) : (
@@ -178,39 +178,39 @@ function ShareDialogContent({
           </DialogHeader>
           <div className="flex items-center space-x-2">
             <div className="grid flex-1 gap-2">
-              <label htmlFor="link" className="sr-only">
+              <label className="sr-only" htmlFor="link">
                 Link
               </label>
               <input
-                id="link"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 defaultValue={`${window.location.origin}/share/${chatId}`}
+                id="link"
                 readOnly
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <Button
-              type="submit"
-              size="sm"
               className="px-3"
               onClick={handleCopyLink}
+              size="sm"
+              type="submit"
             >
               <Copy size={16} />
               <span className="sr-only">Copy</span>
             </Button>
           </div>
-          <div className="flex justify-between items-center pt-2">
-            <Button variant="ghost" size="sm" onClick={() => setStep('info')}>
+          <div className="flex items-center justify-between pt-2">
+            <Button onClick={() => setStep('info')} size="sm" variant="ghost">
               ← Back
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleUnshare}
               disabled={isPending}
+              onClick={handleUnshare}
+              size="sm"
+              variant="outline"
             >
               {isPending ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 className="animate-spin" size={16} />
                   <span className="ml-2">Making Private...</span>
                 </>
               ) : (
@@ -244,7 +244,7 @@ export function ShareDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+    <Dialog onOpenChange={handleDialogOpenChange} open={open}>
       {children}
       <DialogContent className="sm:max-w-md">
         {open && (
@@ -266,10 +266,10 @@ export function ShareButton({
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
 
   const triggerButton = (
-    <Button variant="outline" size="sm" className={cn('', className)}>
+    <Button className={cn('', className)} size="sm" variant="outline">
       <Share size={16} />
       <span className="sr-only">Share chat</span>
       <p className="hidden md:block">Share</p>
@@ -280,10 +280,10 @@ export function ShareButton({
     return (
       <Popover>
         <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-        <PopoverContent className="w-80 p-0" align="start">
+        <PopoverContent align="start" className="w-80 p-0">
           <LoginPrompt
-            title="Sign in to share your chat"
             description="Control who can see your conversations and share them with others."
+            title="Sign in to share your chat"
           />
         </PopoverContent>
       </Popover>
@@ -291,7 +291,7 @@ export function ShareButton({
   }
 
   return (
-    <ShareDialog chatId={chatId} open={open} onOpenChange={setOpen}>
+    <ShareDialog chatId={chatId} onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>{triggerButton}</DialogTrigger>
     </ShareDialog>
   );

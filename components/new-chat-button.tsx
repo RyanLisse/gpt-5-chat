@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { useSidebar, SidebarMenuButton } from '@/components/ui/sidebar';
-import { useChatId } from '@/providers/chat-id-provider';
+import { useEffect, useState } from 'react';
 import { PlusIcon } from '@/components/icons';
 import { getNewChatShortcutText } from '@/components/keyboard-shortcuts';
+import { SidebarMenuButton, useSidebar } from '@/components/ui/sidebar';
+import { useChatId } from '@/providers/chat-id-provider';
 
 export function NewChatButton() {
   const { setOpenMobile } = useSidebar();
@@ -17,18 +17,18 @@ export function NewChatButton() {
   }, []);
 
   return (
-    <SidebarMenuButton className="mt-4" asChild>
+    <SidebarMenuButton asChild className="mt-4">
       <Link
+        className="flex w-full items-center justify-start gap-2 rounded-md px-2 py-2 font-medium text-sm hover:bg-accent hover:text-accent-foreground"
         href="/"
         onClick={() => {
           setOpenMobile(false);
           refreshChatID();
         }}
-        className="flex items-center gap-2 w-full justify-start px-2 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
       >
         <PlusIcon />
         <span>New Chat</span>
-        <span className="ml-auto text-xs text-muted-foreground">
+        <span className="ml-auto text-muted-foreground text-xs">
           {shortcutText}
         </span>
       </Link>

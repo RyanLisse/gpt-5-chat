@@ -1,27 +1,27 @@
+import type { LexicalEditor } from 'lexical';
 import {
+  $getRoot,
+  $getSelection,
+  $isElementNode,
+  $isRangeSelection,
   $isTextNode,
+  DecoratorNode,
   type LexicalNode,
   type NodeKey,
-  $getSelection,
-  $isRangeSelection,
-  $isElementNode,
 } from 'lexical';
-import { DecoratorNode, $getRoot } from 'lexical';
-
 import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
-import type { Suggestion } from '@/lib/db/schema';
 import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
-import type { LexicalEditor } from 'lexical';
+import type { Suggestion } from '@/lib/db/schema';
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;
   selectionEnd: number;
 }
 
-interface Position {
+type Position = {
   start: number;
   end: number;
-}
+};
 
 function findPositionsInEditor(
   editor: LexicalEditor,
@@ -56,7 +56,9 @@ function findPositionsInEditor(
         const children = node.getChildren();
         for (const child of children) {
           traverse(child);
-          if (positions) return;
+          if (positions) {
+            return;
+          }
         }
       }
     }
@@ -69,8 +71,8 @@ function findPositionsInEditor(
 
 export function projectWithPositions(
   editor: LexicalEditor,
-  suggestions: Array<Suggestion>,
-): Array<UISuggestion> {
+  suggestions: Suggestion[],
+): UISuggestion[] {
   return suggestions.map((suggestion) => {
     const positions = findPositionsInEditor(editor, suggestion.originalText);
 
@@ -155,9 +157,9 @@ export class SuggestionNode extends DecoratorNode<React.ReactElement> {
 
     return (
       <PreviewSuggestion
-        suggestion={this.__suggestion}
-        onApply={onApply}
         artifactKind={this.__artifactKind}
+        onApply={onApply}
+        suggestion={this.__suggestion}
       />
     );
   }
@@ -174,7 +176,7 @@ export function createSuggestionDecorator(
 // Plugin-like function to register suggestions
 export function registerSuggestions(
   editor: LexicalEditor,
-  suggestions: Array<UISuggestion>,
+  suggestions: UISuggestion[],
 ): void {
   editor.update(() => {
     // Clear existing suggestion nodes

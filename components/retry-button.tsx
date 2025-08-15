@@ -1,11 +1,10 @@
-import { useCallback } from 'react';
-import { RefreshCcw } from 'lucide-react';
-import { toast } from 'sonner';
-
-import { Button } from './ui/button';
-import type { ChatMessage } from '@/lib/ai/types';
-import { useSetMessages, chatStore } from '@/lib/stores/chat-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { RefreshCcw } from 'lucide-react';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
+import type { ChatMessage } from '@/lib/ai/types';
+import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
+import { Button } from './ui/button';
 
 export function RetryButton({
   messageId,
@@ -65,10 +64,10 @@ export function RetryButton({
 
   return (
     <Button
-      variant="ghost"
-      size="sm"
-      className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+      className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       onClick={handleRetry}
+      size="sm"
+      variant="ghost"
     >
       <RefreshCcw className="h-3.5 w-3.5" />
     </Button>

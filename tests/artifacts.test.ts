@@ -1,7 +1,8 @@
 // @ts-nocheck
 if (process.env.PLAYWRIGHT === '1') {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const { expect, test } = require('@playwright/test') as typeof import('@playwright/test');
+  const { expect, test } =
+    require('@playwright/test') as typeof import('@playwright/test');
   const { ChatPage } = require('./pages/chat');
   const { ArtifactPage } = require('./pages/artifact');
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { CodeBlock, CodeBlockCopyButton } from './code-block';
 import type { ComponentProps, HTMLAttributes } from 'react';
 import { memo } from 'react';
 import ReactMarkdown, { type Options } from 'react-markdown';
@@ -8,9 +7,11 @@ import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import { cn } from '@/lib/utils';
+import { CodeBlock, CodeBlockCopyButton } from './code-block';
 import 'katex/dist/katex.min.css';
 import hardenReactMarkdown from 'harden-react-markdown';
 import { components as markdownComponents } from '../markdown';
+
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
  * of links, images, bold, and italic formatting during streaming.
@@ -107,9 +108,9 @@ function parseIncompleteMarkdown(text: string): string {
   const inlineCodeMatch = result.match(inlineCodePattern);
   if (inlineCodeMatch) {
     // Check if we're dealing with a code block (triple backticks)
-    const hasCodeBlockStart = result.includes('```');
+    const _hasCodeBlockStart = result.includes('```');
     const codeBlockPattern = /```[\s\S]*?```/g;
-    const completeCodeBlocks = (result.match(codeBlockPattern) || []).length;
+    const _completeCodeBlocks = (result.match(codeBlockPattern) || []).length;
     const allTripleBackticks = (result.match(/```/g) || []).length;
 
     // If we have an odd number of ``` sequences, we're inside an incomplete code block
@@ -127,7 +128,7 @@ function parseIncompleteMarkdown(text: string): string {
             i > 0 && result.substring(i - 1, i + 2) === '```';
           const isTripleEnd = i > 1 && result.substring(i - 2, i + 1) === '```';
 
-          if (!isTripleStart && !isTripleMiddle && !isTripleEnd) {
+          if (!(isTripleStart || isTripleMiddle || isTripleEnd)) {
             singleBacktickCount++;
           }
         }
@@ -266,10 +267,7 @@ const components: Options['components'] = {
         code={(children.props as { children: string }).children}
         language={language}
       >
-        <CodeBlockCopyButton
-          onCopy={() => console.log('Copied code to clipboard')}
-          onError={() => console.error('Failed to copy code to clipboard')}
-        />
+        <CodeBlockCopyButton onCopy={() => {}} onError={() => {}} />
       </CodeBlock>
     );
   },
@@ -301,12 +299,12 @@ export const Response = memo(
         {...props}
       >
         <HardenedMarkdown
-          components={components}
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
           allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
           allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
+          components={components}
           defaultOrigin={defaultOrigin}
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkGfm, remarkMath]}
           {...options}
         >
           {parsedChildren}
@@ -345,12 +343,12 @@ export const StyledResponse = memo(
         {...props}
       >
         <HardenedMarkdown
-          components={markdownComponents}
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
           allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
           allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
+          components={markdownComponents}
           defaultOrigin={defaultOrigin}
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkGfm, remarkMath]}
           {...options}
         >
           {parsedChildren}

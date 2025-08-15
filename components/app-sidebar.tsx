@@ -1,9 +1,12 @@
 'use client';
 
-import { SidebarHistory } from '@/components/sidebar-history';
+import { BookText } from 'lucide-react';
+import Link from 'next/link';
+import { NewChatButton } from '@/components/new-chat-button';
 import { SearchChatsButton } from '@/components/search-chats';
 import { SidebarCredits } from '@/components/sidebar-credits';
-import { NewChatButton } from '@/components/new-chat-button';
+import { SidebarHistory } from '@/components/sidebar-history';
+import { SidebarTopRow } from '@/components/sidebar-top-row';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
@@ -11,26 +14,23 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { SidebarTopRow } from '@/components/sidebar-top-row';
-import Link from 'next/link';
-import { BookText } from 'lucide-react';
 
 export function AppSidebar() {
   const { open, openMobile } = useSidebar();
 
   return (
     <Sidebar
+      className="grid max-h-screen grid-rows-[auto_1fr_auto] group-data-[side=left]:border-r-0"
       collapsible="icon"
-      className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen"
     >
       <SidebarHeader>
         <SidebarMenu>
-          <div className="flex flex-row justify-between items-center">
+          <div className="flex flex-row items-center justify-between">
             <SidebarTopRow />
           </div>
 
@@ -43,7 +43,7 @@ export function AppSidebar() {
           {/* Static navigation link to Vector Store search UI */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Vector Store">
-              <Link href="/vectorstore" className="flex items-center gap-2">
+              <Link className="flex items-center gap-2" href="/vectorstore">
                 <BookText className="size-4" />
                 <span>Vector Store</span>
               </Link>

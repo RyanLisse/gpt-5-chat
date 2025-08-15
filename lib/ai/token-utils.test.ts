@@ -1,14 +1,14 @@
-import { describe, it, beforeEach, expect } from 'vitest';
 import type { ModelMessage } from 'ai';
-import { truncateMessages, calculateMessagesTokens } from './token-utils';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { calculateMessagesTokens, truncateMessages } from './token-utils';
 
 // Mock js-tiktoken encoder for consistent testing
-const mockEncoder = {
+const _mockEncoder = {
   encode: (text: string) => new Array(Math.ceil(text.length / 4)), // ~4 chars per token
 };
 
 // Mock the module
-const originalModule = await import('./token-utils');
+const _originalModule = await import('./token-utils');
 
 describe('truncateMessages', () => {
   let messages: ModelMessage[];
@@ -60,7 +60,7 @@ describe('truncateMessages', () => {
     // May or may not have messages, but if it does, first shouldn't necessarily be system
     if (result.length > 0) {
       // Should prefer newer messages when system is not preserved
-      expect(result[result.length - 1].role).toBe('user');
+      expect(result.at(-1).role).toBe('user');
     }
   });
 
@@ -220,7 +220,7 @@ describe('truncateMessages', () => {
 
       // Subsequent messages should maintain relative order
       for (let i = 1; i < result.length - 1; i++) {
-        const currentIndex = messages.findIndex((msg) => msg === result[i]);
+        const currentIndex = messages.indexOf(result[i]);
         const nextIndex = messages.findIndex((msg) => msg === result[i + 1]);
         expect(currentIndex).toBeLessThan(nextIndex);
       }

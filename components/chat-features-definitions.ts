@@ -1,16 +1,12 @@
+import { Edit3, Images, type LucideIcon } from 'lucide-react';
 import type { ToolName, UiToolName } from '@/lib/ai/types';
-import {
-  type LucideIcon,
-  Images,
-  Edit3,
-} from 'lucide-react';
 
-export interface ToolDefinition {
+export type ToolDefinition = {
   name: string;
   description: string;
   icon: LucideIcon;
   key: ToolName;
-}
+};
 
 export const toolDefinitions: Record<UiToolName, ToolDefinition> = {
   generateImage: {
@@ -27,7 +23,4 @@ export const toolDefinitions: Record<UiToolName, ToolDefinition> = {
   },
 };
 
-export const enabledTools: UiToolName[] = [
-  'generateImage',
-  'createDocument',
-];
+export const enabledTools: UiToolName[] = ['generateImage', 'createDocument'];

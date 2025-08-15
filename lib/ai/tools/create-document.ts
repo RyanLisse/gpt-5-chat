@@ -1,25 +1,25 @@
-import { generateUUID } from '@/lib/utils';
-import { tool } from 'ai';
-import { z } from 'zod';
-import type { Session } from 'next-auth';
-import {
-  documentHandlersByArtifactKind,
-  type DocumentHandler,
-} from '@/lib/artifacts/server';
-import { artifactKinds } from '@/lib/artifacts/artifact-kind';
 import type { ModelMessage } from 'ai';
+import { tool } from 'ai';
+import type { Session } from 'next-auth';
+import { z } from 'zod';
 import type { ModelId } from '@/lib/ai/model-id';
-import type { StreamWriter } from '../types';
 import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
+import { artifactKinds } from '@/lib/artifacts/artifact-kind';
+import {
+  type DocumentHandler,
+  documentHandlersByArtifactKind,
+} from '@/lib/artifacts/server';
+import { generateUUID } from '@/lib/utils';
+import type { StreamWriter } from '../types';
 import type { ArtifactToolResult } from './artifact-tool-result';
 
-interface CreateDocumentProps {
+type CreateDocumentProps = {
   session: Session;
   dataStream: StreamWriter;
   contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: ModelId;
-}
+};
 
 export const createDocumentTool = ({
   session,

@@ -1,15 +1,15 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import {
-  pgTable,
-  varchar,
-  timestamp,
-  json,
-  uuid,
-  text,
-  primaryKey,
-  foreignKey,
   boolean,
+  foreignKey,
   integer,
+  json,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -140,7 +140,9 @@ export type Suggestion = InferSelectModel<typeof suggestion>;
 
 // AGENT 3: Conversation State persistence for OpenAI Responses API
 export const conversationState = pgTable('ConversationState', {
-  conversationId: varchar('conversationId', { length: 256 }).primaryKey().notNull(),
+  conversationId: varchar('conversationId', { length: 256 })
+    .primaryKey()
+    .notNull(),
   userId: uuid('userId')
     .notNull()
     .references(() => user.id, {

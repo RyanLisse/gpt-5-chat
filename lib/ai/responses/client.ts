@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
+import { parseFileSearchCitations } from './file-search';
+import { redactSensitiveData } from './redaction';
 import type {
+  ConversationState,
   ResponseRequest,
   ResponseResult,
-  ConversationState,
   Tool,
 } from './types';
-import { parseFileSearchCitations } from './file-search';
 import { parseWebSearch } from './web-search';
-import { redactSensitiveData } from './redaction';
 
 export type ResponsesAPIConfig = {
   openai?: {
@@ -15,35 +15,60 @@ export type ResponsesAPIConfig = {
     baseURL?: string;
   };
   // Optional tracing wrapper; when provided, all API calls go through it
-  traceWrapper?: <TReturn>(name: string, fn: () => Promise<TReturn>) => Promise<TReturn>;
+  traceWrapper?: <TReturn>(
+    name: string,
+    fn: () => Promise<TReturn>,
+  ) => Promise<TReturn>;
 };
 
 export class ResponsesAPIClient {
-  private openai: OpenAI | null;
-  private config: ResponsesAPIConfig;
+  private readonly openai: OpenAI | null;
+  private readonly config: ResponsesAPIConfig;
 
   constructor(config: ResponsesAPIConfig = {}) {
     this.config = config;
     const apiKey = config.openai?.apiKey ?? process.env.OPENAI_API_KEY;
     const baseURL = config.openai?.baseURL ?? process.env.OPENAI_BASE_URL;
 
-    this.openai = apiKey
-      ? new OpenAI({ apiKey, baseURL })
-      : null;
+    this.openai = apiKey ? new OpenAI({ apiKey, baseURL }) : null;
   }
 
   static buildOpenAIRequest(req: ResponseRequest) {
     const input = Array.isArray(req.input)
       ? req.input.map((item) => {
-          if (item.type === 'text')
-            return { type: 'message', text: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } as const;
-          if (item.type === 'image')
-            return { type: 'input_image', image: { data: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } } as const;
-          if (item.type === 'audio')
-            return { type: 'input_audio', audio: { data: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } } as const;
-          return { type: 'message', text: String((item as any).content ?? '') } as const;
+          if (item.type === 'text') {
+            return {
+              type: 'text',
+              text: item.content,
+              role: 'user',
+              ...(item.metadata ? { metadata: item.metadata } : {}),
+            } as const;
+          }
+          if (item.type === 'image') {
+            return {
+              type: 'input_image',
+              image: {
+                data: item.content,
+                ...(item.metadata ? { metadata: item.metadata } : {}),
+              },
+            } as const;
+          }
+          if (item.type === 'audio') {
+            return {
+              type: 'input_audio',
+              audio: {
+                data: item.content,
+                ...(item.metadata ? { metadata: item.metadata } : {}),
+              },
+            } as const;
+          }
+          return {
+            type: 'text',
+            text: String((item as any).content ?? ''),
+            role: 'user',
+          } as const;
         })
-      : [{ type: 'message', text: req.input }];
+      : [{ type: 'text', text: req.input, role: 'user' }];
 
     // Map tools (Slice 2: support file_search minimal config)
     const tools = mapTools(req.tools);
@@ -63,7 +88,9 @@ export class ResponsesAPIClient {
 
   async createResponse(request: ResponseRequest): Promise<ResponseResult> {
     if (!this.openai) {
-      throw new Error('OpenAI client not configured. Set OPENAI_API_KEY or pass via constructor.');
+      throw new Error(
+        'OpenAI client not configured. Set OPENAI_API_KEY or pass via constructor.',
+      );
     }
 
     const payload = ResponsesAPIClient.buildOpenAIRequest(request);
@@ -74,17 +101,18 @@ export class ResponsesAPIClient {
       : await call();
 
     const outputText =
-      (res?.output?.
-        filter((o: any) => o.type === 'output_text')
+      res?.output
+        ?.filter((o: any) => o.type === 'output_text')
         .map((o: any) => o.text)
-        .join('')) || '';
+        .join('') || '';
 
     const conversationState: ConversationState = {
       conversationId: res.id,
       previousResponseId: res.id,
     };
 
-    const { annotations: fsAnn, toolResults: fsTools } = parseFileSearchCitations(res);
+    const { annotations: fsAnn, toolResults: fsTools } =
+      parseFileSearchCitations(res);
     let annotations = fsAnn;
     let toolResults = fsTools;
     if (process.env.RESPONSES_ENABLE_WEB_SEARCH === 'true') {
@@ -96,7 +124,10 @@ export class ResponsesAPIClient {
     return {
       id: res.id,
       outputText,
-      annotations: annotations.map((a) => ({ ...a, data: redactSensitiveData(a.data ?? {}) })),
+      annotations: annotations.map((a) => ({
+        ...a,
+        data: redactSensitiveData(a.data ?? {}),
+      })),
       toolResults,
       metadata: res as any,
       conversationState,
@@ -120,12 +151,18 @@ function mapTools(tools?: Tool[]) {
   for (const t of tools ?? []) {
     if (t.type === 'file_search') {
       // Minimal tool declaration; OpenAI will use configured vector stores
-      out.push({ type: 'file_search', ...('config' in t ? { config: (t as any).config } : {}) });
+      out.push({
+        type: 'file_search',
+        ...('config' in t ? { config: (t as any).config } : {}),
+      });
     }
     if (t.type === 'web_search') {
       // Feature-flagged; default OFF
       if (process.env.RESPONSES_ENABLE_WEB_SEARCH === 'true') {
-        out.push({ type: 'web_search', ...('config' in t ? { config: (t as any).config } : {}) });
+        out.push({
+          type: 'web_search',
+          ...('config' in t ? { config: (t as any).config } : {}),
+        });
       }
     }
     // function tool mapping will be added in a later slice if needed

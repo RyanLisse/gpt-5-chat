@@ -1,12 +1,12 @@
+import { type ImageModelData, imageModelsData } from '@/providers/image-models';
 import type { ModelData } from '@/providers/models-generated';
 import { modelsData } from '@/providers/models-generated';
 import {
   imageModelsFeatures,
-  modelFeatures,
   type ModelFeatures,
+  modelFeatures,
 } from './model-features';
 import type { ImageModelId, ModelId } from './model-id';
-import { imageModelsData, type ImageModelData } from '@/providers/image-models';
 
 const disabledModels: Partial<Record<ModelId, true>> = {
   'anthropic/claude-4-opus': true,
@@ -93,7 +93,7 @@ export function getModelDefinition(modelId: ModelId): ModelDefinition {
 
 const _imageModelsByIdCache = new Map<string, ImageModelDefinition>();
 
-function getImageModelsByIdDict(): Map<string, ImageModelDefinition> {
+function _getImageModelsByIdDict(): Map<string, ImageModelDefinition> {
   if (_imageModelsByIdCache.size === 0) {
     allImageModels.forEach((model) => {
       _imageModelsByIdCache.set(model.id, model);

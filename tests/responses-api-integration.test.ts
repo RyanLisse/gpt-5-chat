@@ -1,9 +1,8 @@
 // Comprehensive integration tests for OpenAI Responses API implementation
 // Tests complete API integration: stateful conversations, streaming, multimodal inputs
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversationStateManager } from '@/lib/ai/responses/state';
-import type { ConversationState } from '@/lib/ai/responses/types';
 
 // Mock implementations following London School TDD approach
 const mockResponsesAPI = {
@@ -32,16 +31,16 @@ describe('OpenAI Responses API - Core Integration', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     conversationManager = new ConversationStateManager(
       mockPersistenceProvider,
-      mockContextManager
+      mockContextManager,
     );
   });
 
   describe('Stateful Conversation Management', () => {
     it('should maintain conversation state across multiple turns', async () => {
-      const chatId = 'test-chat-123';
+      const _chatId = 'test-chat-123';
       const userId = 'test-user-456';
 
       // First message
@@ -59,8 +58,11 @@ describe('OpenAI Responses API - Core Integration', () => {
       });
 
       // Mock the continue conversation to simulate API call
-      const continueRequest = await conversationManager.continueConversation(mockResponseId, 'What about Germany?');
-      
+      const continueRequest = await conversationManager.continueConversation(
+        mockResponseId,
+        'What about Germany?',
+      );
+
       expect(continueRequest.previousResponseId).toBe(mockResponseId);
       expect(continueRequest.input).toBe('What about Germany?');
     });
@@ -68,7 +70,8 @@ describe('OpenAI Responses API - Core Integration', () => {
     it('should handle context optimization for long conversations', async () => {
       const userId = 'test-user';
 
-      const conversation = await conversationManager.createConversation(userId);
+      const _conversation =
+        await conversationManager.createConversation(userId);
 
       // Mock context optimization
       mockContextManager.optimizeContext.mockResolvedValue({
@@ -118,13 +121,19 @@ describe('OpenAI Responses API - Core Integration', () => {
       expect(conversation.userId).toBe(userId);
 
       // Step 2: Continue conversation with follow-up
-      const followupRequest = await conversationManager.continueConversation('resp_initial', 'Can you explain how databases work?');
-      
+      const followupRequest = await conversationManager.continueConversation(
+        'resp_initial',
+        'Can you explain how databases work?',
+      );
+
       expect(followupRequest.previousResponseId).toBe('resp_initial');
       expect(followupRequest.input).toBe('Can you explain how databases work?');
 
       // Step 3: Continue conversation with context
-      const finalRequest = await conversationManager.continueConversation('resp_followup', 'Can you give me an example?');
+      const finalRequest = await conversationManager.continueConversation(
+        'resp_followup',
+        'Can you give me an example?',
+      );
 
       expect(finalRequest.previousResponseId).toBe('resp_followup');
       expect(finalRequest.input).toBe('Can you give me an example?');
@@ -134,16 +143,21 @@ describe('OpenAI Responses API - Core Integration', () => {
       const startTime = Date.now();
       const concurrentConversations = 10;
 
-      const promises = Array.from({ length: concurrentConversations }, async (_, i) => {
-        const conversation = await conversationManager.createConversation(`user-${i}`);
+      const promises = Array.from(
+        { length: concurrentConversations },
+        async (_, i) => {
+          const conversation = await conversationManager.createConversation(
+            `user-${i}`,
+          );
 
-        mockResponsesAPI.createResponse.mockResolvedValue({
-          id: `resp_${i}`,
-          outputText: `Response ${i}`,
-        });
+          mockResponsesAPI.createResponse.mockResolvedValue({
+            id: `resp_${i}`,
+            outputText: `Response ${i}`,
+          });
 
-        return conversation; // Just return the conversation state
-      });
+          return conversation; // Just return the conversation state
+        },
+      );
 
       const results = await Promise.all(promises);
 

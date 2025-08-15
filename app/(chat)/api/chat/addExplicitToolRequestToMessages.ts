@@ -2,10 +2,10 @@ import type { ChatMessage, ToolName } from '@/lib/ai/types';
 
 export function addExplicitToolRequestToMessages(
   messages: ChatMessage[],
-  activeTools: ToolName[],
+  _activeTools: ToolName[],
   explicitlyRequestedTools: ToolName[] | null,
 ) {
-  const lastAssistantMessage = messages.findLast(
+  const _lastAssistantMessage = messages.findLast(
     (message) => message.role === 'assistant',
   );
 
@@ -16,20 +16,13 @@ export function addExplicitToolRequestToMessages(
   let toolsToRequest: ToolName[] = [];
 
   if (explicitlyRequestedTools) {
-    // 1. Explicitly requested tools
-    console.log(
-      'Indicating explicitly requested tools',
-      explicitlyRequestedTools,
-    );
     toolsToRequest = explicitlyRequestedTools;
   }
 
-  if (toolsToRequest.length > 0) {
-    if (lastMessage) {
-      lastMessage.parts.push({
-        type: 'text',
-        text: `I want to use the tools ${toolsToRequest.join(', or ')})`,
-      });
-    }
+  if (toolsToRequest.length > 0 && lastMessage) {
+    lastMessage.parts.push({
+      type: 'text',
+      text: `I want to use the tools ${toolsToRequest.join(', or ')})`,
+    });
   }
 }

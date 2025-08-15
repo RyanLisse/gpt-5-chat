@@ -1,14 +1,14 @@
 'use client';
 import * as React from 'react';
-import { cn } from '@/lib/utils';
 import { useImperativeHandle } from 'react';
+import { cn } from '@/lib/utils';
 
-interface UseAutosizeTextAreaProps {
+type UseAutosizeTextAreaProps = {
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
   minHeight?: number;
   maxHeight?: number;
   triggerAutoSize: string;
-}
+};
 
 export const useAutosizeTextArea = ({
   textAreaRef,
@@ -73,7 +73,7 @@ export const AutosizeTextarea = React.forwardRef<
 
     useAutosizeTextArea({
       textAreaRef,
-      triggerAutoSize: triggerAutoSize,
+      triggerAutoSize,
       maxHeight,
       minHeight,
     });
@@ -92,8 +92,6 @@ export const AutosizeTextarea = React.forwardRef<
     return (
       <textarea
         {...props}
-        value={value}
-        ref={textAreaRef}
         className={cn(
           'flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           className,
@@ -102,6 +100,8 @@ export const AutosizeTextarea = React.forwardRef<
           setTriggerAutoSize(e.target.value);
           onChange?.(e);
         }}
+        ref={textAreaRef}
+        value={value}
       />
     );
   },

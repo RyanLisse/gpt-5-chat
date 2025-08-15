@@ -1,8 +1,7 @@
 import 'server-only';
 import { and, eq, gte, sql } from 'drizzle-orm';
-
-import { user } from '../db/schema';
 import { db } from '../db/client';
+import { user } from '../db/schema';
 
 export async function getUserCreditsInfo({ userId }: { userId: string }) {
   const users = await db
@@ -15,7 +14,9 @@ export async function getUserCreditsInfo({ userId }: { userId: string }) {
     .limit(1);
 
   const userInfo = users[0];
-  if (!userInfo) return null;
+  if (!userInfo) {
+    return null;
+  }
 
   return {
     totalCredits: userInfo.credits,
@@ -79,8 +80,7 @@ export async function reserveAvailableCredits({
       success: true,
       reservedAmount: amountToReserve,
     };
-  } catch (error) {
-    console.error('Failed to reserve available credits:', error);
+  } catch (_error) {
     return { success: false, error: 'Failed to reserve credits' };
   }
 }

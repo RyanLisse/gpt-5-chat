@@ -1,17 +1,17 @@
-import { z } from 'zod';
-import type { Session } from 'next-auth';
 import { streamObject, tool } from 'ai';
+import type { Session } from 'next-auth';
+import { z } from 'zod';
 import { getDocumentById, saveSuggestions } from '@/lib/db/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils';
-import { getLanguageModel } from '../providers';
 import { DEFAULT_ARTIFACT_SUGGESTION_MODEL } from '../all-models';
+import { getLanguageModel } from '../providers';
 import type { StreamWriter } from '../types';
 
-interface RequestSuggestionsProps {
+type RequestSuggestionsProps = {
   session: Session;
   dataStream: StreamWriter;
-}
+};
 
 export const requestSuggestions = ({
   session,
@@ -43,15 +43,16 @@ Behavior:
     execute: async ({ documentId }) => {
       const document = await getDocumentById({ id: documentId });
 
-      if (!document || !document.content) {
+      if (!document?.content) {
         return {
           error: 'Document not found',
         };
       }
 
-      const suggestions: Array<
-        Omit<Suggestion, 'userId' | 'createdAt' | 'documentCreatedAt'>
-      > = [];
+      const suggestions: Omit<
+        Suggestion,
+        'userId' | 'createdAt' | 'documentCreatedAt'
+      >[] = [];
 
       const { elementStream } = streamObject({
         model: getLanguageModel(DEFAULT_ARTIFACT_SUGGESTION_MODEL),
@@ -74,7 +75,7 @@ Behavior:
           suggestedText: element.suggestedSentence,
           description: element.description,
           id: generateUUID(),
-          documentId: documentId,
+          documentId,
           isResolved: false,
           createdAt: new Date(),
           userId: session.user?.id ?? '',

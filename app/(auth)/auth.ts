@@ -1,8 +1,8 @@
-import NextAuth, { type User, type Session } from 'next-auth';
-import Google from 'next-auth/providers/google';
+import NextAuth, { type Session, type User } from 'next-auth';
 import GitHub from 'next-auth/providers/github';
+import Google from 'next-auth/providers/google';
 
-import { getUserByEmail, createUser } from '@/lib/db/queries';
+import { createUser, getUserByEmail } from '@/lib/db/queries';
 
 import { authConfig } from './auth.config';
 
@@ -29,10 +29,7 @@ export const {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (!account || !profile || !user?.email) {
-        console.log(
-          'Auth provider details missing (account, profile, or user email).',
-        );
+      if (!(account && profile && user?.email)) {
         return false;
       }
 
@@ -47,13 +44,10 @@ export const {
             name: name ?? null,
             image: image ?? null,
           });
-          console.log(`Created new user: ${email}`);
         } else {
-          console.log(`User already exists: ${email}`);
         }
         return true;
-      } catch (error) {
-        console.error('Error during signIn DB operations:', error);
+      } catch (_error) {
         return false;
       }
     },
@@ -64,13 +58,8 @@ export const {
           if (dbUserArray.length > 0) {
             token.id = dbUserArray[0].id;
           } else {
-            console.error(
-              `User not found in DB during jwt callback: ${user.email}`,
-            );
           }
-        } catch (error) {
-          console.error('Error fetching user during jwt callback:', error);
-        }
+        } catch (_error) {}
       }
       return token;
     },
@@ -84,7 +73,6 @@ export const {
       if (session.user && token.id) {
         session.user.id = token.id;
       } else if (!token.id) {
-        console.error('Token ID missing in session callback');
       }
       return session;
     },

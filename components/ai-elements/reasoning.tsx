@@ -1,17 +1,17 @@
 'use client';
 
 import { useControllableState } from '@radix-ui/react-use-controllable-state';
+import { BrainIcon, ChevronDownIcon } from 'lucide-react';
+import type { ComponentProps, ReactNode } from 'react';
+import { createContext, memo, useContext, useEffect, useState } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { BrainIcon, ChevronDownIcon } from 'lucide-react';
-import type { ComponentProps, ReactNode } from 'react';
-import { createContext, memo, useContext, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Response } from './response';
 import { TextShimmerLoader } from '../ui/loader';
+import { Response } from './response';
 
 type ReasoningContextValue = {
   isStreaming: boolean;
@@ -139,9 +139,9 @@ export const ReasoningTrigger = memo(
             {/* isStreaming || duration === 0 fails when the apart is empty */}
             {isStreaming ? (
               // Note: Modified from AI-Elements by adding shimmer text
-              <TextShimmerLoader text="Thinking..." className="text-base" />
+              <TextShimmerLoader className="text-base" text="Thinking..." />
             ) : (
-              <p className="text-base font-medium">Thought for a few seconds</p>
+              <p className="font-medium text-base">Thought for a few seconds</p>
             )}
             <ChevronDownIcon
               className={cn(
@@ -173,7 +173,7 @@ export const ReasoningContentContainer = memo(
     <CollapsibleContent
       className={cn(
         'mt-4 text-sm',
-        'text-popover-foreground outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2',
+        'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in',
         className,
       )}
       {...props}
@@ -188,7 +188,7 @@ export const ReasoningContent = memo(
     <CollapsibleContent
       className={cn(
         'mt-4 text-sm',
-        'text-popover-foreground outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2',
+        'data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=open]:animate-in',
         className,
       )}
       {...props}

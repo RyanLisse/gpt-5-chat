@@ -1,7 +1,7 @@
+import type { Chat, DBMessage } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/uiChat';
-import type { DBMessage, Chat } from '@/lib/db/schema';
-import type { ChatMessage, UiToolName } from './ai/types';
 import type { ModelId } from './ai/model-id';
+import type { ChatMessage, UiToolName } from './ai/types';
 
 // Helper functions for type conversion
 export function dbChatToUIChat(chat: Chat): UIChat {
@@ -36,20 +36,20 @@ export function chatMessageToDbMessage(
   chatId: string,
 ): DBMessage {
   const parentMessageId = message.metadata.parentMessageId || null;
-  const isPartial = message.metadata.isPartial || false;
+  const isPartial = message.metadata.isPartial;
   const selectedModel = message.metadata.selectedModel;
 
   return {
     id: message.id,
-    chatId: chatId,
+    chatId,
     role: message.role,
     parts: message.parts,
     attachments: [],
     createdAt: message.metadata?.createdAt || new Date(),
     annotations: [],
-    isPartial: isPartial,
-    parentMessageId: parentMessageId,
-    selectedModel: selectedModel,
+    isPartial,
+    parentMessageId,
+    selectedModel,
     selectedTool: message.metadata?.selectedTool || null,
   };
 }

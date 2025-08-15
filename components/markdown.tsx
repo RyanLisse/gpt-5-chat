@@ -1,23 +1,25 @@
 import React, { memo } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { cn } from '@/lib/utils';
+import { LinkMarkdown } from '@/components/chat/link-markdown';
 import { ButtonCopy } from '@/components/common/button-copy';
 import {
   CodeBlock,
   CodeBlockCode,
   CodeBlockGroup,
 } from '@/components/prompt-kit/code-block';
-import { LinkMarkdown } from '@/components/chat/link-markdown';
+import { cn } from '@/lib/utils';
 
 function extractLanguage(className?: string): string {
-  if (!className) return 'plaintext';
+  if (!className) {
+    return 'plaintext';
+  }
   const match = className.match(/language-(\w+)/);
   return match ? match[1] : 'plaintext';
 }
 
 export const components: Partial<Components> = {
-  code: function CodeComponent({ className, children, ...props }) {
+  code({ className, children, ...props }) {
     const isInline =
       !props.node?.position?.start.line ||
       props.node?.position?.start.line === props.node?.position?.end.line;
@@ -25,7 +27,7 @@ export const components: Partial<Components> = {
     if (isInline) {
       return (
         <span
-          className={cn('bg-card rounded-sm px-1 font-mono text-sm', className)}
+          className={cn('rounded-sm bg-card px-1 font-mono text-sm', className)}
           {...props}
         >
           {children}
@@ -38,7 +40,7 @@ export const components: Partial<Components> = {
     return (
       <CodeBlock className={className}>
         <CodeBlockGroup className="flex h-9 items-center justify-between px-4">
-          <div className="text-muted-foreground py-1 pr-2 font-mono text-xs">
+          <div className="py-1 pr-2 font-mono text-muted-foreground text-xs">
             {language}
           </div>
         </CodeBlockGroup>
@@ -54,7 +56,7 @@ export const components: Partial<Components> = {
   pre: ({ children }) => <>{children}</>,
   ol: ({ node, children, ...props }) => {
     return (
-      <ol className="list-decimal list-outside ml-4" {...props}>
+      <ol className="ml-4 list-outside list-decimal" {...props}>
         {children}
       </ol>
     );
@@ -68,7 +70,7 @@ export const components: Partial<Components> = {
   },
   ul: ({ node, children, ...props }) => {
     return (
-      <ul className="list-disc list-outside ml-4" {...props}>
+      <ul className="ml-4 list-outside list-disc" {...props}>
         {children}
       </ul>
     );
@@ -77,7 +79,7 @@ export const components: Partial<Components> = {
     return (
       <blockquote
         className={cn(
-          'my-4 border-l-2 border-border pl-4',
+          'my-4 border-border border-l-2 pl-4',
           'text-muted-foreground',
           '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
         )}
@@ -114,50 +116,50 @@ export const components: Partial<Components> = {
   },
   h1: ({ node, children, ...props }) => {
     return (
-      <h1 className="text-3xl font-semibold mt-6 mb-2" {...props}>
+      <h1 className="mt-6 mb-2 font-semibold text-3xl" {...props}>
         {children}
       </h1>
     );
   },
   h2: ({ node, children, ...props }) => {
     return (
-      <h2 className="text-2xl font-semibold mt-6 mb-2" {...props}>
+      <h2 className="mt-6 mb-2 font-semibold text-2xl" {...props}>
         {children}
       </h2>
     );
   },
   h3: ({ node, children, ...props }) => {
     return (
-      <h3 className="text-xl font-semibold mt-6 mb-2" {...props}>
+      <h3 className="mt-6 mb-2 font-semibold text-xl" {...props}>
         {children}
       </h3>
     );
   },
   h4: ({ node, children, ...props }) => {
     return (
-      <h4 className="text-lg font-semibold mt-6 mb-2" {...props}>
+      <h4 className="mt-6 mb-2 font-semibold text-lg" {...props}>
         {children}
       </h4>
     );
   },
   h5: ({ node, children, ...props }) => {
     return (
-      <h5 className="text-base font-semibold mt-6 mb-2" {...props}>
+      <h5 className="mt-6 mb-2 font-semibold text-base" {...props}>
         {children}
       </h5>
     );
   },
   h6: ({ node, children, ...props }) => {
     return (
-      <h6 className="text-sm font-semibold mt-6 mb-2" {...props}>
+      <h6 className="mt-6 mb-2 font-semibold text-sm" {...props}>
         {children}
       </h6>
     );
   },
   table({ children }: { children?: React.ReactNode }) {
     return (
-      <div className="overflow-x-auto my-6 rounded border border-border">
-        <table className="w-full border-collapse m-0">{children}</table>
+      <div className="my-6 overflow-x-auto rounded border border-border">
+        <table className="m-0 w-full border-collapse">{children}</table>
       </div>
     );
   },
@@ -165,8 +167,8 @@ export const components: Partial<Components> = {
     return (
       <tr
         className={cn(
-          'border-b border-border last:border-b-0',
-          'hover:bg-muted/50 transition-colors duration-200',
+          'border-border border-b last:border-b-0',
+          'transition-colors duration-200 hover:bg-muted/50',
         )}
       >
         {children}
@@ -184,9 +186,9 @@ export const components: Partial<Components> = {
     return (
       <th
         className={cn(
-          'px-4 py-3 text-sm font-semibold text-foreground',
+          'px-4 py-3 font-semibold text-foreground text-sm',
           'bg-muted',
-          'border-b border-border',
+          'border-border border-b',
           'break-words',
           alignClass,
         )}
@@ -202,8 +204,8 @@ export const components: Partial<Components> = {
     return (
       <td
         className={cn(
-          'px-4 py-3 text-sm text-muted-foreground',
-          'border-r border-border last:border-r-0',
+          'px-4 py-3 text-muted-foreground text-sm',
+          'border-border border-r last:border-r-0',
           'break-words',
           alignClass,
         )}
@@ -222,7 +224,7 @@ const remarkPlugins = [remarkGfm];
 
 const NonMemoizedMarkdown = ({ children }: { children: string }) => {
   return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+    <ReactMarkdown components={components} remarkPlugins={remarkPlugins}>
       {children}
     </ReactMarkdown>
   );

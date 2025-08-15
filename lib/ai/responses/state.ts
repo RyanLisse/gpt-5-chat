@@ -1,18 +1,21 @@
-import type { 
-  ConversationState, 
-  ResponseRequest, 
-  IPersistenceProvider, 
-  IContextManager,
+import type {
   ContextOptimizationInput,
-  ConversationResponse
+  ConversationResponse,
+  ConversationState,
+  IContextManager,
+  IPersistenceProvider,
+  ResponseRequest,
 } from './types';
 
 export class ConversationStateManager {
-  private store = new Map<string, ConversationState>();
-  private persistenceProvider?: IPersistenceProvider;
-  private contextManager?: IContextManager;
+  private readonly store = new Map<string, ConversationState>();
+  private readonly persistenceProvider?: IPersistenceProvider;
+  private readonly contextManager?: IContextManager;
 
-  constructor(persistenceProvider?: IPersistenceProvider, contextManager?: IContextManager) {
+  constructor(
+    persistenceProvider?: IPersistenceProvider,
+    contextManager?: IContextManager,
+  ) {
     this.persistenceProvider = persistenceProvider;
     this.contextManager = contextManager;
   }
@@ -20,9 +23,9 @@ export class ConversationStateManager {
   async createConversation(userId: string): Promise<ConversationState> {
     const id = `conv_${Math.random().toString(36).slice(2)}`;
     const now = new Date().toISOString();
-    
-    const state: ConversationState = { 
-      conversationId: id, 
+
+    const state: ConversationState = {
+      conversationId: id,
       previousResponseId: null,
       userId,
       contextMetadata: {
@@ -41,11 +44,14 @@ export class ConversationStateManager {
     } else {
       this.store.set(id, state);
     }
-    
+
     return state;
   }
 
-  async continueConversation(responseId: string | null, input: string): Promise<ResponseRequest> {
+  async continueConversation(
+    responseId: string | null,
+    input: string,
+  ): Promise<ResponseRequest> {
     // For now, return a minimal request with previousResponseId set; model is required by caller
     return {
       model: 'gpt-4o-mini',
@@ -55,31 +61,43 @@ export class ConversationStateManager {
     };
   }
 
-  async getConversationState(conversationId: string): Promise<ConversationState | undefined> {
+  async getConversationState(
+    conversationId: string,
+  ): Promise<ConversationState | undefined> {
     // Try persistence provider first, then fallback to in-memory
     if (this.persistenceProvider) {
-      const state = await this.persistenceProvider.getConversation(conversationId);
+      const state =
+        await this.persistenceProvider.getConversation(conversationId);
       return state || undefined;
     }
     return this.store.get(conversationId);
   }
 
-  async saveConversationState(conversationId: string, state: ConversationState): Promise<void> {
-    const updatedState = { 
-      ...state, 
+  async saveConversationState(
+    conversationId: string,
+    state: ConversationState,
+  ): Promise<void> {
+    const updatedState = {
+      ...state,
       updatedAt: new Date().toISOString(),
       version: (state.version || 0) + 1,
     };
 
     if (this.persistenceProvider) {
-      await this.persistenceProvider.saveConversation(conversationId, updatedState);
+      await this.persistenceProvider.saveConversation(
+        conversationId,
+        updatedState,
+      );
     } else {
       this.store.set(conversationId, updatedState);
     }
   }
 
   // AGENT 1: New methods expected by acceptance tests (will initially fail)
-  async updateConversationWithResponse(conversationId: string, response: ConversationResponse): Promise<void> {
+  async updateConversationWithResponse(
+    conversationId: string,
+    response: ConversationResponse,
+  ): Promise<void> {
     const currentState = await this.getConversationState(conversationId);
     if (!currentState) {
       throw new Error(`Conversation ${conversationId} not found`);
@@ -92,14 +110,19 @@ export class ConversationStateManager {
         ...currentState.contextMetadata!,
         turnCount: (currentState.contextMetadata?.turnCount || 0) + 1,
         lastActivity: new Date().toISOString(),
-        totalTokens: (currentState.contextMetadata?.totalTokens || 0) + (response.content?.length || 0),
+        totalTokens:
+          (currentState.contextMetadata?.totalTokens || 0) +
+          (response.content?.length || 0),
       },
     };
 
     await this.saveConversationState(conversationId, updatedState);
   }
 
-  async optimizeConversationContext(conversationId: string, optimization: ContextOptimizationInput): Promise<void> {
+  async optimizeConversationContext(
+    conversationId: string,
+    optimization: ContextOptimizationInput,
+  ): Promise<void> {
     if (!this.contextManager) {
       throw new Error('ContextManager not provided - cannot optimize context');
     }
@@ -112,7 +135,7 @@ export class ConversationStateManager {
     if (result.shouldTruncate) {
       // Update conversation state with optimization results
       const currentState = await this.getConversationState(conversationId);
-      if (currentState && currentState.contextMetadata) {
+      if (currentState?.contextMetadata) {
         currentState.contextMetadata.relevanceScore = result.relevanceScore;
         await this.saveConversationState(conversationId, currentState);
       }

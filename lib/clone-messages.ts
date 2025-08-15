@@ -1,7 +1,7 @@
-import { generateUUID } from './utils';
+import type { FileUIPart } from 'ai';
 import type { ChatMessage } from './ai/types';
 import { uploadFile } from './blob';
-import type { FileUIPart } from 'ai';
+import { generateUUID } from './utils';
 
 function cloneMessages<
   T extends { id: string; chatId: string; parentMessageId?: string | null },
@@ -149,16 +149,11 @@ export async function cloneFileUIPart(part: FileUIPart): Promise<FileUIPart> {
   try {
     // Skip if no URL is provided
     if (!part.url) {
-      console.warn('Attachment has no URL, skipping clone');
       return part;
     }
 
     // Skip if URL is not a blob URL (might be external)
     if (!part.url.includes('blob.vercel-storage.com')) {
-      console.warn(
-        'Attachment is not a Vercel blob, skipping clone:',
-        part.url,
-      );
       return part;
     }
 
@@ -192,8 +187,7 @@ export async function cloneFileUIPart(part: FileUIPart): Promise<FileUIPart> {
       ...part,
       url: newBlob.url,
     };
-  } catch (error) {
-    console.error('Failed to clone attachment:', error);
+  } catch (_error) {
     // Return original attachment as fallback to avoid breaking the cloning process
     return part;
   }

@@ -1,29 +1,29 @@
 'use client';
+import { PinIcon } from 'lucide-react';
 import Link from 'next/link';
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
-import { PinIcon } from 'lucide-react';
 
 import {
   MoreHorizontalIcon,
-  TrashIcon,
   PencilEditIcon,
+  TrashIcon,
 } from '@/components/icons';
+import { ShareDialog } from '@/components/share-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { Input } from '@/components/ui/input';
-import type { UIChat } from '@/lib/types/uiChat';
-import { ShareDialog } from '@/components/share-button';
 import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
+import type { UIChat } from '@/lib/types/uiChat';
 
 const PureSidebarChatItem = ({
   chat,
@@ -55,7 +55,7 @@ const PureSidebarChatItem = ({
       await onRename(chat.id, editTitle.trim());
       setIsEditing(false);
       toast.success('Chat renamed successfully');
-    } catch (error) {
+    } catch (_error) {
       setEditTitle(chat.title);
       setIsEditing(false);
     }
@@ -73,22 +73,21 @@ const PureSidebarChatItem = ({
   return (
     <SidebarMenuItem>
       {isEditing ? (
-        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm bg-background">
+        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md bg-background p-2 text-left text-sm">
           <Input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={handleKeyDown}
-            className="h-auto border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
             autoFocus
+            className="h-auto border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
             maxLength={255}
+            onBlur={handleRename}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            value={editTitle}
           />
         </div>
       ) : (
         <SidebarMenuButton asChild isActive={isActive}>
           <Link
             href={`/chat/${chat.id}`}
-            prefetch={false} // TODO: Restore the prefetching after solving conflict with ppr
             onClick={(e) => {
               // Allow middle-click and ctrl+click to open in new tab
               if (e.button === 1 || e.ctrlKey || e.metaKey) {
@@ -101,7 +100,8 @@ const PureSidebarChatItem = ({
               // Use History API for client-side navigation
               window.history.pushState(null, '', `/chat/${chat.id}`);
               setOpenMobile(false);
-            }}
+            }} // TODO: Restore the prefetching after solving conflict with ppr
+            prefetch={false}
           >
             <span>{chat.title}</span>
           </Link>
@@ -111,7 +111,7 @@ const PureSidebarChatItem = ({
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
+            className="mr-0.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             showOnHover={!isActive}
           >
             <MoreHorizontalIcon />
@@ -119,7 +119,7 @@ const PureSidebarChatItem = ({
           </SidebarMenuAction>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent side="bottom" align="end">
+        <DropdownMenuContent align="end" side="bottom">
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => {
@@ -156,8 +156,8 @@ const PureSidebarChatItem = ({
       {shareDialogOpen && (
         <ShareDialog
           chatId={chat.id}
-          open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
+          open={shareDialogOpen}
         />
       )}
     </SidebarMenuItem>
@@ -167,10 +167,18 @@ const PureSidebarChatItem = ({
 export const SidebarChatItem = memo(
   PureSidebarChatItem,
   (prevProps, nextProps) => {
-    if (prevProps.isActive !== nextProps.isActive) return false;
-    if (prevProps.chat.id !== nextProps.chat.id) return false;
-    if (prevProps.chat.title !== nextProps.chat.title) return false;
-    if (prevProps.chat.isPinned !== nextProps.chat.isPinned) return false;
+    if (prevProps.isActive !== nextProps.isActive) {
+      return false;
+    }
+    if (prevProps.chat.id !== nextProps.chat.id) {
+      return false;
+    }
+    if (prevProps.chat.title !== nextProps.chat.title) {
+      return false;
+    }
+    if (prevProps.chat.isPinned !== nextProps.chat.isPinned) {
+      return false;
+    }
     return true;
   },
 );

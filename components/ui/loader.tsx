@@ -1,9 +1,9 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import React from 'react';
+import { cn } from '@/lib/utils';
 
-export interface LoaderProps {
+export type LoaderProps = {
   variant?:
     | 'circular'
     | 'classic'
@@ -20,7 +20,7 @@ export interface LoaderProps {
   size?: 'sm' | 'md' | 'lg';
   text?: string;
   className?: string;
-}
+};
 
 export function CircularLoader({
   className,
@@ -38,7 +38,7 @@ export function CircularLoader({
   return (
     <div
       className={cn(
-        'border-primary animate-spin rounded-full border-2 border-t-transparent',
+        'animate-spin rounded-full border-2 border-primary border-t-transparent',
         sizeClasses[size],
         className,
       )}
@@ -70,10 +70,10 @@ export function ClassicLoader({
   return (
     <div className={cn('relative', sizeClasses[size], className)}>
       <div className="absolute h-full w-full">
-        {[...Array(12)].map((_, i) => (
+        {[...new Array(12)].map((_, i) => (
           <div
+            className="absolute animate-[spinner-fade_1.2s_linear_infinite] rounded-full bg-primary"
             key={i}
-            className="bg-primary absolute animate-[spinner-fade_1.2s_linear_infinite] rounded-full"
             style={{
               top: '0',
               left: '50%',
@@ -109,7 +109,7 @@ export function PulseLoader({
 
   return (
     <div className={cn('relative', sizeClasses[size], className)}>
-      <div className="border-primary absolute inset-0 animate-[thin-pulse_1.5s_ease-in-out_infinite] rounded-full border-2" />
+      <div className="absolute inset-0 animate-[thin-pulse_1.5s_ease-in-out_infinite] rounded-full border-2 border-primary" />
       <span className="sr-only">Loading</span>
     </div>
   );
@@ -131,7 +131,7 @@ export function PulseDotLoader({
   return (
     <div
       className={cn(
-        'bg-primary animate-[pulse-dot_1.2s_ease-in-out_infinite] rounded-full',
+        'animate-[pulse-dot_1.2s_ease-in-out_infinite] rounded-full bg-primary',
         sizeClasses[size],
         className,
       )}
@@ -168,13 +168,13 @@ export function DotsLoader({
         className,
       )}
     >
-      {[...Array(3)].map((_, i) => (
+      {[...new Array(3)].map((_, i) => (
         <div
-          key={i}
           className={cn(
-            'bg-primary animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full',
+            'animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full bg-primary',
             dotSizes[size],
           )}
+          key={i}
           style={{
             animationDelay: `${i * 160}ms`,
           }}
@@ -212,13 +212,13 @@ export function TypingLoader({
         className,
       )}
     >
-      {[...Array(3)].map((_, i) => (
+      {[...new Array(3)].map((_, i) => (
         <div
-          key={i}
           className={cn(
-            'bg-primary animate-[typing_1s_infinite] rounded-full',
+            'animate-[typing_1s_infinite] rounded-full bg-primary',
             dotSizes[size],
           )}
+          key={i}
           style={{
             animationDelay: `${i * 250}ms`,
           }}
@@ -262,13 +262,13 @@ export function WaveLoader({
         className,
       )}
     >
-      {[...Array(5)].map((_, i) => (
+      {[...new Array(5)].map((_, i) => (
         <div
-          key={i}
           className={cn(
-            'bg-primary animate-[wave_1s_ease-in-out_infinite] rounded-full',
+            'animate-[wave_1s_ease-in-out_infinite] rounded-full bg-primary',
             barWidths[size],
           )}
+          key={i}
           style={{
             animationDelay: `${i * 100}ms`,
             height: heights[size][i],
@@ -301,13 +301,13 @@ export function BarsLoader({
 
   return (
     <div className={cn('flex', containerSizes[size], className)}>
-      {[...Array(3)].map((_, i) => (
+      {[...new Array(3)].map((_, i) => (
         <div
-          key={i}
           className={cn(
-            'bg-primary h-full animate-[wave-bars_1.2s_ease-in-out_infinite]',
+            'h-full animate-[wave-bars_1.2s_ease-in-out_infinite] bg-primary',
             barWidths[size],
           )}
+          key={i}
           style={{
             animationDelay: `${i * 0.2}s`,
           }}
@@ -351,12 +351,12 @@ export function TerminalLoader({
         className,
       )}
     >
-      <span className={cn('text-primary font-mono', textSizes[size])}>
+      <span className={cn('font-mono text-primary', textSizes[size])}>
         {'>'}
       </span>
       <div
         className={cn(
-          'bg-primary animate-[blink_1s_step-end_infinite]',
+          'animate-[blink_1s_step-end_infinite] bg-primary',
           cursorSizes[size],
         )}
       />
@@ -441,17 +441,17 @@ export function TextDotsLoader({
 
   return (
     <div className={cn('inline-flex items-center', className)}>
-      <span className={cn('text-primary font-medium', textSizes[size])}>
+      <span className={cn('font-medium text-primary', textSizes[size])}>
         {text}
       </span>
       <span className="inline-flex">
-        <span className="text-primary animate-[loading-dots_1.4s_infinite_0.2s]">
+        <span className="animate-[loading-dots_1.4s_infinite_0.2s] text-primary">
           .
         </span>
-        <span className="text-primary animate-[loading-dots_1.4s_infinite_0.4s]">
+        <span className="animate-[loading-dots_1.4s_infinite_0.4s] text-primary">
           .
         </span>
-        <span className="text-primary animate-[loading-dots_1.4s_infinite_0.6s]">
+        <span className="animate-[loading-dots_1.4s_infinite_0.6s] text-primary">
           .
         </span>
       </span>
@@ -467,33 +467,33 @@ function Loader({
 }: LoaderProps) {
   switch (variant) {
     case 'circular':
-      return <CircularLoader size={size} className={className} />;
+      return <CircularLoader className={className} size={size} />;
     case 'classic':
-      return <ClassicLoader size={size} className={className} />;
+      return <ClassicLoader className={className} size={size} />;
     case 'pulse':
-      return <PulseLoader size={size} className={className} />;
+      return <PulseLoader className={className} size={size} />;
     case 'pulse-dot':
-      return <PulseDotLoader size={size} className={className} />;
+      return <PulseDotLoader className={className} size={size} />;
     case 'dots':
-      return <DotsLoader size={size} className={className} />;
+      return <DotsLoader className={className} size={size} />;
     case 'typing':
-      return <TypingLoader size={size} className={className} />;
+      return <TypingLoader className={className} size={size} />;
     case 'wave':
-      return <WaveLoader size={size} className={className} />;
+      return <WaveLoader className={className} size={size} />;
     case 'bars':
-      return <BarsLoader size={size} className={className} />;
+      return <BarsLoader className={className} size={size} />;
     case 'terminal':
-      return <TerminalLoader size={size} className={className} />;
+      return <TerminalLoader className={className} size={size} />;
     case 'text-blink':
-      return <TextBlinkLoader text={text} size={size} className={className} />;
+      return <TextBlinkLoader className={className} size={size} text={text} />;
     case 'text-shimmer':
       return (
-        <TextShimmerLoader text={text} size={size} className={className} />
+        <TextShimmerLoader className={className} size={size} text={text} />
       );
     case 'loading-dots':
-      return <TextDotsLoader text={text} size={size} className={className} />;
+      return <TextDotsLoader className={className} size={size} text={text} />;
     default:
-      return <CircularLoader size={size} className={className} />;
+      return <CircularLoader className={className} size={size} />;
   }
 }
 

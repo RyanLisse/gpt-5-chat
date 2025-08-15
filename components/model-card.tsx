@@ -1,3 +1,4 @@
+import { Building, Calendar, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -5,14 +6,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
-import type { ProviderId } from '@/providers/models-generated';
-import { cn } from '@/lib/utils';
 import { getFeatureConfig, isFeatureEnabled } from '@/lib/features-config';
+import { cn } from '@/lib/utils';
+import type { ProviderId } from '@/providers/models-generated';
 import { getProviderIcon } from './get-provider-icon';
 
-const PlaceholderIcon = () => <Building className="w-6 h-6" />;
+const PlaceholderIcon = () => <Building className="h-6 w-6" />;
 
 const getFeatureIconsForCard = (model: ModelDefinition) => {
   const icons: React.ReactNode[] = [];
@@ -25,8 +25,8 @@ const getFeatureIconsForCard = (model: ModelDefinition) => {
       icons.push(
         <Tooltip key="reasoning">
           <TooltipTrigger asChild>
-            <div className="p-1.5 bg-muted rounded">
-              <IconComponent className="w-3.5 h-3.5" />
+            <div className="rounded bg-muted p-1.5">
+              <IconComponent className="h-3.5 w-3.5" />
             </div>
           </TooltipTrigger>
           <TooltipContent>
@@ -59,34 +59,34 @@ export function ModelCard({
   const contextLength = model.context_window;
   const hasFeatures = model.features && Object.keys(model.features).length > 0;
 
-  const featureIcons = getFeatureIconsForCard(model);
+  const _featureIcons = getFeatureIconsForCard(model);
 
   // Show placeholder if disabled with reason
   if (isDisabled && disabledReason) {
     return (
       <div
         className={cn(
-          'group p-4 border rounded-lg cursor-not-allowed transition-all flex flex-col items-start opacity-50',
+          'group flex cursor-not-allowed flex-col items-start rounded-lg border p-4 opacity-50 transition-all',
           'border-border bg-muted/50',
           className,
         )}
       >
         {/* Header */}
-        <div className="flex items-start justify-between mb-3 w-full">
+        <div className="mb-3 flex w-full items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className="transition-transform bg-muted rounded-lg p-1">
+            <div className="rounded-lg bg-muted p-1 transition-transform">
               <PlaceholderIcon />
             </div>
             <div className="text-left">
               <h3 className="font-semibold text-sm">{model.name}</h3>
-              <p className="text-xs text-muted-foreground capitalize">
+              <p className="text-muted-foreground text-xs capitalize">
                 {provider}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="text-xs text-muted-foreground text-center w-full">
+        <div className="w-full text-center text-muted-foreground text-xs">
           {disabledReason}
         </div>
       </div>
@@ -96,40 +96,40 @@ export function ModelCard({
   const cardContent = (
     <div
       className={cn(
-        'group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-start',
+        'group flex cursor-pointer flex-col items-start rounded-lg border p-4 transition-all hover:shadow-md',
         isSelected
           ? 'border-primary bg-primary/5 shadow-sm'
           : 'border-border hover:border-primary/50',
-        isDisabled && 'opacity-50 cursor-not-allowed hover:shadow-none',
+        isDisabled && 'cursor-not-allowed opacity-50 hover:shadow-none',
         className,
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-3 w-full">
+      <div className="mb-3 flex w-full items-start justify-between">
         <div className="flex items-center gap-2">
-          <div className="transition-transform bg-muted rounded-lg p-1 group-hover:rotate-12">
+          <div className="rounded-lg bg-muted p-1 transition-transform group-hover:rotate-12">
             {getProviderIcon(provider, 24)}
           </div>
           <div className="text-left">
             <h3 className="font-semibold text-sm">{model.name}</h3>
-            <p className="text-xs text-muted-foreground capitalize">
+            <p className="text-muted-foreground text-xs capitalize">
               {provider}
             </p>
           </div>
         </div>
-        {isSelected && <CheckCircle className="w-4 h-4 text-primary" />}
+        {isSelected && <CheckCircle className="h-4 w-4 text-primary" />}
       </div>
 
       {/* Description */}
       {description && (
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2 text-left">
+        <p className="mb-3 line-clamp-2 text-left text-muted-foreground text-xs">
           {description}
         </p>
       )}
 
       {/* Key Features Row */}
 
-      <div className="flex justify-start items-center gap-3 text-xs text-muted-foreground text-start">
+      <div className="flex items-center justify-start gap-3 text-start text-muted-foreground text-xs">
         {maxTokens && (
           <div className="flex items-center gap-1">
             <span className="font-medium">{maxTokens.toLocaleString()}</span>
@@ -148,24 +148,24 @@ export function ModelCard({
 
       {/* Features Row */}
       {hasFeatures && (
-        <div className="flex flex-wrap gap-1 mt-3 w-full">
+        <div className="mt-3 flex w-full flex-wrap gap-1">
           {model.features?.reasoning && (
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               Reasoning
             </Badge>
           )}
           {model.features?.functionCalling && (
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               Function Calling
             </Badge>
           )}
           {model.features?.input?.image && (
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               Vision
             </Badge>
           )}
           {model.features?.input?.pdf && (
-            <Badge variant="outline" className="text-xs">
+            <Badge className="text-xs" variant="outline">
               PDF
             </Badge>
           )}
@@ -174,20 +174,20 @@ export function ModelCard({
 
       {/* Pricing */}
       {model.pricing && (
-        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground w-full">
+        <div className="mt-3 flex w-full items-center gap-4 text-muted-foreground text-xs">
           {model.pricing.input && (
             <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="h-3 w-3" />
               <span>
-                ${(Number(model.pricing.input) * 1000000).toFixed(2)}/1M in
+                ${(Number(model.pricing.input) * 1_000_000).toFixed(2)}/1M in
               </span>
             </div>
           )}
           {model.pricing.output && (
             <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="h-3 w-3" />
               <span>
-                ${(Number(model.pricing.output) * 1000000).toFixed(2)}/1M out
+                ${(Number(model.pricing.output) * 1_000_000).toFixed(2)}/1M out
               </span>
             </div>
           )}

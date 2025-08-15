@@ -1,10 +1,10 @@
 'use client';
-import { Chat } from '@/components/chat';
-import { getDefaultThread } from '@/lib/thread-utils';
+import { notFound } from 'next/navigation';
 import { useMemo } from 'react';
+import { Chat } from '@/components/chat';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
-import { notFound } from 'next/navigation';
+import { getDefaultThread } from '@/lib/thread-utils';
 
 export function SharedChatPage({ id }: { id: string }) {
   const {
@@ -19,7 +19,9 @@ export function SharedChatPage({ id }: { id: string }) {
   } = usePublicChatMessages(id as string);
 
   const initialThreadMessages = useMemo(() => {
-    if (!messages) return [];
+    if (!messages) {
+      return [];
+    }
     return getDefaultThread(
       messages.map((msg) => ({ ...msg, id: msg.id.toString() })),
     );
@@ -32,7 +34,7 @@ export function SharedChatPage({ id }: { id: string }) {
   if (chatError || messagesError) {
     // TODO: Replace for error page
     return (
-      <div className="flex items-center justify-center h-dvh">
+      <div className="flex h-dvh items-center justify-center">
         <div className="text-muted-foreground">
           This chat is not available or has been set to private
         </div>
@@ -40,15 +42,15 @@ export function SharedChatPage({ id }: { id: string }) {
     );
   }
 
-  if (!isChatLoading && !chat) {
+  if (!(isChatLoading || chat)) {
     return notFound();
   }
 
   if (isMessagesLoading || isChatLoading) {
     return (
       <WithSkeleton
+        className="h-full w-full"
         isLoading={isChatLoading || isMessagesLoading}
-        className="w-full h-full"
       >
         <div className="flex h-screen w-full" />
       </WithSkeleton>
@@ -62,8 +64,8 @@ export function SharedChatPage({ id }: { id: string }) {
   return (
     <>
       <WithSkeleton
-        isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
+        isLoading={isChatLoading || isMessagesLoading}
       >
         {/* // Shared chats don't need chat input provider */}
         <Chat

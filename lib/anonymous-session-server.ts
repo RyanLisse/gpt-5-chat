@@ -11,7 +11,9 @@ export async function getAnonymousSession(): Promise<AnonymousSession | null> {
     const cookieStore = await cookies();
     const sessionData = cookieStore.get(ANONYMOUS_SESSION_COOKIES_KEY);
 
-    if (!sessionData?.value) return null;
+    if (!sessionData?.value) {
+      return null;
+    }
 
     const session = JSON.parse(sessionData.value) as AnonymousSession;
 
@@ -26,8 +28,7 @@ export async function getAnonymousSession(): Promise<AnonymousSession | null> {
       ANONYMOUS_LIMITS.SESSION_DURATION;
 
     return isExpired ? null : session;
-  } catch (error) {
-    console.error('Error parsing anonymous session:', error);
+  } catch (_error) {
     return null;
   }
 }

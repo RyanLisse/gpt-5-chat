@@ -3,8 +3,12 @@ export function redactSensitiveData<T = any>(value: T): T {
   const SENSITIVE = /(?:api|key|token|secret|auth|password)/i;
 
   function redact(obj: any): any {
-    if (obj == null) return obj;
-    if (Array.isArray(obj)) return obj.map(redact);
+    if (obj == null) {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(redact);
+    }
     if (typeof obj === 'object') {
       const out: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(obj)) {

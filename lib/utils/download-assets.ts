@@ -1,9 +1,9 @@
 import type {
+  DataContent,
+  FilePart,
+  ImagePart,
   ModelMessage,
   TextPart,
-  ImagePart,
-  FilePart,
-  DataContent,
 } from 'ai';
 
 // Minimal utilities to download assets from URL-based parts and inline them.
@@ -30,8 +30,9 @@ async function defaultDownload({ url }: { url: URL }): Promise<DownloadResult> {
 }
 
 function toHttpUrl(value: unknown): URL | null {
-  if (value instanceof URL)
+  if (value instanceof URL) {
     return value.protocol.startsWith('http') ? value : null;
+  }
   if (typeof value === 'string') {
     try {
       const url = new URL(value);
@@ -54,15 +55,21 @@ export async function downloadAssetsFromModelMessages(
   const urlSet = new Set<string>();
 
   for (const message of messages) {
-    if (typeof message.content === 'string') continue;
+    if (typeof message.content === 'string') {
+      continue;
+    }
     for (const part of message.content) {
-      if (part.type !== 'file' && part.type !== 'image') continue;
+      if (part.type !== 'file' && part.type !== 'image') {
+        continue;
+      }
       const dataOrUrl: DataContent | URL =
         part.type === 'file'
           ? (part as FilePart).data
           : (part as ImagePart).image;
       const url = toHttpUrl(dataOrUrl);
-      if (url) urlSet.add(url.toString());
+      if (url) {
+        urlSet.add(url.toString());
+      }
     }
   }
 
@@ -130,7 +137,9 @@ export async function replaceFilePartUrlByBinaryDataInMessages(
   };
 
   return messages.map((message) => {
-    if (typeof message.content === 'string') return message;
+    if (typeof message.content === 'string') {
+      return message;
+    }
     return {
       ...message,
       content: (

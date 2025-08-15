@@ -5,8 +5,7 @@ import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
 } from '@lexical/markdown';
-import { createEditor, type LexicalEditor } from 'lexical';
-import { $getRoot } from 'lexical';
+import { $getRoot, createEditor, type LexicalEditor } from 'lexical';
 import { renderToString } from 'react-dom/server';
 
 import Markdown from 'react-markdown';
@@ -36,7 +35,7 @@ export const buildContentFromEditor = (editor: LexicalEditor): string => {
 };
 
 export const createSuggestionDecorators = (
-  suggestions: Array<UISuggestion>,
+  suggestions: UISuggestion[],
   editor: LexicalEditor,
 ) => {
   const decorators: Record<string, any> = {};

@@ -1,6 +1,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 import type { UIChat } from '@/lib/types/uiChat';
 import { SidebarChatItem } from './sidebar-chat-item';
 
@@ -13,13 +13,13 @@ type GroupedChats = {
   older: UIChat[];
 };
 
-interface GroupedChatsListProps {
+type GroupedChatsListProps = {
   chats: UIChat[];
   onDelete: (chatId: string) => void;
   onRename: (chatId: string, title: string) => void;
   onPin: (chatId: string, isPinned: boolean) => void;
   setOpenMobile: (open: boolean) => void;
-}
+};
 
 export function GroupedChatsList({
   chats,
@@ -88,17 +88,17 @@ export function GroupedChatsList({
     <>
       {groupedChats.pinned.length > 0 && (
         <>
-          <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+          <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
             Pinned
           </div>
           {groupedChats.pinned.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}
@@ -108,18 +108,18 @@ export function GroupedChatsList({
       {groupedChats.today.length > 0 && (
         <>
           <div
-            className={`px-2 py-1 text-xs text-sidebar-foreground/50 ${groupedChats.pinned.length > 0 ? 'mt-6' : ''}`}
+            className={`px-2 py-1 text-sidebar-foreground/50 text-xs ${groupedChats.pinned.length > 0 ? 'mt-6' : ''}`}
           >
             Today
           </div>
           {groupedChats.today.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}
@@ -128,17 +128,17 @@ export function GroupedChatsList({
 
       {groupedChats.yesterday.length > 0 && (
         <>
-          <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
             Yesterday
           </div>
           {groupedChats.yesterday.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}
@@ -147,17 +147,17 @@ export function GroupedChatsList({
 
       {groupedChats.lastWeek.length > 0 && (
         <>
-          <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
             Last 7 days
           </div>
           {groupedChats.lastWeek.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}
@@ -166,17 +166,17 @@ export function GroupedChatsList({
 
       {groupedChats.lastMonth.length > 0 && (
         <>
-          <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
             Last 30 days
           </div>
           {groupedChats.lastMonth.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}
@@ -185,17 +185,17 @@ export function GroupedChatsList({
 
       {groupedChats.older.length > 0 && (
         <>
-          <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
             Older
           </div>
           {groupedChats.older.map((chat) => (
             <SidebarChatItem
-              key={chat.id}
               chat={chat}
               isActive={chat.id === chatId}
+              key={chat.id}
               onDelete={onDelete}
-              onRename={onRename}
               onPin={onPin}
+              onRename={onRename}
               setOpenMobile={setOpenMobile}
             />
           ))}

@@ -1,11 +1,11 @@
 'use client';
 
+import { notFound } from 'next/navigation';
+import { useDeferredValue } from 'react';
 import { ChatPage } from '@/app/(chat)/chat/[id]/chat-page';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { useChatId } from '@/providers/chat-id-provider';
-import { useDeferredValue } from 'react';
 import { ChatHome } from '../../chat-home';
-import { notFound } from 'next/navigation';
 import { SharedChatPage } from '../../share/[id]/shared-chat-page';
 
 export function DeferredChatPage() {
@@ -24,7 +24,7 @@ export function DeferredChatPage() {
   if (deferredId !== id || deferredType !== type) {
     return (
       <div className="flex h-screen w-full">
-        <WithSkeleton isLoading={true} className="w-full h-full">
+        <WithSkeleton className="h-full w-full" isLoading={true}>
           <div className="flex h-screen w-full" />
         </WithSkeleton>
       </div>

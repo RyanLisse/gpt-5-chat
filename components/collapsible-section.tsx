@@ -1,9 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { CheckCircle } from '@phosphor-icons/react/CheckCircle';
 import {
   Calculator,
@@ -14,16 +11,19 @@ import {
   Copy,
   FileText,
   Loader2,
-  TrendingUp,
   type LucideIcon,
+  TrendingUp,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
-  oneLight,
   oneDark,
+  oneLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const IconMapping: Record<string, LucideIcon> = {
   stock: TrendingUp,
@@ -33,14 +33,14 @@ const IconMapping: Record<string, LucideIcon> = {
   output: FileText,
 };
 
-interface CollapsibleSectionProps {
+type CollapsibleSectionProps = {
   code: string;
   output?: string;
   language?: string;
   title?: string;
   icon?: string;
   status?: 'running' | 'completed';
-}
+};
 
 export function CollapsibleSection({
   code,
@@ -65,31 +65,31 @@ export function CollapsibleSection({
   };
 
   return (
-    <div className="group rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden transition-all duration-200 hover:shadow-sm">
+    <div className="group overflow-hidden rounded-lg border border-neutral-200 transition-all duration-200 hover:shadow-sm dark:border-neutral-800">
       <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer bg-white dark:bg-neutral-900 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+        className="flex cursor-pointer items-center justify-between bg-white px-4 py-3 transition-colors hover:bg-neutral-50 dark:bg-neutral-900 dark:hover:bg-neutral-800/50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
           {IconComponent && (
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
               <IconComponent className="h-4 w-4 text-primary" />
             </div>
           )}
-          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+          <h3 className="font-medium text-neutral-900 text-sm dark:text-neutral-100">
             {title}
           </h3>
         </div>
         <div className="flex items-center gap-2">
           {status && (
             <Badge
-              variant="secondary"
               className={cn(
-                'w-fit flex items-center gap-1.5 px-1.5 py-0.5 text-xs',
+                'flex w-fit items-center gap-1.5 px-1.5 py-0.5 text-xs',
                 status === 'running'
-                  ? 'bg-blue-50/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                  : 'bg-green-50/50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+                  ? 'bg-blue-50/50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                  : 'bg-green-50/50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
               )}
+              variant="secondary"
             >
               {status === 'running' ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -110,39 +110,39 @@ export function CollapsibleSection({
 
       {isExpanded && (
         <div>
-          <div className="flex border-b border-neutral-200 dark:border-neutral-800">
+          <div className="flex border-neutral-200 border-b dark:border-neutral-800">
             <button
-              type="button"
               className={cn(
-                'px-4 py-2 text-sm font-medium transition-colors',
+                'px-4 py-2 font-medium text-sm transition-colors',
                 activeTab === 'code'
-                  ? 'border-b-2 border-primary text-primary'
+                  ? 'border-primary border-b-2 text-primary'
                   : 'text-neutral-600 dark:text-neutral-400',
               )}
               onClick={() => setActiveTab('code')}
+              type="button"
             >
               Code
             </button>
             {output && (
               <button
-                type="button"
                 className={cn(
-                  'px-4 py-2 text-sm font-medium transition-colors',
+                  'px-4 py-2 font-medium text-sm transition-colors',
                   activeTab === 'output'
-                    ? 'border-b-2 border-primary text-primary'
+                    ? 'border-primary border-b-2 text-primary'
                     : 'text-neutral-600 dark:text-neutral-400',
                 )}
                 onClick={() => setActiveTab('output')}
+                type="button"
               >
                 Output
               </button>
             )}
-            <div className="ml-auto pr-2 flex items-center">
+            <div className="ml-auto flex items-center pr-2">
               <Button
+                className="opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                onClick={handleCopy}
                 size="sm"
                 variant="ghost"
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                onClick={handleCopy}
               >
                 {copied ? (
                   <Check className="h-3.5 w-3.5 text-green-500" />
@@ -159,8 +159,15 @@ export function CollapsibleSection({
             )}
           >
             <SyntaxHighlighter
-              language={activeTab === 'code' ? language : 'plaintext'}
-              style={theme === 'dark' ? oneDark : oneLight}
+              codeTagProps={{
+                style: {
+                  fontFamily: 'var(--font-geist-mono)',
+                  fontSize: '0.85em',
+                  whiteSpace: 'pre',
+                  overflowWrap: 'normal',
+                  wordBreak: 'keep-all',
+                },
+              }}
               customStyle={{
                 margin: 0,
                 padding: '0.75rem 0 0 0',
@@ -170,7 +177,11 @@ export function CollapsibleSection({
                 borderBottomRightRadius: '0.375rem',
                 fontFamily: 'var(--font-geist-mono)',
               }}
-              showLineNumbers={true}
+              language={activeTab === 'code' ? language : 'plaintext'}
+              lineNumberContainerStyle={{
+                backgroundColor: theme === 'dark' ? '#000000' : '#f5f5f5',
+                float: 'left',
+              }}
               lineNumberStyle={{
                 textAlign: 'right',
                 color: '#808080',
@@ -181,20 +192,9 @@ export function CollapsibleSection({
                 fontFamily: 'var(--font-geist-mono)',
                 minWidth: '2em',
               }}
-              lineNumberContainerStyle={{
-                backgroundColor: theme === 'dark' ? '#000000' : '#f5f5f5',
-                float: 'left',
-              }}
+              showLineNumbers={true}
+              style={theme === 'dark' ? oneDark : oneLight}
               wrapLongLines={false}
-              codeTagProps={{
-                style: {
-                  fontFamily: 'var(--font-geist-mono)',
-                  fontSize: '0.85em',
-                  whiteSpace: 'pre',
-                  overflowWrap: 'normal',
-                  wordBreak: 'keep-all',
-                },
-              }}
             >
               {activeTab === 'code' ? code : output || ''}
             </SyntaxHighlighter>

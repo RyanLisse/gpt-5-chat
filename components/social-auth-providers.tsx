@@ -1,26 +1,26 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { GithubLogo, GoogleLogo } from '@phosphor-icons/react';
 import { signIn } from 'next-auth/react';
-import { GoogleLogo, GithubLogo } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
 
 export function SocialAuthProviders() {
   return (
     <div className="space-y-2">
       <Button
-        variant="outline"
-        type="button"
-        onClick={(e) => signIn('google')}
         className="w-full"
+        onClick={(_e) => signIn('google')}
+        type="button"
+        variant="outline"
       >
         <GoogleLogo className="mr-2 h-4 w-4" />
         Continue with Google
       </Button>
       <Button
-        variant="outline"
-        type="button"
-        onClick={(e) => signIn('github')}
         className="w-full"
+        onClick={(_e) => signIn('github')}
+        type="button"
+        variant="outline"
       >
         <GithubLogo className="mr-2 h-4 w-4" />
         Continue with GitHub

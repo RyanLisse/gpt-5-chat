@@ -1,49 +1,53 @@
 import { convertToModelMessages } from 'ai';
-import { replaceFilePartUrlByBinaryDataInMessages } from '@/lib/utils/download-assets';
-import { auth } from '@/app/(auth)/auth';
-// Removed systemPrompt: not used with Responses API path
-import {
-  getChatById,
-  saveChat,
-  getUserById,
-  saveMessage,
-  getMessageById,
-} from '@/lib/db/queries';
-import { generateUUID } from '@/lib/utils';
-import { generateTitleFromUserMessage } from '../../actions';
-// Removed getTools: not used with Responses API path
-import { toolsDefinitions, allTools } from '@/lib/ai/tools/tools-definitions';
-import type { ToolName, ChatMessage } from '@/lib/ai/types';
 import type { NextRequest } from 'next/server';
+import { auth } from '@/app/(auth)/auth';
+import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
+// Removed getTools: not used with Responses API path
+import { allTools } from '@/lib/ai/tools/tools-definitions';
+import type { ChatMessage, ToolName } from '@/lib/ai/types';
+// Removed getLanguageModel/getModelProviderOptions: not used with Responses API path
+import type { CreditReservation } from '@/lib/credits/credit-reservation';
 import {
   filterAffordableTools,
   getBaseModelCostByModelId,
 } from '@/lib/credits/credits-utils';
-// Removed getLanguageModel/getModelProviderOptions: not used with Responses API path
-import type { CreditReservation } from '@/lib/credits/credit-reservation';
-import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
+// Removed systemPrompt: not used with Responses API path
+import {
+  getChatById,
+  getMessageById,
+  getUserById,
+  saveChat,
+  saveMessage,
+} from '@/lib/db/queries';
+import { generateUUID } from '@/lib/utils';
+import { replaceFilePartUrlByBinaryDataInMessages } from '@/lib/utils/download-assets';
+import { generateTitleFromUserMessage } from '../../actions';
+
 // Removed resumable-stream imports: streaming disabled for Responses API MVP
 
+import { ChatSDKError } from '@/lib/ai/errors';
+import type { ModelId } from '@/lib/ai/model-id';
+import { createResponsesClient } from '@/lib/ai/responses/client';
+import type {
+  ResponseRequest,
+  Annotation as ResponsesAnnotation,
+} from '@/lib/ai/responses/types';
+import { calculateMessagesTokens } from '@/lib/ai/token-utils';
 // 'after' was only used for resumable streams; not needed in Responses API path
 import {
-  getAnonymousSession,
   createAnonymousSession,
+  getAnonymousSession,
   setAnonymousSession,
 } from '@/lib/anonymous-session-server';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 // Removed markdownJoinerTransform: not used with Responses API path
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
-import type { ModelId } from '@/lib/ai/model-id';
-import { calculateMessagesTokens } from '@/lib/ai/token-utils';
-import { ChatSDKError } from '@/lib/ai/errors';
 import { addExplicitToolRequestToMessages } from './addExplicitToolRequestToMessages';
-import { getRecentGeneratedImage } from './getRecentGeneratedImage';
-import { getCreditReservation } from './getCreditReservation';
 import { filterReasoningParts } from './filterReasoningParts';
-import { getThreadUpToMessageId } from './getThreadUpToMessageId';
-import { createResponsesClient } from '@/lib/ai/responses/client';
-import type { ResponseRequest, Annotation as ResponsesAnnotation } from '@/lib/ai/responses/types';
+import { getCreditReservation } from './get-credit-reservation';
+import { getRecentGeneratedImage } from './get-recent-generated-image';
+import { getThreadUpToMessageId } from './get-thread-up-to-message-id';
 
 // Create shared Redis clients for resumable stream and cleanup
 let redisPublisher: any = null;
@@ -60,13 +64,8 @@ if (process.env.REDIS_URL) {
 
 // Resumable stream context removed in Responses API MVP (non-streaming)
 
-export function getRedisSubscriber() {
-  return redisSubscriber;
-}
-
-export function getRedisPublisher() {
-  return redisPublisher;
-}
+// Moved Redis access functions to separate utility file to avoid Next.js route export conflicts
+// Use getRedisSubscriber/getRedisPublisher from @/lib/redis/client instead
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,7 +80,6 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     if (!userMessage) {
-      console.log('RESPONSE > POST /api/chat: No user message found');
       return new Response('No user message found', { status: 400 });
     }
 
@@ -89,9 +87,6 @@ export async function POST(request: NextRequest) {
     const selectedModelId = userMessage.metadata?.selectedModel as ModelId;
 
     if (!selectedModelId) {
-      console.log(
-        'RESPONSE > POST /api/chat: No selectedModel in user message metadata',
-      );
       return new Response('No selectedModel in user message metadata', {
         status: 400,
       });
@@ -109,7 +104,6 @@ export async function POST(request: NextRequest) {
       // TODO: Consider if checking if user exists is really needed
       const user = await getUserById({ userId });
       if (!user) {
-        console.log('RESPONSE > POST /api/chat: User not found');
         return new Response('User not found', { status: 404 });
       }
     } else {
@@ -121,9 +115,6 @@ export async function POST(request: NextRequest) {
       );
 
       if (!rateLimitResult.success) {
-        console.log(
-          `RESPONSE > POST /api/chat: Rate limit exceeded for IP ${clientIP}`,
-        );
         return new Response(
           JSON.stringify({
             error: rateLimitResult.error,
@@ -146,9 +137,6 @@ export async function POST(request: NextRequest) {
 
       // Check message limits
       if (anonymousSession.remainingCredits <= 0) {
-        console.log(
-          'RESPONSE > POST /api/chat: Anonymous message limit reached',
-        );
         return new Response(
           JSON.stringify({
             error: `You've used all ${ANONYMOUS_LIMITS.CREDITS} free messages. Sign up to continue chatting with unlimited access!`,
@@ -169,9 +157,6 @@ export async function POST(request: NextRequest) {
 
       // Validate model for anonymous users
       if (!ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(selectedModelId as any)) {
-        console.log(
-          'RESPONSE > POST /api/chat: Model not available for anonymous users',
-        );
         return new Response(
           JSON.stringify({
             error: 'Model not available for anonymous users',
@@ -190,12 +175,10 @@ export async function POST(request: NextRequest) {
 
     // Extract selectedTool from user message metadata
     const selectedTool = userMessage.metadata.selectedTool || null;
-    console.log('RESPONSE > POST /api/chat: selectedTool', selectedTool);
     let modelDefinition: ModelDefinition;
     try {
       modelDefinition = getModelDefinition(selectedModelId);
-    } catch (error) {
-      console.log('RESPONSE > POST /api/chat: Model not found');
+    } catch (_error) {
       return new Response('Model not found', { status: 404 });
     }
     // Skip database operations for anonymous users
@@ -203,33 +186,24 @@ export async function POST(request: NextRequest) {
       const chat = await getChatById({ id: chatId });
 
       if (chat && chat.userId !== userId) {
-        console.log(
-          'RESPONSE > POST /api/chat: Unauthorized - chat ownership mismatch',
-        );
         return new Response('Unauthorized', { status: 401 });
       }
 
-      if (!chat) {
+      if (chat) {
+        if (chat.userId !== userId) {
+          return new Response('Unauthorized', { status: 401 });
+        }
+      } else {
         const title = await generateTitleFromUserMessage({
           message: userMessage,
         });
 
         await saveChat({ id: chatId, userId, title });
-      } else {
-        if (chat.userId !== userId) {
-          console.log(
-            'RESPONSE > POST /api/chat: Unauthorized - chat ownership mismatch',
-          );
-          return new Response('Unauthorized', { status: 401 });
-        }
       }
 
       const [exsistentMessage] = await getMessageById({ id: userMessage.id });
 
       if (exsistentMessage && exsistentMessage.chatId !== chatId) {
-        console.log(
-          'RESPONSE > POST /api/chat: Unauthorized - message chatId mismatch',
-        );
         return new Response('Unauthorized', { status: 401 });
       }
 
@@ -238,7 +212,7 @@ export async function POST(request: NextRequest) {
         await saveMessage({
           _message: {
             id: userMessage.id,
-            chatId: chatId,
+            chatId,
             role: userMessage.role,
             parts: userMessage.parts,
             attachments: [],
@@ -247,17 +221,18 @@ export async function POST(request: NextRequest) {
             isPartial: false,
             parentMessageId: userMessage.metadata?.parentMessageId || null,
             selectedModel: selectedModelId,
-            selectedTool: selectedTool,
+            selectedTool,
           },
         });
       }
     }
 
     let explicitlyRequestedTools: ToolName[] | null = null;
-    if (selectedTool === 'generateImage')
+    if (selectedTool === 'generateImage') {
       explicitlyRequestedTools = ['generateImage'];
-    else if (selectedTool === 'createDocument')
+    } else if (selectedTool === 'createDocument') {
       explicitlyRequestedTools = ['createDocument', 'updateDocument'];
+    }
 
     const baseModelCost = getBaseModelCostByModelId(selectedModelId);
 
@@ -268,10 +243,6 @@ export async function POST(request: NextRequest) {
         await getCreditReservation(userId, baseModelCost);
 
       if (creditError) {
-        console.log(
-          'RESPONSE > POST /api/chat: Credit reservation error:',
-          creditError,
-        );
         return new Response(creditError, {
           status: 402,
         });
@@ -294,9 +265,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Disable all tools for models with unspecified features
-    if (!modelDefinition.features) {
-      activeTools = [];
+    if (modelDefinition.features) {
     } else {
+      activeTools = [];
     }
 
     if (
@@ -306,10 +277,6 @@ export async function POST(request: NextRequest) {
         explicitlyRequestedTools.includes(tool),
       )
     ) {
-      console.log(
-        'RESPONSE > POST /api/chat: Insufficient budget for requested tool:',
-        explicitlyRequestedTools,
-      );
       return new Response(
         `Insufficient budget for requested tool: ${explicitlyRequestedTools}.`,
         {
@@ -320,10 +287,6 @@ export async function POST(request: NextRequest) {
       explicitlyRequestedTools &&
       explicitlyRequestedTools.length > 0
     ) {
-      console.log(
-        'Setting explicitly requested tools',
-        explicitlyRequestedTools,
-      );
       activeTools = explicitlyRequestedTools;
     }
 
@@ -334,9 +297,6 @@ export async function POST(request: NextRequest) {
     const MAX_INPUT_TOKENS = 50_000;
 
     if (totalTokens > MAX_INPUT_TOKENS) {
-      console.log(
-        `RESPONSE > POST /api/chat: Token limit exceeded: ${totalTokens} > ${MAX_INPUT_TOKENS}`,
-      );
       const error = new ChatSDKError(
         'input_too_long:chat',
         `Message too long: ${totalTokens} tokens (max: ${MAX_INPUT_TOKENS})`,
@@ -354,7 +314,7 @@ export async function POST(request: NextRequest) {
     const messages = [...messageThreadToParent, userMessage].slice(-5);
 
     // Process conversation history
-    const lastGeneratedImage = getRecentGeneratedImage(messages);
+    const _lastGeneratedImage = getRecentGeneratedImage(messages);
     addExplicitToolRequestToMessages(
       messages,
       activeTools,
@@ -370,9 +330,6 @@ export async function POST(request: NextRequest) {
     // TODO: remove this when the gateway provider supports URLs
     const contextForLLM =
       await replaceFilePartUrlByBinaryDataInMessages(modelMessages);
-    console.dir(contextForLLM, { depth: null });
-    // Extract the last generated image for use as reference (only from the immediately previous message)
-    console.log('active tools', activeTools);
 
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
@@ -381,19 +338,22 @@ export async function POST(request: NextRequest) {
         await reservation.cleanup();
       }
       abortController.abort();
-    }, 290000); // 290 seconds
+    }, 290_000); // 290 seconds
 
     // Ensure cleanup on any unhandled errors
     try {
       const messageId = generateUUID();
 
       // Build Responses API request
-      const selectedOrDefaultModel = (selectedModelId ?? 'openai/gpt-5-mini') as ModelId;
+      const selectedOrDefaultModel = (selectedModelId ??
+        'openai/gpt-5-mini') as ModelId;
 
       // Concatenate text from recent messages; ignore non-text parts for MVP
       const textInput = contextForLLM
         .map((m: any) => {
-          const content = Array.isArray(m.content) ? m.content : [{ type: 'text', text: m.content }];
+          const content = Array.isArray(m.content)
+            ? m.content
+            : [{ type: 'text', text: m.content }];
           return content
             .filter((c: any) => c.type === 'text' && typeof c.text === 'string')
             .map((c: any) => c.text)
@@ -428,7 +388,10 @@ export async function POST(request: NextRequest) {
         role: 'assistant',
         parts: [
           { type: 'text', text: res.outputText },
-          ...res.annotations.map((a: ResponsesAnnotation) => ({ type: 'annotation', data: a } as any)),
+          ...res.annotations.map(
+            (a: ResponsesAnnotation) =>
+              ({ type: 'annotation', data: a }) as any,
+          ),
         ],
         attachments: [],
         createdAt: new Date(),
@@ -473,7 +436,6 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       clearTimeout(timeoutId);
-      console.error('error found in try block', error);
       if (reservation) {
         await reservation.cleanup();
       }
@@ -483,8 +445,7 @@ export async function POST(request: NextRequest) {
       }
       throw error;
     }
-  } catch (error) {
-    console.error('RESPONSE > POST /api/chat error:', error);
+  } catch (_error) {
     return new Response('An error occurred while processing your request!', {
       status: 404,
     });

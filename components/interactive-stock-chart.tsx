@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react/lib/index';
 import type { EChartsOption } from 'echarts-for-react/lib/types';
-import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
+import React, { useMemo } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const CHART_COLORS = [
@@ -20,7 +20,7 @@ const getSeriesColor = (index: number) => {
   return CHART_COLORS[index % CHART_COLORS.length];
 };
 
-export interface StockChartProps {
+export type StockChartProps = {
   title: string;
   data: any[];
   stock_symbols: string[];
@@ -43,9 +43,9 @@ export interface StockChartProps {
     x_scale: string;
     x_ticks?: string[];
     x_tick_labels?: string[];
-    elements: Array<{ label: string; points: Array<[string, number]> }>;
+    elements: Array<{ label: string; points: [string, number][] }>;
   };
-}
+};
 
 const formatStockSymbol = (symbol: string) => {
   // Common stock suffixes to remove
@@ -113,7 +113,7 @@ export function InteractiveStockChart({
         .sort((a, b) => a.date.getTime() - b.date.getTime());
 
       const firstPrice = points[0]?.value || 0;
-      const lastPrice = points[points.length - 1]?.value || 0;
+      const lastPrice = points.at(-1)?.value || 0;
       const priceChange = lastPrice - firstPrice;
       const percentChange = ((priceChange / firstPrice) * 100).toFixed(2);
 
@@ -150,7 +150,9 @@ export function InteractiveStockChart({
       className: 'echarts-tooltip',
       textStyle: { color: textColor },
       formatter: (params: any[]) => {
-        if (!Array.isArray(params) || params.length === 0) return '';
+        if (!Array.isArray(params) || params.length === 0) {
+          return '';
+        }
 
         const date = new Date(params[0].value[0]);
         const formattedDate = getDateFormat(interval, date);
@@ -169,7 +171,9 @@ export function InteractiveStockChart({
         `;
 
         params.forEach((param) => {
-          if (!param.value || param.value.length < 2) return;
+          if (!param.value || param.value.length < 2) {
+            return;
+          }
 
           const currentPrice = param.value[1];
           const seriesName = param.seriesName;
@@ -178,7 +182,7 @@ export function InteractiveStockChart({
 
           // Find previous point for percentage calculation
           const dataIndex = param.dataIndex;
-          const seriesData = param.data;
+          const _seriesData = param.data;
           let prevPrice = currentPrice;
           let change = 0;
           let changePercent = 0;
@@ -314,17 +318,17 @@ export function InteractiveStockChart({
   };
 
   return (
-    <div className="w-full bg-neutral-50 dark:bg-neutral-900 rounded-xl">
+    <div className="w-full rounded-xl bg-neutral-50 dark:bg-neutral-900">
       <div className="p-2 sm:p-4">
-        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-2 sm:mb-4 px-2">
+        <h3 className="mb-2 px-2 font-bold text-base text-neutral-800 sm:mb-4 sm:text-lg lg:text-xl dark:text-neutral-200">
           {title}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 mb-2 sm:mb-4 px-2">
+        <div className="mb-2 grid grid-cols-1 gap-2 px-2 sm:mb-4 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {processedData.map((series) => (
             <div
+              className="flex flex-col gap-1 rounded-lg p-2 sm:p-3"
               key={series.label}
-              className="flex flex-col gap-1 p-2 sm:p-3 rounded-lg"
               style={{
                 backgroundColor:
                   theme === 'dark'
@@ -332,16 +336,16 @@ export function InteractiveStockChart({
                     : `${series.color.line}40`,
               }}
             >
-              <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 truncate">
+              <div className="truncate text-neutral-600 text-xs sm:text-sm dark:text-neutral-400">
                 {series.label}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                <span className="font-semibold text-base text-neutral-900 sm:text-lg dark:text-neutral-100">
                   ${series.lastPrice.toFixed(2)}
                 </span>
                 <Badge
                   className={cn(
-                    'rounded-full px-1.5 py-0.5 text-[10px] leading-none whitespace-nowrap',
+                    'whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] leading-none',
                     series.priceChange >= 0
                       ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
                       : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
@@ -360,15 +364,15 @@ export function InteractiveStockChart({
           ))}
         </div>
 
-        <div className="rounded-lg overflow-hidden">
+        <div className="overflow-hidden rounded-lg">
           <ReactECharts
+            notMerge={true}
             option={options}
             style={{
               height: window.innerWidth < 640 ? '250px' : '400px',
               width: '100%',
             }}
             theme={theme === 'dark' ? 'dark' : undefined}
-            notMerge={true}
           />
         </div>
       </div>

@@ -1,9 +1,9 @@
 'use client';
 
+import { useTheme } from 'next-themes';
+import { parse, unparse } from 'papaparse';
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import DataGrid, { textEditor } from 'react-data-grid';
-import { parse, unparse } from 'papaparse';
-import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 
 import 'react-data-grid/lib/styles.css';
@@ -30,7 +30,9 @@ const PureSpreadsheetEditor = ({
   const { theme } = useTheme();
 
   const parseData = useMemo(() => {
-    if (!content) return Array(MIN_ROWS).fill(Array(MIN_COLS).fill(''));
+    if (!content) {
+      return new Array(MIN_ROWS).fill(new Array(MIN_COLS).fill(''));
+    }
     const result = parse<string[]>(content, { skipEmptyLines: true });
 
     const paddedData = result.data.map((row) => {
@@ -42,7 +44,7 @@ const PureSpreadsheetEditor = ({
     });
 
     while (paddedData.length < MIN_ROWS) {
-      paddedData.push(Array(MIN_COLS).fill(''));
+      paddedData.push(new Array(MIN_COLS).fill(''));
     }
 
     return paddedData;
@@ -101,7 +103,9 @@ const PureSpreadsheetEditor = ({
   };
 
   const handleRowsChange = (newRows: any[]) => {
-    if (isReadonly) return;
+    if (isReadonly) {
+      return;
+    }
 
     setLocalRows(newRows);
 
@@ -117,19 +121,19 @@ const PureSpreadsheetEditor = ({
     <DataGrid
       className={theme === 'dark' ? 'rdg-dark' : 'rdg-light'}
       columns={columns}
-      rows={localRows}
+      defaultColumnOptions={{
+        resizable: true,
+        sortable: true,
+      }}
       enableVirtualization
-      onRowsChange={isReadonly ? undefined : handleRowsChange}
       onCellClick={(args) => {
         if (args.column.key !== 'rowNumber' && !isReadonly) {
           args.selectCell(true);
         }
       }}
+      onRowsChange={isReadonly ? undefined : handleRowsChange}
+      rows={localRows}
       style={{ height: '100%' }}
-      defaultColumnOptions={{
-        resizable: true,
-        sortable: true,
-      }}
     />
   );
 };

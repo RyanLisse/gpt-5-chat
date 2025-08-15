@@ -23,7 +23,10 @@ export function parseWebSearch(response: any): {
   const outputs: any[] = Array.isArray(response?.output) ? response.output : [];
 
   for (const item of outputs) {
-    if (item.type === 'annotation' && item.annotation?.source === 'web_search') {
+    if (
+      item.type === 'annotation' &&
+      item.annotation?.source === 'web_search'
+    ) {
       annotations.push({
         type: 'web_source',
         data: {

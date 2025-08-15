@@ -1,5 +1,3 @@
-import { create } from 'zustand';
-import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import {
   AbstractChat,
   type ChatInit,
@@ -7,10 +5,12 @@ import {
   type ChatStatus,
   type UIMessage,
 } from 'ai';
-import type { ChatMessage } from '@/lib/ai/types';
+import { create } from 'zustand';
+import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { throttle } from '@/components/throttle';
+import type { ChatMessage } from '@/lib/ai/types';
 
-interface ChatStoreState<UI_MESSAGE extends UIMessage> {
+type ChatStoreState<UI_MESSAGE extends UIMessage> = {
   id: string | undefined;
   messages: UI_MESSAGE[];
   status: ChatStatus;
@@ -36,7 +36,7 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   getMessageIds: () => string[];
   getThrottledMessages: () => UI_MESSAGE[];
   getInternalMessages: () => UI_MESSAGE[];
-}
+};
 
 // Throttling configuration
 const MESSAGES_THROTTLE_MS = 100;
@@ -116,9 +116,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           getLastMessageId: () => {
             const state = get();
-            return state.messages.length > 0
-              ? state.messages[state.messages.length - 1].id
-              : null;
+            return state.messages.length > 0 ? state.messages.at(-1).id : null;
           },
 
           getMessageIds: () => {
@@ -162,10 +160,10 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 class ZustandChatState<UI_MESSAGE extends UIMessage>
   implements ChatState<UI_MESSAGE>
 {
-  private store: ReturnType<typeof createChatStore<UI_MESSAGE>>;
-  private messagesCallbacks = new Set<() => void>();
-  private statusCallbacks = new Set<() => void>();
-  private errorCallbacks = new Set<() => void>();
+  private readonly store: ReturnType<typeof createChatStore<UI_MESSAGE>>;
+  private readonly messagesCallbacks = new Set<() => void>();
+  private readonly statusCallbacks = new Set<() => void>();
+  private readonly errorCallbacks = new Set<() => void>();
 
   constructor(store: ReturnType<typeof createChatStore<UI_MESSAGE>>) {
     this.store = store;
@@ -302,7 +300,7 @@ export const useSetMessages = () => chatStore((state) => state.setMessages);
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,
 > extends AbstractChat<UI_MESSAGE> {
-  private zustandState: ZustandChatState<UI_MESSAGE>;
+  private readonly zustandState: ZustandChatState<UI_MESSAGE>;
   public store: ReturnType<typeof createChatStore<UI_MESSAGE>>;
 
   constructor({
@@ -317,12 +315,6 @@ export class ZustandChat<
     super({ ...init, id, state });
     this.zustandState = state;
     this.store = state.storeInstance;
-    console.log(
-      'building zustand chat with id',
-      id,
-      'store id',
-      this.store.getState().id,
-    );
   }
 
   // Expose the subscription methods for useChat

@@ -1,6 +1,6 @@
+import FirecrawlApp from '@mendable/firecrawl-js';
 import { tool } from 'ai';
 import { z } from 'zod';
-import FirecrawlApp from '@mendable/firecrawl-js';
 
 const app = new FirecrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY,
@@ -20,7 +20,7 @@ Avoid:
   execute: async ({ url }: { url: string }) => {
     try {
       const content = await app.scrapeUrl(url);
-      if (!content.success || !content.metadata) {
+      if (!(content.success && content.metadata)) {
         return {
           results: [
             {
@@ -42,11 +42,11 @@ Avoid:
       let extractedContent = content.markdown;
 
       // If any content is missing, use extract to get it
-      if (!title || !description || !extractedContent) {
+      if (!(title && description && extractedContent)) {
         const extractResult = await app.extract([url], {
           prompt:
             'Extract the page title, main content, and a brief description.',
-          schema: schema,
+          schema,
         });
 
         if (extractResult.success && extractResult.data) {
@@ -67,8 +67,7 @@ Avoid:
           },
         ],
       };
-    } catch (error) {
-      console.error('Firecrawl API error:', error);
+    } catch (_error) {
       return { error: 'Failed to retrieve content' };
     }
   },

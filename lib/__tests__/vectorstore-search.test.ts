@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  deriveFriendlyError,
   normalizeItem,
   sortByScoreDesc,
-  deriveFriendlyError,
-} from '@/app/api/vectorstore-search/route';
+} from '@/lib/vectorstore/search-utils';
 
 describe('vectorstore-search helpers', () => {
   it('normalizeItem extracts common fields', () => {
@@ -20,7 +20,11 @@ describe('vectorstore-search helpers', () => {
     ).toEqual({ document_id: 'doc-3', score: 3, content: 'gamma' });
 
     // Unknown fields should fallback safely
-    expect(normalizeItem({})).toEqual({ document_id: '', score: 0, content: '' });
+    expect(normalizeItem({})).toEqual({
+      document_id: '',
+      score: 0,
+      content: '',
+    });
   });
 
   it('sortByScoreDesc orders by descending score', () => {
@@ -45,4 +49,3 @@ describe('vectorstore-search helpers', () => {
     );
   });
 });
-

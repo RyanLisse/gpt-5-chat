@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import { artifactDefinitions } from './artifact';
-import type { Suggestion } from '@/lib/db/schema';
-import { useArtifact } from '@/hooks/use-artifact';
-import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useSession } from 'next-auth/react';
-import { useDataStream } from './data-stream-provider';
+import { useEffect, useRef } from 'react';
+import { useSaveDocument } from '@/hooks/chat-sync-hooks';
+import { useArtifact } from '@/hooks/use-artifact';
+import type { Suggestion } from '@/lib/db/schema';
 import { useChatInput } from '@/providers/chat-input-provider';
+import { artifactDefinitions } from './artifact';
+import { useDataStream } from './data-stream-provider';
 
 export type DataStreamDelta = {
   type:
@@ -34,10 +34,12 @@ export function DataStreamHandler({ id }: { id: string }) {
     artifact.documentId,
     artifact.messageId,
   );
-  const isAuthenticated = !!session;
+  const isAuthenticated = Boolean(session);
 
   useEffect(() => {
-    if (!dataStream?.length) return;
+    if (!dataStream?.length) {
+      return;
+    }
 
     const newDeltas = dataStream.slice(lastProcessedIndex.current + 1);
     lastProcessedIndex.current = dataStream.length - 1;

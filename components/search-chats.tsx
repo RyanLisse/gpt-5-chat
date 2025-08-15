@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { SearchIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useSidebar } from '@/components/ui/sidebar';
-import { SidebarMenuButton } from './ui/sidebar';
 import { SearchChatsDialog } from './search-chats-dialog';
+import { SidebarMenuButton } from './ui/sidebar';
 
 // Helper function to get platform-specific shortcut text
 function getSearchShortcutText() {
-  if (typeof window === 'undefined') return 'Ctrl+K';
-  
+  if (typeof window === 'undefined') {
+    return 'Ctrl+K';
+  }
+
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   return isMac ? 'Cmd+K' : 'Ctrl+K';
 }
@@ -40,19 +42,21 @@ export function SearchChatsButton() {
   return (
     <>
       <SidebarMenuButton
-        onClick={() => setOpen(true)}
         className="w-full justify-start"
+        onClick={() => setOpen(true)}
       >
         <SearchIcon className="h-4 w-4" />
         <span>Search chats</span>
-        <span className="ml-auto text-xs text-muted-foreground">{shortcutText}</span>
+        <span className="ml-auto text-muted-foreground text-xs">
+          {shortcutText}
+        </span>
       </SidebarMenuButton>
 
       {open && (
         <SearchChatsDialog
-          open={open}
           onOpenChange={setOpen}
           onSelectChat={() => setOpenMobile(false)}
+          open={open}
         />
       )}
     </>

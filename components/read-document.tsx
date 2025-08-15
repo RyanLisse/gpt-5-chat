@@ -3,22 +3,24 @@
 import { memo } from 'react';
 import { FileIcon } from './icons';
 
-interface ReadDocumentProps {
+type ReadDocumentProps = {
   result?: {
     id: string;
     title: string;
     kind: string;
     content: string;
   };
-}
+};
 
 function PureReadDocument({ result }: ReadDocumentProps) {
-  if (!result) return null;
+  if (!result) {
+    return null;
+  }
 
   return (
-    <div className=" py-2 px-3 rounded-xl w-fit flex gap-3 items-center text-muted-foreground">
+    <div className="flex w-fit items-center gap-3 rounded-xl px-3 py-2 text-muted-foreground">
       <FileIcon />
-      <div className="text-left flex gap-1 items-center text-sm">
+      <div className="flex items-center gap-1 text-left text-sm">
         <div className="">Read</div>
         <div className="">&ldquo;{result.title}&rdquo;</div>
       </div>

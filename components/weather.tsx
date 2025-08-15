@@ -1,14 +1,14 @@
 'use client';
 
-import type { WeatherAtLocation } from '@/lib/ai/tools/get-weather';
 import cx from 'classnames';
 import { format, isWithinInterval } from 'date-fns';
 import { useEffect, useState } from 'react';
+import type { WeatherAtLocation } from '@/lib/ai/tools/get-weather';
 
 const SAMPLE = {
-  latitude: 37.763283,
-  longitude: -122.41286,
-  generationtime_ms: 0.027894973754882812,
+  latitude: 37.763_283,
+  longitude: -122.412_86,
+  generationtime_ms: 0.027_894_973_754_882_812,
   utc_offset_seconds: 0,
   timezone: 'GMT',
   timezone_abbreviation: 'GMT',
@@ -214,7 +214,7 @@ export function Weather({
   return (
     <div
       className={cx(
-        'flex flex-col gap-4 rounded-2xl p-4 skeleton-bg max-w-[500px]',
+        'skeleton-bg flex max-w-[500px] flex-col gap-4 rounded-2xl p-4',
         {
           'bg-blue-400': isDay,
         },
@@ -223,11 +223,11 @@ export function Weather({
         },
       )}
     >
-      <div className="flex flex-row justify-between items-center">
-        <div className="flex flex-row gap-2 items-center">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row items-center gap-2">
           <div
             className={cx(
-              'size-10 rounded-full skeleton-div',
+              'skeleton-div size-10 rounded-full',
               {
                 'bg-yellow-300': isDay,
               },
@@ -236,7 +236,7 @@ export function Weather({
               },
             )}
           />
-          <div className="text-4xl font-medium text-blue-50">
+          <div className="font-medium text-4xl text-blue-50">
             {n(weatherAtLocation.current.temperature_2m)}
             {weatherAtLocation.current_units.temperature_2m}
           </div>
@@ -247,13 +247,13 @@ export function Weather({
 
       <div className="flex flex-row justify-between">
         {displayTimes.map((time, index) => (
-          <div key={time} className="flex flex-col items-center gap-1">
+          <div className="flex flex-col items-center gap-1" key={time}>
             <div className="text-blue-100 text-xs">
               {format(new Date(time), 'ha')}
             </div>
             <div
               className={cx(
-                'size-6 rounded-full skeleton-div',
+                'skeleton-div size-6 rounded-full',
                 {
                   'bg-yellow-300': isDay,
                 },

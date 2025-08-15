@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { LogIn, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, LogIn } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface LoginCtaBannerProps {
+type LoginCtaBannerProps = {
   message: string;
   className?: string;
   variant?: 'default' | 'amber' | 'red';
   dismissible?: boolean;
   compact?: boolean;
-}
+};
 
 export function LoginCtaBanner({
   message,
@@ -24,7 +24,9 @@ export function LoginCtaBanner({
 }: LoginCtaBannerProps) {
   const [dismissed, setDismissed] = useState(false);
 
-  if (dismissed) return null;
+  if (dismissed) {
+    return null;
+  }
 
   const variantStyles = {
     default:
@@ -51,11 +53,11 @@ export function LoginCtaBanner({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.2 }}
         className="w-full"
+        exit={{ opacity: 0, height: 0 }}
+        initial={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
       >
         <div
           className={cn(
@@ -65,7 +67,7 @@ export function LoginCtaBanner({
             className,
           )}
         >
-          <div className="flex items-center gap-2 flex-1">
+          <div className="flex flex-1 items-center gap-2">
             {!compact && (
               <LogIn
                 className={cn('h-4 w-4 flex-shrink-0', textStyles[variant])}
@@ -74,11 +76,11 @@ export function LoginCtaBanner({
             <span className={cn('text-sm', textStyles[variant])}>
               {message}{' '}
               <Link
-                href="/login"
                 className={cn(
-                  'underline font-medium hover:no-underline',
+                  'font-medium underline hover:no-underline',
                   linkStyles[variant],
                 )}
+                href="/login"
               >
                 Sign in
               </Link>
@@ -86,10 +88,10 @@ export function LoginCtaBanner({
           </div>
           {dismissible && (
             <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 hover:bg-transparent opacity-70 hover:opacity-100"
+              className="h-6 w-6 p-0 opacity-70 hover:bg-transparent hover:opacity-100"
               onClick={() => setDismissed(true)}
+              size="sm"
+              variant="ghost"
             >
               <X className="h-4 w-4" />
             </Button>

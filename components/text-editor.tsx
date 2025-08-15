@@ -1,21 +1,21 @@
 'use client';
 
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
-import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import React, { memo, useEffect, useRef } from 'react';
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
   TRANSFORMERS,
 } from '@lexical/markdown';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { $getRoot } from 'lexical';
+import React, { memo, useEffect, useRef } from 'react';
 
 import type { Suggestion } from '@/lib/db/schema';
 import { createEditorConfig, handleEditorChange } from '@/lib/editor/config';
@@ -31,7 +31,7 @@ type EditorProps = {
   status: 'streaming' | 'idle';
   isCurrentVersion: boolean;
   currentVersionIndex: number;
-  suggestions: Array<Suggestion>;
+  suggestions: Suggestion[];
   isReadonly?: boolean;
 };
 
@@ -103,7 +103,7 @@ function ContentUpdatePlugin({
   }, [content, status, editor]);
 
   const handleChange = (editorState: any) => {
-    if (!isReadonly && !isProgrammaticUpdate.current) {
+    if (!(isReadonly || isProgrammaticUpdate.current)) {
       handleEditorChange({
         editorState,
         editor,
@@ -120,7 +120,7 @@ function SuggestionsPlugin({
   suggestions,
   content,
 }: {
-  suggestions: Array<Suggestion>;
+  suggestions: Suggestion[];
   content: string;
 }) {
   const [editor] = useLexicalComposerContext();
@@ -158,25 +158,25 @@ function PureEditor({
   };
 
   return (
-    <div className="relative prose dark:prose-invert text-left">
+    <div className="prose dark:prose-invert relative text-left">
       <LexicalComposer initialConfig={editorConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none lexical-editor text-left" />
+            <ContentEditable className="lexical-editor text-left outline-none" />
           }
-          placeholder={<div className="text-gray-400">Start typing...</div>}
           ErrorBoundary={LexicalErrorBoundary}
+          placeholder={<div className="text-gray-400">Start typing...</div>}
         />
         <HistoryPlugin />
         <ListPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <ContentUpdatePlugin
           content={content}
-          status={status}
-          onSaveContent={onSaveContent}
           isReadonly={isReadonly}
+          onSaveContent={onSaveContent}
+          status={status}
         />
-        <SuggestionsPlugin suggestions={suggestions} content={content} />
+        <SuggestionsPlugin content={content} suggestions={suggestions} />
       </LexicalComposer>
     </div>
   );

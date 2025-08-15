@@ -1,7 +1,7 @@
 import { memo } from 'react';
-import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { useArtifact } from '@/hooks/use-artifact';
 import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
+import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 
 const getActionText = (
   type: 'create' | 'update' | 'request-suggestions',
@@ -21,7 +21,7 @@ const getActionText = (
   }
 };
 
-interface DocumentToolResultProps {
+type DocumentToolResultProps = {
   type: 'create' | 'update' | 'request-suggestions';
   result: {
     id: string;
@@ -30,7 +30,7 @@ interface DocumentToolResultProps {
   };
   isReadonly: boolean;
   messageId: string;
-}
+};
 
 function PureDocumentToolResult({
   type,
@@ -42,8 +42,7 @@ function PureDocumentToolResult({
 
   return (
     <button
-      type="button"
-      className="bg-background cursor-pointer border py-2 px-3 rounded-xl w-fit flex flex-row gap-3 items-start"
+      className="flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border bg-background px-3 py-2"
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
 
@@ -59,14 +58,15 @@ function PureDocumentToolResult({
           kind: result.kind,
           content: '',
           title: result.title,
-          messageId: messageId,
+          messageId,
           isVisible: true,
           status: 'idle',
           boundingBox,
         });
       }}
+      type="button"
     >
-      <div className="text-muted-foreground mt-1">
+      <div className="mt-1 text-muted-foreground">
         {type === 'create' ? (
           <FileIcon />
         ) : type === 'update' ? (
@@ -84,11 +84,11 @@ function PureDocumentToolResult({
 
 export const DocumentToolResult = memo(PureDocumentToolResult, () => true);
 
-interface DocumentToolCallProps {
+type DocumentToolCallProps = {
   type: 'create' | 'update' | 'request-suggestions';
   args: { title?: string };
   isReadonly: boolean;
-}
+};
 
 function PureDocumentToolCall({
   type,
@@ -99,8 +99,7 @@ function PureDocumentToolCall({
 
   return (
     <button
-      type="button"
-      className="cursor pointer w-fit border py-2 px-3 rounded-xl flex flex-row items-start justify-between gap-3"
+      className="cursor pointer flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2"
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
 
@@ -117,9 +116,10 @@ function PureDocumentToolCall({
           boundingBox,
         }));
       }}
+      type="button"
     >
-      <div className="flex flex-row gap-3 items-start">
-        <div className="text-zinc-500 mt-1">
+      <div className="flex flex-row items-start gap-3">
+        <div className="mt-1 text-zinc-500">
           {type === 'create' ? (
             <FileIcon />
           ) : type === 'update' ? (
@@ -134,7 +134,7 @@ function PureDocumentToolCall({
         </div>
       </div>
 
-      <div className="animate-spin mt-1">{<LoaderIcon />}</div>
+      <div className="mt-1 animate-spin">{<LoaderIcon />}</div>
     </button>
   );
 }

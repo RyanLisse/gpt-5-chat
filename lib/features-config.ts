@@ -1,14 +1,14 @@
-import { Brain, Zap, Eye, FileText, Mic, Image } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { Brain, Eye, FileText, Image, Mic, Zap } from 'lucide-react';
 
-export interface FeatureConfig {
+export type FeatureConfig = {
   key: string;
   name: string;
   description: string;
   icon: LucideIcon;
   enabled: boolean;
   category: 'capability' | 'input' | 'output';
-}
+};
 
 export const AVAILABLE_FEATURES: Record<string, FeatureConfig> = {
   reasoning: {

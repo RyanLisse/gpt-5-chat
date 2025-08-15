@@ -14,7 +14,9 @@ export function mapEventToChunks(evt: OpenAIStreamEvent): ResponseChunk[] {
     case 'response.output_text.done':
       return []; // marker only, no chunk needed for now
     case 'response.tool_call':
-      return [{ type: 'tool_invocation', data: { name: evt.name, args: evt.args } }];
+      return [
+        { type: 'tool_invocation', data: { name: evt.name, args: evt.args } },
+      ];
     case 'response.annotation':
       return [{ type: 'annotation', data: evt.annotation }];
     default:
@@ -22,7 +24,9 @@ export function mapEventToChunks(evt: OpenAIStreamEvent): ResponseChunk[] {
   }
 }
 
-export function parseStreamEvents(events: OpenAIStreamEvent[]): ResponseChunk[] {
+export function parseStreamEvents(
+  events: OpenAIStreamEvent[],
+): ResponseChunk[] {
   const out: ResponseChunk[] = [];
   for (const e of events) {
     out.push(...mapEventToChunks(e));

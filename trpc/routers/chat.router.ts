@@ -1,40 +1,40 @@
+import { TRPCError } from '@trpc/server';
+import { generateText } from 'ai';
+import { z } from 'zod';
+import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
+import { getLanguageModel } from '@/lib/ai/providers';
+import type { ChatMessage } from '@/lib/ai/types';
 import {
-  getChatsByUserId,
-  updateChatTitleById,
-  getChatById,
-  getMessageById,
+  cloneAttachmentsInMessages,
+  cloneMessagesWithDocuments,
+} from '@/lib/clone-messages';
+import {
+  deleteChatById,
   deleteMessagesByChatIdAfterMessageId,
   getAllMessagesByChatId,
-  updateChatVisiblityById,
-  saveChat,
-  saveMessages,
+  getChatById,
+  getChatsByUserId,
   getDocumentsByMessageIds,
+  getMessageById,
+  saveChat,
   saveDocuments,
+  saveMessages,
   updateChatIsPinnedById,
-  deleteChatById,
+  updateChatTitleById,
+  updateChatVisiblityById,
 } from '@/lib/db/queries';
+import type { DBMessage } from '@/lib/db/schema';
+import {
+  dbChatToUIChat,
+  dbMessageToChatMessage,
+} from '@/lib/message-conversion';
+import { withTrace } from '@/lib/observability/langsmith';
+import { generateUUID } from '@/lib/utils';
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from '@/trpc/init';
-import { z } from 'zod';
-import { generateText } from 'ai';
-import { withTrace } from '@/lib/observability/langsmith';
-import { getLanguageModel } from '@/lib/ai/providers';
-import { TRPCError } from '@trpc/server';
-import {
-  dbChatToUIChat,
-  dbMessageToChatMessage,
-} from '@/lib/message-conversion';
-import { generateUUID } from '@/lib/utils';
-import {
-  cloneMessagesWithDocuments,
-  cloneAttachmentsInMessages,
-} from '@/lib/clone-messages';
-import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
-import type { DBMessage } from '@/lib/db/schema';
-import type { ChatMessage } from '@/lib/ai/types';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -42,8 +42,12 @@ export const chatRouter = createTRPCRouter({
 
     // Sort chats by pinned status, then by last updated date
     chats.sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
+      if (a.isPinned && !b.isPinned) {
+        return -1;
+      }
+      if (!a.isPinned && b.isPinned) {
+        return 1;
+      }
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
@@ -103,7 +107,7 @@ export const chatRouter = createTRPCRouter({
         throw new Error('Chat not found or access denied');
       }
 
-      const res = await updateChatTitleById({
+      const _res = await updateChatTitleById({
         chatId: input.chatId,
         title: input.title,
       });

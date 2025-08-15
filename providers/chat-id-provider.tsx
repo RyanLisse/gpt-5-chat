@@ -1,21 +1,21 @@
 'use client';
 
-import { generateUUID } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 import {
   createContext,
+  type ReactNode,
+  useCallback,
   useContext,
   useMemo,
   useRef,
-  type ReactNode,
-  useCallback,
 } from 'react';
-import { usePathname } from 'next/navigation';
+import { generateUUID } from '@/lib/utils';
 
-interface ChatIdContextType {
+type ChatIdContextType = {
   id: string;
   type: 'chat' | 'provisional' | 'shared';
   refreshChatID: () => void;
-}
+};
 
 const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 

@@ -1,4 +1,4 @@
-import { toolNameSchema, type ToolName } from '../types';
+import { type ToolName, toolNameSchema } from '../types';
 
 export const toolsDefinitions: Record<ToolName, ToolDefinition> = {
   getWeather: {

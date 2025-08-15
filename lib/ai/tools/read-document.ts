@@ -4,10 +4,10 @@ import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
 import type { StreamWriter } from '../types';
 
-interface ReadDocumentProps {
+type ReadDocumentProps = {
   session: Session;
   dataStream: StreamWriter;
-}
+};
 
 export const readDocument = ({ session, dataStream }: ReadDocumentProps) =>
   tool({

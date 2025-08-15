@@ -1,23 +1,23 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
+import type { ReactNode } from 'react';
+import { ShareIcon } from '@/components/icons';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { ShareIcon } from '@/components/icons';
 
-interface ShareMenuItemProps {
+type ShareMenuItemProps = {
   onShare: () => void;
   children?: ReactNode;
-}
+};
 
 export function ShareMenuItem({ onShare, children }: ShareMenuItemProps) {
   const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
 
   if (!isAuthenticated) {
     return (

@@ -28,24 +28,24 @@ export function SidebarUserNav({ user }: { user: User }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10 w-10 p-2 justify-center">
+            <SidebarMenuButton className="h-10 w-10 justify-center bg-background p-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Image
-                src={user.image ?? `https://avatar.vercel.sh/${user.email}`}
                 alt={user.email ?? 'User Avatar'}
-                width={24}
-                height={24}
                 className="rounded-full"
+                height={24}
+                src={user.image ?? `https://avatar.vercel.sh/${user.email}`}
+                width={24}
               />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="bottom" align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56" side="bottom">
             <DropdownMenuItem disabled>
               <span className="font-medium">{user.email}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled>
               <div className="flex items-center text-muted-foreground">
-                <Coins className="w-4 h-4 mr-1" />
+                <Coins className="mr-1 h-4 w-4" />
                 <span>Credits: {credits ?? 'Loading...'}</span>
               </div>
             </DropdownMenuItem>
@@ -59,13 +59,13 @@ export function SidebarUserNav({ user }: { user: User }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <button
-                type="button"
                 className="w-full cursor-pointer"
                 onClick={() => {
                   signOut({
                     redirectTo: '/',
                   });
                 }}
+                type="button"
               >
                 Sign out
               </button>

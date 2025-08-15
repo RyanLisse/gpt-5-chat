@@ -1,28 +1,28 @@
-import { PreviewMessage } from './message';
-import { memo } from 'react';
-import type { Vote } from '@/lib/db/schema';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import { ResponseErrorMessage } from './response-error-message';
-import { ThinkingMessage } from './thinking-message';
-import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useStickToBottom } from 'use-stick-to-bottom';
-import { Button } from './ui/button';
 import { ArrowDown } from 'lucide-react';
-import { Greeting } from './greeting';
+import { memo } from 'react';
+import { useStickToBottom } from 'use-stick-to-bottom';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ChatMessage } from '@/lib/ai/types';
+import type { Vote } from '@/lib/db/schema';
 import {
   useChatId,
   useChatStatus,
   useMessageIds,
 } from '@/lib/stores/chat-store';
+import { cn } from '@/lib/utils';
+import { Greeting } from './greeting';
+import { PreviewMessage } from './message';
+import { ResponseErrorMessage } from './response-error-message';
+import { ThinkingMessage } from './thinking-message';
+import { Button } from './ui/button';
 
-interface PureMessagesInternalProps {
-  votes: Array<Vote> | undefined;
+type PureMessagesInternalProps = {
+  votes: Vote[] | undefined;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   regenerate: (options?: any) => void;
   isReadonly: boolean;
-}
+};
 
 const PureMessagesInternal = memo(function PureMessagesInternal({
   votes,
@@ -47,17 +47,17 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
 
       {messageIds.map((messageId, index) => (
         <PreviewMessage
+          isLoading={status === 'streaming' && messageIds.length - 1 === index}
+          isReadonly={isReadonly}
           key={messageId}
           messageId={messageId}
-          isLoading={status === 'streaming' && messageIds.length - 1 === index}
+          parentMessageId={index > 0 ? messageIds[index - 1] : null}
+          sendMessage={sendMessage}
           vote={
             votes
               ? votes.find((vote) => vote.messageId === messageId)
               : undefined
           }
-          parentMessageId={index > 0 ? messageIds[index - 1] : null}
-          sendMessage={sendMessage}
-          isReadonly={isReadonly}
         />
       ))}
 
@@ -68,19 +68,19 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
 
       {status === 'error' && <ResponseErrorMessage regenerate={regenerate} />}
 
-      <div className="shrink-0 min-w-[24px] min-h-[24px]" />
+      <div className="min-h-[24px] min-w-[24px] shrink-0" />
     </>
   );
 });
 
-export interface MessagesProps {
-  votes: Array<Vote> | undefined;
+export type MessagesProps = {
+  votes: Vote[] | undefined;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   regenerate: (options?: any) => void;
   isReadonly: boolean;
   isVisible: boolean;
   onModelChange?: (modelId: string) => void;
-}
+};
 
 function PureMessages({
   votes,
@@ -94,31 +94,31 @@ function PureMessages({
 
   return (
     <ScrollArea
+      className="flex w-full flex-1 flex-col"
       ref={scrollRef}
-      className="flex flex-col flex-1 w-full"
       viewPortClassName=" [&>div]:!block"
     >
       <div
+        className="container mx-auto flex h-full min-w-0 flex-col gap-6 px-2 pt-4 sm:max-w-2xl sm:px-4 md:max-w-3xl"
         ref={contentRef}
-        className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 sm:max-w-2xl md:max-w-3xl container mx-auto h-full"
       >
         <PureMessagesInternal
-          votes={votes}
-          sendMessage={sendMessage}
-          regenerate={regenerate}
           isReadonly={isReadonly}
+          regenerate={regenerate}
+          sendMessage={sendMessage}
+          votes={votes}
         />
       </div>
       {/* Scroll to bottom button */}
-      <div className="absolute bottom-4 flex justify-center items-center w-full">
+      <div className="absolute bottom-4 flex w-full items-center justify-center">
         <Button
-          variant="outline"
-          size="icon"
           className={cn(
-            'rounded-full shadow-lg bg-background/80 hover:bg-muted z-10',
+            'z-10 rounded-full bg-background/80 shadow-lg hover:bg-muted',
             isNearBottom && 'hidden',
           )}
           onClick={() => scrollToBottom()}
+          size="icon"
+          variant="outline"
         >
           <ArrowDown className="size-4" />
         </Button>
@@ -128,12 +128,22 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (prevProps.votes !== nextProps.votes) return false;
-  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+  if (prevProps.votes !== nextProps.votes) {
+    return false;
+  }
+  if (prevProps.isReadonly !== nextProps.isReadonly) {
+    return false;
+  }
   // NOTE: isVisible avoids re-renders when the messages aren't visible
-  if (prevProps.isVisible !== nextProps.isVisible) return false;
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
-  if (prevProps.regenerate !== nextProps.regenerate) return false;
+  if (prevProps.isVisible !== nextProps.isVisible) {
+    return false;
+  }
+  if (prevProps.sendMessage !== nextProps.sendMessage) {
+    return false;
+  }
+  if (prevProps.regenerate !== nextProps.regenerate) {
+    return false;
+  }
 
   return true;
 });

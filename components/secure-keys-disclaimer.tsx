@@ -1,14 +1,14 @@
-import { siteConfig } from '@/lib/config';
 import { KeyIcon } from 'lucide-react';
+import { siteConfig } from '@/lib/config';
 
 export function SecureKeysDisclaimer() {
   return (
-    <div className="bg-muted border border-border rounded-lg p-3 sm:p-4">
-      <h3 className="font-semibold text-foreground mb-2 flex items-center text-sm sm:text-base">
-        <KeyIcon className="w-4 h-4 mr-2" />
+    <div className="rounded-lg border border-border bg-muted p-3 sm:p-4">
+      <h3 className="mb-2 flex items-center font-semibold text-foreground text-sm sm:text-base">
+        <KeyIcon className="mr-2 h-4 w-4" />
         Secure API Key Setup
       </h3>
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         To perform research, you&apos;ll need to provide your API keys. These
         keys are stored securely using HTTP-only cookies and are never exposed
         to client-side JavaScript.
@@ -22,23 +22,23 @@ export function SecureKeysDisclaimer() {
             API key management.
           </p>
           <a
+            className="mt-1 inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
             href={siteConfig.githubUrl}
-            target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center mt-1 text-muted-foreground hover:text-foreground transition-colors"
+            target="_blank"
           >
             View self-hosting instructions
             <svg
-              className="w-3 h-3 ml-1"
+              className="ml-1 h-3 w-3"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
               />
             </svg>
           </a>

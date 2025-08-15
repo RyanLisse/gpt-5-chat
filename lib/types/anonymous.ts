@@ -3,11 +3,11 @@ import type { ToolName } from '../ai/types';
 import type { DBMessage } from '../db/schema';
 import type { UIChat } from './uiChat';
 
-export interface AnonymousSession {
+export type AnonymousSession = {
   id: string;
   remainingCredits: number;
   createdAt: Date;
-}
+};
 
 // Anonymous chat structure matching the DB chat structure
 export interface AnonymousChat extends UIChat {}
@@ -24,7 +24,7 @@ export const ANONYMOUS_LIMITS = {
     'openai/gpt-4o-mini',
   ] as const satisfies ModelId[],
   AVAILABLE_TOOLS: ['createDocument', 'updateDocument'] satisfies ToolName[],
-  SESSION_DURATION: 2147483647, // Max session time
+  SESSION_DURATION: 2_147_483_647, // Max session time
   // Rate limiting for anonymous users based on IP
   RATE_LIMIT: {
     REQUESTS_PER_MINUTE: process.env.NODE_ENV === 'production' ? 5 : 60,

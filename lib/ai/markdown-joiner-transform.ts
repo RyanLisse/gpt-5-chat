@@ -8,16 +8,7 @@ class MarkdownJoiner {
     let output = '';
 
     for (const char of text) {
-      if (!this.isBuffering) {
-        // Check if we should start buffering
-        if (char === '[' || char === '*') {
-          this.buffer = char;
-          this.isBuffering = true;
-        } else {
-          // Pass through character directly
-          output += char;
-        }
-      } else {
+      if (this.isBuffering) {
         this.buffer += char;
 
         // Check for complete markdown elements or false positives
@@ -29,6 +20,15 @@ class MarkdownJoiner {
           // False positive - flush buffer as raw text
           output += this.buffer;
           this.clearBuffer();
+        }
+      } else {
+        // Check if we should start buffering
+        if (char === '[' || char === '*') {
+          this.buffer = char;
+          this.isBuffering = true;
+        } else {
+          // Pass through character directly
+          output += char;
         }
       }
     }

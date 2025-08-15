@@ -1,10 +1,10 @@
-import type { Suggestion } from '@/lib/db/schema';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
-import type { UIArtifact } from './artifact';
 import type { QueryClient } from '@tanstack/react-query';
-import type { ChatMessage, CustomUIDataTypes } from '@/lib/ai/types';
 import type { DataUIPart } from 'ai';
+import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
+import type { ChatMessage, CustomUIDataTypes } from '@/lib/ai/types';
+import type { Suggestion } from '@/lib/db/schema';
+import type { UIArtifact } from './artifact';
 
 export type ArtifactActionContext<M = any> = {
   content: string;
@@ -35,14 +35,14 @@ export type ArtifactToolbarItem = {
   onClick: (context: ArtifactToolbarContext) => void;
 };
 
-interface ArtifactContent<M = any> {
+type ArtifactContent<M = any> = {
   title: string;
   content: string;
   mode: 'edit' | 'diff';
   isCurrentVersion: boolean;
   currentVersionIndex: number;
   status: 'streaming' | 'idle';
-  suggestions: Array<Suggestion>;
+  suggestions: Suggestion[];
   onSaveContent: (updatedContent: string, debounce: boolean) => void;
   isInline: boolean;
   getDocumentContentById: (index: number) => string;
@@ -50,21 +50,21 @@ interface ArtifactContent<M = any> {
   metadata: M;
   setMetadata: Dispatch<SetStateAction<M>>;
   isReadonly?: boolean;
-}
+};
 
-interface InitializeParameters<M = any> {
+type InitializeParameters<M = any> = {
   documentId: string;
   setMetadata: Dispatch<SetStateAction<M>>;
   trpc: ReturnType<typeof import('@/trpc/react').useTRPC>;
   queryClient: QueryClient;
   isAuthenticated: boolean;
-}
+};
 
 type ArtifactConfig<T extends string, M = any> = {
   kind: T;
   description: string;
   content: ComponentType<ArtifactContent<M>>;
-  actions: Array<ArtifactAction<M>>;
+  actions: ArtifactAction<M>[];
   toolbar: ArtifactToolbarItem[];
   initialize?: (parameters: InitializeParameters<M>) => void;
   onStreamPart: (args: {
@@ -78,7 +78,7 @@ export class Artifact<T extends string, M = any> {
   readonly kind: T;
   readonly description: string;
   readonly content: ComponentType<ArtifactContent<M>>;
-  readonly actions: Array<ArtifactAction<M>>;
+  readonly actions: ArtifactAction<M>[];
   readonly toolbar: ArtifactToolbarItem[];
   readonly initialize?: (parameters: InitializeParameters) => void;
   readonly onStreamPart: (args: {

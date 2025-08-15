@@ -9,13 +9,15 @@ export function getRecentGeneratedImage(
 
   if (lastAssistantMessage?.parts && lastAssistantMessage.parts.length > 0) {
     for (const part of lastAssistantMessage.parts) {
-      if (part.type === 'tool-generateImage') {
-        if (part.state === 'output-available' && part.output?.imageUrl) {
-          return {
-            imageUrl: part.output.imageUrl,
-            name: `generated-image-${part.toolCallId}.png`,
-          };
-        }
+      if (
+        part.type === 'tool-generateImage' &&
+        part.state === 'output-available' &&
+        part.output?.imageUrl
+      ) {
+        return {
+          imageUrl: part.output.imageUrl,
+          name: `generated-image-${part.toolCallId}.png`,
+        };
       }
     }
   }

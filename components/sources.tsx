@@ -1,6 +1,5 @@
-import { FileText, ArrowRight } from 'lucide-react';
+import { ArrowRight, FileText } from 'lucide-react';
 import React from 'react';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +15,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { cn } from '@/lib/utils';
 import { FaviconGroup } from './favicon-group';
 
 // Minimal local type for a web search result (legacy UI)
@@ -25,8 +25,9 @@ type SearchResultItem = {
   content?: string;
   source?: 'web' | 'academic' | 'x';
 };
-import { Favicon } from './favicon';
+
 import { getFaviconUrl } from '@/lib/url-utils';
+import { Favicon } from './favicon';
 
 const SourcesList = ({
   sources,
@@ -37,18 +38,18 @@ const SourcesList = ({
     <div className="space-y-3">
       {sources?.map((source: SearchResultItem, i: number) => (
         <a
-          key={i}
+          className="block rounded-lg bg-neutral-50 p-4 transition-colors hover:bg-neutral-100 dark:bg-neutral-800/50 dark:hover:bg-neutral-800"
           href={source.url}
-          target="_blank"
+          key={i}
           rel="noopener noreferrer"
-          className="block p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          target="_blank"
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-1">
+            <div className="mt-1 flex-shrink-0">
               <Favicon url={getFaviconUrl(source as any)} />
             </div>
             <div className="flex flex-col gap-1">
-              <h4 className="text-sm font-medium leading-tight">
+              <h4 className="font-medium text-sm leading-tight">
                 {source.title}
               </h4>
             </div>
@@ -73,7 +74,7 @@ const AllSourcesView = ({
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <button id={id} className="hidden" type="button">
+          <button className="hidden" id={id} type="button">
             Show All
           </button>
         </DialogTrigger>
@@ -95,7 +96,7 @@ const AllSourcesView = ({
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <button id={id} className="hidden" type="button">
+        <button className="hidden" id={id} type="button">
           Show All
         </button>
       </DrawerTrigger>
@@ -106,7 +107,7 @@ const AllSourcesView = ({
             {title}
           </DrawerTitle>
         </DrawerHeader>
-        <div className="p-4 overflow-y-auto">
+        <div className="overflow-y-auto p-4">
           <SourcesList sources={sources} />
         </div>
       </DrawerContent>
@@ -123,31 +124,27 @@ function ShowSourcesButton({
 }) {
   return (
     <button
-      type="button"
+      className="group flex items-center justify-center gap-2 rounded-lg border border-neutral-200 p-2.5 transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
       onClick={() => document.getElementById(dialogId)?.click()}
-      className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
+      type="button"
     >
       <FaviconGroup
+        className="mr-1.5"
+        maxVisible={3}
         sources={sources.map((s) => ({
           url: s.url,
           title: s.title,
         }))}
-        maxVisible={3}
-        className="mr-1.5"
       />
-      <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300">
+      <span className="text-neutral-600 text-xs group-hover:text-neutral-700 dark:text-neutral-400 dark:group-hover:text-neutral-300">
         {sources.length} Sources
       </span>
-      <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-500 transition-colors" />
+      <ArrowRight className="h-3.5 w-3.5 text-neutral-400 transition-colors group-hover:text-neutral-500" />
     </button>
   );
 }
 
-export const Sources = ({
-  sources,
-}: {
-  sources: SearchResultItem[];
-}) => {
+export const Sources = ({ sources }: { sources: SearchResultItem[] }) => {
   if (sources.length === 0) {
     return null;
   }
@@ -156,9 +153,9 @@ export const Sources = ({
 
   return (
     <div className="space-y-3">
-      <ShowSourcesButton sources={sources} dialogId={sourcesDialogId} />
+      <ShowSourcesButton dialogId={sourcesDialogId} sources={sources} />
       <div className="hidden">
-        <AllSourcesView sources={sources} id={sourcesDialogId} />
+        <AllSourcesView id={sourcesDialogId} sources={sources} />
       </div>
     </div>
   );

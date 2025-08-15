@@ -1,17 +1,17 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { Response } from './ai-elements/response';
-import { Weather } from './weather';
-import { DocumentPreview } from './document-preview';
-import { DocumentToolCall, DocumentToolResult } from './document';
-import { MessageReasoning } from './message-reasoning';
-import { Retrieve } from './retrieve';
-import { ReadDocument } from './read-document';
-import { StockChartMessage } from './stock-chart-message';
-import { GeneratedImage } from './generated-image';
 import type { ChatMessage } from '@/lib/ai/types';
 import { chatStore } from '@/lib/stores/chat-store';
+import { Response } from './ai-elements/response';
+import { DocumentToolCall, DocumentToolResult } from './document';
+import { DocumentPreview } from './document-preview';
+import { GeneratedImage } from './generated-image';
+import { MessageReasoning } from './message-reasoning';
+import { ReadDocument } from './read-document';
+import { Retrieve } from './retrieve';
+import { StockChartMessage } from './stock-chart-message';
+import { Weather } from './weather';
 
 type MessagePartsProps = {
   message: ChatMessage;
@@ -41,13 +41,14 @@ const isLastArtifact = (
           break;
         }
       }
-      if (lastArtifact) break;
+      if (lastArtifact) {
+        break;
+      }
     }
   }
 
   return lastArtifact?.toolCallId === currentToolCallId;
 };
-
 
 export function PureMessageParts({
   message,
@@ -94,8 +95,8 @@ export function PureMessageParts({
       const key = `message-${message.id}-reasoning-${groupIdx}`;
       return (
         <MessageReasoning
-          key={key}
           isLoading={isLoading && group.endIndex === message.parts.length - 1}
+          key={key}
           reasoning={group.parts.map((p) => p.text)}
         />
       );
@@ -107,7 +108,7 @@ export function PureMessageParts({
 
     if (type === 'text') {
       return (
-        <div key={key} className="flex flex-col gap-4 w-full">
+        <div className="flex w-full flex-col gap-4" key={key}>
           <Response>{part.text}</Response>
         </div>
       );
@@ -117,7 +118,7 @@ export function PureMessageParts({
       const { toolCallId, state } = part;
       if (state === 'input-available') {
         return (
-          <div key={toolCallId} className="skeleton">
+          <div className="skeleton" key={toolCallId}>
             <Weather />
           </div>
         );
@@ -139,8 +140,8 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             <DocumentPreview
-              isReadonly={isReadonly}
               args={input}
+              isReadonly={isReadonly}
               messageId={message.id}
             />
           </div>
@@ -156,7 +157,7 @@ export function PureMessageParts({
 
         if ('error' in output) {
           return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            <div className="rounded border p-2 text-red-500" key={toolCallId}>
               Error: {String(output.error)}
             </div>
           );
@@ -166,18 +167,18 @@ export function PureMessageParts({
           <div key={toolCallId}>
             {shouldShowFullPreview ? (
               <DocumentPreview
-                isReadonly={isReadonly}
-                result={output}
                 args={input}
+                isReadonly={isReadonly}
                 messageId={message.id}
+                result={output}
                 type="create"
               />
             ) : (
               <DocumentToolResult
-                type="create"
-                result={output}
                 isReadonly={isReadonly}
                 messageId={message.id}
+                result={output}
+                type="create"
               />
             )}
           </div>
@@ -192,10 +193,9 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             <DocumentToolCall
-              type="update"
-              // @ts-expect-error - TODO: fix this
-              args={input}
+              args={{ title: input.description }}
               isReadonly={isReadonly}
+              type="update"
             />
           </div>
         );
@@ -210,7 +210,7 @@ export function PureMessageParts({
 
         if ('error' in output) {
           return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            <div className="rounded border p-2 text-red-500" key={toolCallId}>
               Error: {String(output.error)}
             </div>
           );
@@ -220,18 +220,18 @@ export function PureMessageParts({
           <div key={toolCallId}>
             {shouldShowFullPreview ? (
               <DocumentPreview
-                isReadonly={isReadonly}
-                result={output}
                 args={input}
+                isReadonly={isReadonly}
                 messageId={message.id}
+                result={output}
                 type="update"
               />
             ) : (
               <DocumentToolResult
-                type="update"
-                result={output}
                 isReadonly={isReadonly}
                 messageId={message.id}
+                result={output}
+                type="update"
               />
             )}
           </div>
@@ -246,10 +246,9 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             <DocumentToolCall
-              type="request-suggestions"
-              // @ts-expect-error - TODO: fix this
-              args={input}
+              args={{ title: '' }}
               isReadonly={isReadonly}
+              type="request-suggestions"
             />
           </div>
         );
@@ -259,7 +258,7 @@ export function PureMessageParts({
         const { output } = part;
         if ('error' in output) {
           return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            <div className="rounded border p-2 text-red-500" key={toolCallId}>
               Error: {String(output.error)}
             </div>
           );
@@ -268,10 +267,10 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             <DocumentToolResult
-              type="request-suggestions"
-              result={output}
               isReadonly={isReadonly}
               messageId={message.id}
+              result={output}
+              type="request-suggestions"
             />
           </div>
         );
@@ -322,7 +321,7 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             {/* @ts-expect-error - TODO: fix this */}
-            <StockChartMessage result={null} args={input} />
+            <StockChartMessage args={input} result={null} />
           </div>
         );
       }
@@ -331,12 +330,11 @@ export function PureMessageParts({
         return (
           <div key={toolCallId}>
             {/* @ts-expect-error - TODO: fix this */}
-            <StockChartMessage result={output} args={input} />
+            <StockChartMessage args={input} result={output} />
           </div>
         );
       }
     }
-
 
     if (type === 'tool-generateImage') {
       const { toolCallId, state } = part;
@@ -352,12 +350,11 @@ export function PureMessageParts({
         const { output, input } = part;
         return (
           <div key={toolCallId}>
-            <GeneratedImage result={output} args={input} />
+            <GeneratedImage args={input} result={output} />
           </div>
         );
       }
     }
-
 
     return null;
   });

@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useChatId } from '@/providers/chat-id-provider';
 
@@ -30,7 +30,9 @@ export function KeyboardShortcuts() {
 
 // Helper function to get platform-specific shortcut text
 export function getNewChatShortcutText() {
-  if (typeof window === 'undefined') return 'Ctrl+Shift+O';
+  if (typeof window === 'undefined') {
+    return 'Ctrl+Shift+O';
+  }
 
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   return isMac ? 'Cmd+Shift+O' : 'Ctrl+Shift+O';

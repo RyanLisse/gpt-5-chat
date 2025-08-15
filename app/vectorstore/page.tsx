@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
 
 // This page provides a basic UI for querying an OpenAI Vector Store by ID.
@@ -52,7 +52,10 @@ export default function VectorStoreSearchPage() {
     }
 
     // Parse topK into a number with safe defaults
-    const k = Number.isFinite(Number(topK)) && Number(topK) > 0 ? Math.floor(Number(topK)) : 5;
+    const k =
+      Number.isFinite(Number(topK)) && Number(topK) > 0
+        ? Math.floor(Number(topK))
+        : 5;
 
     try {
       setLoading(true);
@@ -74,7 +77,7 @@ export default function VectorStoreSearchPage() {
 
       // Otherwise render results (already sorted by server; we keep it as-is)
       setResults(Array.isArray(data.results) ? data.results : []);
-    } catch (err: any) {
+    } catch (_err: any) {
       // Graceful error handling with friendly message
       setError('Unable to fetch results. Please try again.');
       setResults([]);
@@ -85,18 +88,18 @@ export default function VectorStoreSearchPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-semibold">Vector Store Search</h1>
+      <h1 className="mb-6 font-semibold text-2xl">Vector Store Search</h1>
 
-      <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-4">
+      <form className="space-y-4 rounded-lg border p-4" onSubmit={onSubmit}>
         {/* Vector Store ID input (required) */}
         <div className="space-y-2">
           <Label htmlFor="vectorstoreId">Vector Store ID</Label>
           <Input
             id="vectorstoreId"
-            placeholder="vs_..."
-            value={vectorstoreId}
             onChange={(e) => setVectorstoreId(e.target.value)}
+            placeholder="vs_..."
             required
+            value={vectorstoreId}
           />
         </div>
 
@@ -105,10 +108,10 @@ export default function VectorStoreSearchPage() {
           <Label htmlFor="query">Search Query</Label>
           <Input
             id="query"
-            placeholder="What do you want to find?"
-            value={query}
             onChange={(e) => setQuery(e.target.value)}
+            placeholder="What do you want to find?"
             required
+            value={query}
           />
         </div>
 
@@ -117,16 +120,16 @@ export default function VectorStoreSearchPage() {
           <Label htmlFor="topK">Top K (optional)</Label>
           <Input
             id="topK"
-            type="number"
-            min={1}
             max={50}
-            value={topK}
+            min={1}
             onChange={(e) => setTopK(e.target.value)}
+            type="number"
+            value={topK}
           />
         </div>
 
         <div className="flex items-center gap-3">
-          <Button type="submit" disabled={loading}>
+          <Button disabled={loading} type="submit">
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <Loader variant="dots" /> Searching
@@ -146,29 +149,39 @@ export default function VectorStoreSearchPage() {
       {/* Results list */}
       <div className="mt-6 space-y-3">
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Loader variant="typing" /> Fetching results...
           </div>
         ) : results.length > 0 ? (
           <div className="space-y-3">
-            <h2 className="text-lg font-medium">Results</h2>
+            <h2 className="font-medium text-lg">Results</h2>
             <ul className="space-y-3">
               {results.map((r, idx) => (
-                <li key={`${r.document_id}-${idx}`} className="rounded-md border p-3">
+                <li
+                  className="rounded-md border p-3"
+                  key={`${r.document_id}-${idx}`}
+                >
                   <div className="mb-1 flex items-center justify-between">
-                    <span className="text-sm font-semibold">{r.document_id}</span>
-                    <span className="text-muted-foreground text-xs">Score: {r.score.toFixed(4)}</span>
+                    <span className="font-semibold text-sm">
+                      {r.document_id}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      Score: {r.score.toFixed(4)}
+                    </span>
                   </div>
-                  <pre className="whitespace-pre-wrap break-words text-sm">{r.content || '(no preview)'}</pre>
+                  <pre className="whitespace-pre-wrap break-words text-sm">
+                    {r.content || '(no preview)'}
+                  </pre>
                 </li>
               ))}
             </ul>
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">No results yet. Submit a query.</p>
+          <p className="text-muted-foreground text-sm">
+            No results yet. Submit a query.
+          </p>
         )}
       </div>
     </div>
   );
 }
-

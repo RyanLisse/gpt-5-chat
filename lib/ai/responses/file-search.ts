@@ -23,7 +23,10 @@ export function parseFileSearchCitations(response: any): {
   const outputs: any[] = Array.isArray(response?.output) ? response.output : [];
 
   for (const item of outputs) {
-    if (item.type === 'annotation' && item.annotation?.source === 'file_search') {
+    if (
+      item.type === 'annotation' &&
+      item.annotation?.source === 'file_search'
+    ) {
       annotations.push({
         type: 'citation',
         data: {

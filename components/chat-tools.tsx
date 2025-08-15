@@ -1,6 +1,9 @@
-import React, { type Dispatch, type SetStateAction } from 'react';
 import { Settings2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import React, { type Dispatch, type SetStateAction } from 'react';
+import { getModelDefinition } from '@/lib/ai/all-models';
+import type { UiToolName } from '@/lib/ai/types';
+import { enabledTools, toolDefinitions } from './chat-features-definitions';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -10,9 +13,6 @@ import {
 } from './ui/dropdown-menu';
 // removed unused Popover imports
 import { Separator } from './ui/separator';
-import { getModelDefinition } from '@/lib/ai/all-models';
-import { toolDefinitions, enabledTools } from './chat-features-definitions';
-import type { UiToolName } from '@/lib/ai/types';
 
 export function ResponsiveTools({
   tools,
@@ -25,7 +25,7 @@ export function ResponsiveTools({
 }) {
   const { data: session } = useSession();
   // Guest mode: allow tools without requiring login
-  const isAnonymous = !session?.user;
+  const _isAnonymous = !session?.user;
 
   const { hasReasoningModel, hasUnspecifiedFeatures } = (() => {
     try {
@@ -53,17 +53,17 @@ export function ResponsiveTools({
   };
 
   return (
-    <div className="flex items-center gap-1 @[400px]:gap-2">
+    <div className="flex items-center @[400px]:gap-2 gap-1">
       {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant="ghost"
+              className="h-fit @[400px]:gap-2 gap-1 rounded-full p-1.5 px-2.5"
               size="sm"
-              className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
+              variant="ghost"
             >
               <Settings2 size={14} />
-              <span className="hidden @[400px]:inline">Tools</span>
+              <span className="@[400px]:inline hidden">Tools</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -74,18 +74,17 @@ export function ResponsiveTools({
           >
             {enabledTools.map((key) => {
               const tool = toolDefinitions[key];
-              const isToolDisabled =
-                hasUnspecifiedFeatures;
+              const isToolDisabled = hasUnspecifiedFeatures;
               const Icon = tool.icon;
               return (
                 <DropdownMenuItem
+                  className="flex items-center gap-2"
+                  disabled={isToolDisabled}
                   key={key}
                   onClick={(e) => {
                     e.stopPropagation();
                     setTool(tools === key ? null : key);
                   }}
-                  className="flex items-center gap-2"
-                  disabled={isToolDisabled}
                 >
                   <Icon size={14} />
                   <span>{tool.name}</span>
@@ -105,19 +104,19 @@ export function ResponsiveTools({
       {activeTool && (
         <>
           <Separator
+            className="h-4 bg-muted-foreground/50"
             orientation="vertical"
-            className="bg-muted-foreground/50 h-4"
           />
           <Button
-            variant="outline"
-            size="sm"
+            className="h-fit @[400px]:gap-2 gap-1 rounded-full p-1.5 px-2.5"
             onClick={() => setTool(null)}
-            className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
+            size="sm"
+            variant="outline"
           >
             {React.createElement(toolDefinitions[activeTool].icon, {
               size: 14,
             })}
-            <span className="hidden @[500px]:inline">
+            <span className="@[500px]:inline hidden">
               {toolDefinitions[activeTool].name}
             </span>
             <span className="text-xs opacity-70">×</span>

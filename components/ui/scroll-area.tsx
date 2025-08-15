@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -16,8 +16,8 @@ const ScrollArea = React.forwardRef<
     {...props}
   >
     <ScrollAreaPrimitive.Viewport
-      ref={ref} // Changed to the viewport for stick to bottom interaction
-      className={cn('h-full w-full rounded-[inherit]', viewPortClassName)}
+      className={cn('h-full w-full rounded-[inherit]', viewPortClassName)} // Changed to the viewport for stick to bottom interaction
+      ref={ref}
     >
       {children}
     </ScrollAreaPrimitive.Viewport>
@@ -32,8 +32,6 @@ const ScrollBar = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
 >(({ className, orientation = 'vertical', ...props }, ref) => (
   <ScrollAreaPrimitive.ScrollAreaScrollbar
-    ref={ref}
-    orientation={orientation}
     className={cn(
       'flex touch-none select-none transition-colors',
       orientation === 'vertical' &&
@@ -42,6 +40,8 @@ const ScrollBar = React.forwardRef<
         'h-2.5 flex-col border-t border-t-transparent p-[1px]',
       className,
     )}
+    orientation={orientation}
+    ref={ref}
     {...props}
   >
     <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />

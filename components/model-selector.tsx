@@ -1,16 +1,20 @@
 'use client';
 
+import { ChevronUpIcon, FilterIcon } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import {
+  type ComponentProps,
+  memo,
   startTransition,
+  useCallback,
+  useEffect,
   useMemo,
   useState,
-  useEffect,
-  memo,
-  type ComponentProps,
-  useCallback,
 } from 'react';
-import { useSession } from 'next-auth/react';
+import { ModelCard } from '@/components/model-card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Command,
   CommandEmpty,
@@ -19,34 +23,29 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger,
   TooltipProvider,
+  TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ModelCard } from '@/components/model-card';
-import { cn } from '@/lib/utils';
+import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 import {
   chatModels,
   getModelDefinition,
   type ModelDefinition,
 } from '@/lib/ai/all-models';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import type { ModelId } from '@/lib/ai/model-id';
 import { getEnabledFeatures } from '@/lib/features-config';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
-import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
-
-import { ChevronUpIcon, FilterIcon } from 'lucide-react';
-import type { ModelId } from '@/lib/ai/model-id';
+import { cn } from '@/lib/utils';
 import type { ProviderId } from '@/providers/models-generated';
 import { getProviderIcon } from './get-provider-icon';
 
@@ -75,7 +74,9 @@ const getModelDefinitionCached = (modelId: ModelId) => {
 
 function getFeatureIcons(modelDefinition: any) {
   const features = modelDefinition.features;
-  if (!features) return [];
+  if (!features) {
+    return [];
+  }
 
   const icons: JSX.Element[] = [];
 
@@ -111,11 +112,11 @@ function getFeatureIcons(modelDefinition: any) {
       const IconComponent = config.icon;
       icons.push(
         <div
-          key={config.key}
           className="flex items-center"
+          key={config.key}
           title={config.description}
         >
-          <IconComponent className="w-3 h-3 text-muted-foreground" />
+          <IconComponent className="h-3 w-3 text-muted-foreground" />
         </div>,
       );
     }
@@ -159,11 +160,15 @@ export function PureModelSelector({
       const modelDef = getModelDefinitionCached(model.id);
       const features = modelDef?.features;
 
-      if (!features) return false;
+      if (!features) {
+        return false;
+      }
 
       // Check each active filter
       return Object.entries(featureFilters).every(([key, isActive]) => {
-        if (!isActive) return true;
+        if (!isActive) {
+          return true;
+        }
 
         switch (key) {
           case 'reasoning':
@@ -212,12 +217,16 @@ export function PureModelSelector({
 
   // Get selected model's provider icon
   const selectedModelDefinition = useMemo(() => {
-    if (!selectedChatModel) return null;
+    if (!selectedChatModel) {
+      return null;
+    }
     return getModelDefinitionCached(selectedChatModel.id);
   }, [selectedChatModel]);
 
   const selectedProviderIcon = useMemo(() => {
-    if (!selectedModelDefinition) return null;
+    if (!selectedModelDefinition) {
+      return null;
+    }
     const provider = selectedModelDefinition.owned_by as ProviderId;
     return getProviderIcon(provider);
   }, [selectedModelDefinition]);
@@ -233,47 +242,49 @@ export function PureModelSelector({
 
   // Only render the expensive popover content when it's open
   const popoverContent = useMemo(() => {
-    if (!open) return null;
+    if (!open) {
+      return null;
+    }
 
     return (
       <Command>
         <div className="flex items-center border-b">
           <CommandInput
-            placeholder="Search models..."
             className="px-3"
             containerClassName="w-full border-0"
+            placeholder="Search models..."
           />
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <Popover onOpenChange={setFilterOpen} open={filterOpen}>
             <PopoverTrigger asChild>
               <Button
-                variant="ghost"
-                size="sm"
                 className={cn(
-                  'mr-3 h-8 w-8 p-0 relative',
+                  'relative mr-3 h-8 w-8 p-0',
                   activeFilterCount > 0 && 'text-primary',
                 )}
+                size="sm"
+                variant="ghost"
               >
                 <FilterIcon className="h-4 w-4" />
                 {activeFilterCount > 0 && (
                   <Badge
+                    className="-top-1 -right-1 absolute flex h-4 min-w-[16px] items-center justify-center p-0 text-xs"
                     variant="secondary"
-                    className="absolute -top-1 -right-1 text-xs min-w-[16px] h-4 flex items-center justify-center p-0"
                   >
                     {activeFilterCount}
                   </Badge>
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="p-0" align="end">
+            <PopoverContent align="end" className="p-0">
               <div className="p-4">
-                <div className="mb-3 h-7 flex items-center justify-between">
-                  <div className="text-sm font-medium">Filter by Tools</div>
+                <div className="mb-3 flex h-7 items-center justify-between">
+                  <div className="font-medium text-sm">Filter by Tools</div>
                   {activeFilterCount > 0 && (
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      className="h-6 text-xs"
                       onClick={clearFilters}
-                      className="text-xs h-6"
+                      size="sm"
+                      variant="ghost"
                     >
                       Clear filters
                     </Button>
@@ -286,12 +297,12 @@ export function PureModelSelector({
 
                     return (
                       <div
-                        key={feature.key}
                         className="flex items-center space-x-2"
+                        key={feature.key}
                       >
                         <Checkbox
+                          checked={featureFilters[feature.key]}
                           id={feature.key}
-                          checked={featureFilters[feature.key] || false}
                           onCheckedChange={(checked) =>
                             setFeatureFilters((prev) => ({
                               ...prev,
@@ -300,10 +311,10 @@ export function PureModelSelector({
                           }
                         />
                         <Label
+                          className="flex items-center gap-1.5 text-sm"
                           htmlFor={feature.key}
-                          className="text-sm flex items-center gap-1.5"
                         >
-                          <IconComponent className="w-3.5 h-3.5" />
+                          <IconComponent className="h-3.5 w-3.5" />
                           {feature.name}
                         </Label>
                       </div>
@@ -317,9 +328,9 @@ export function PureModelSelector({
         {modelAvailability.hasDisabledModels && (
           <div className="p-3">
             <LoginCtaBanner
+              compact
               message="Sign in to unlock all models."
               variant="default"
-              compact
             />
           </div>
         )}
@@ -350,9 +361,16 @@ export function PureModelSelector({
                       <TooltipTrigger asChild>
                         <div>
                           <CommandItem
-                            value={searchValue}
-                            onSelect={(event) => {
-                              if (disabled) return; // Prevent selection of disabled models
+                            className={cn(
+                              'flex h-9 cursor-pointer items-center justify-between px-3 py-1.5 transition-all',
+                              isSelected &&
+                                'border-l-2 border-l-primary bg-primary/10',
+                              disabled && 'cursor-not-allowed opacity-50',
+                            )}
+                            onSelect={(_event) => {
+                              if (disabled) {
+                                return; // Prevent selection of disabled models
+                              }
 
                               startTransition(() => {
                                 setOptimisticModelId(id);
@@ -360,24 +378,19 @@ export function PureModelSelector({
                                 setOpen(false);
                               });
                             }}
-                            className={cn(
-                              'flex items-center justify-between px-3 py-1.5 cursor-pointer transition-all h-9',
-                              isSelected &&
-                                'bg-primary/10 border-l-2 border-l-primary',
-                              disabled && 'opacity-50 cursor-not-allowed',
-                            )}
+                            value={searchValue}
                           >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
                               <div className="flex-shrink-0">
                                 {getProviderIcon(provider)}
                               </div>
-                              <span className="font-medium text-sm truncate">
+                              <span className="truncate font-medium text-sm">
                                 {modelDefinition.name}
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               {featureIcons.length > 0 && (
-                                <div className="flex items-center gap-1 flex-shrink-0">
+                                <div className="flex flex-shrink-0 items-center gap-1">
                                   {featureIcons}
                                 </div>
                               )}
@@ -386,21 +399,21 @@ export function PureModelSelector({
                         </div>
                       </TooltipTrigger>
                       <TooltipContent
-                        side="right"
                         align="start"
                         className="p-0"
+                        side="right"
                         sideOffset={8}
                       >
                         <ModelCard
-                          model={modelDefinition}
-                          isSelected={isSelected}
-                          isDisabled={disabled}
+                          className="w-[280px] border shadow-lg"
                           disabledReason={
                             disabled
                               ? 'Sign in to access this model'
                               : undefined
                           }
-                          className="w-[280px] shadow-lg border"
+                          isDisabled={disabled}
+                          isSelected={isSelected}
+                          model={modelDefinition}
                         />
                       </TooltipContent>
                     </Tooltip>
@@ -426,14 +439,14 @@ export function PureModelSelector({
   ]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          data-testid="model-selector"
-          variant="ghost"
-          role="combobox"
           aria-expanded={open}
-          className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
+          className={cn('w-fit gap-0 md:h-[34px] md:px-2', className)}
+          data-testid="model-selector"
+          role="combobox"
+          variant="ghost"
         >
           <div className="flex items-center gap-2">
             {selectedProviderIcon && (
@@ -444,7 +457,7 @@ export function PureModelSelector({
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[350px] p-0" align="start">
+      <PopoverContent align="start" className="w-[350px] p-0">
         {popoverContent}
       </PopoverContent>
     </Popover>

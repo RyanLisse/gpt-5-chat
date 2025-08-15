@@ -2,26 +2,26 @@
 
 import React, {
   createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
   type Dispatch,
+  type ReactNode,
   type SetStateAction,
+  useCallback,
+  useContext,
   useRef,
+  useState,
 } from 'react';
+import type { LexicalChatInputRef } from '@/components/ui/lexical-chat-input';
+import { getModelDefinition } from '@/lib/ai/all-models';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { Attachment, UiToolName } from '@/lib/ai/types';
 import { useDefaultModel, useModelChange } from './default-model-provider';
-import { getModelDefinition } from '@/lib/ai/all-models';
-import type { LexicalChatInputRef } from '@/components/ui/lexical-chat-input';
-import type { ModelId } from '@/lib/ai/model-id';
 
-interface ChatInputContextType {
+type ChatInputContextType = {
   editorRef: React.RefObject<LexicalChatInputRef>;
   selectedTool: UiToolName | null;
   setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
+  attachments: Attachment[];
+  setAttachments: Dispatch<SetStateAction<Attachment[]>>;
   selectedModelId: ModelId;
   handleModelChange: (modelId: ModelId) => Promise<void>;
   getInputValue: () => string;
@@ -29,20 +29,20 @@ interface ChatInputContextType {
   getInitialInput: () => string;
   isEmpty: boolean;
   handleSubmit: (submitFn: () => void, isEditMode?: boolean) => void;
-}
+};
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(
   undefined,
 );
 
-interface ChatInputProviderProps {
+type ChatInputProviderProps = {
   children: ReactNode;
   initialInput?: string;
   initialTool?: UiToolName | null;
-  initialAttachments?: Array<Attachment>;
+  initialAttachments?: Attachment[];
   overrideModelId?: ModelId; // For message editing where we want to use the original model
   localStorageEnabled?: boolean;
-}
+};
 
 export function ChatInputProvider({
   children,
@@ -54,7 +54,9 @@ export function ChatInputProvider({
 }: ChatInputProviderProps) {
   // Helper functions for localStorage access without state
   const getLocalStorageInput = useCallback(() => {
-    if (!localStorageEnabled) return '';
+    if (!localStorageEnabled) {
+      return '';
+    }
     try {
       return localStorage.getItem('input') || '';
     } catch {
@@ -64,7 +66,9 @@ export function ChatInputProvider({
 
   const setLocalStorageInput = useCallback(
     (value: string) => {
-      if (!localStorageEnabled) return;
+      if (!localStorageEnabled) {
+        return;
+      }
       try {
         localStorage.setItem('input', value);
       } catch {
@@ -86,7 +90,7 @@ export function ChatInputProvider({
     initialTool,
   );
   const [attachments, setAttachments] =
-    useState<Array<Attachment>>(initialAttachments);
+    useState<Attachment[]>(initialAttachments);
 
   // Track if input is empty for reactive UI updates
   const [isEmpty, setIsEmpty] = useState<boolean>(() => {
@@ -99,7 +103,9 @@ export function ChatInputProvider({
 
   // Get the initial input value from localStorage if enabled and no initial input provided
   const getInitialInput = useCallback(() => {
-    if (!localStorageEnabled) return initialInput;
+    if (!localStorageEnabled) {
+      return initialInput;
+    }
     return initialInput || getLocalStorageInput();
   }, [initialInput, getLocalStorageInput, localStorageEnabled]);
 

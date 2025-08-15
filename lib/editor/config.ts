@@ -1,15 +1,15 @@
+import { CodeHighlightNode, CodeNode } from '@lexical/code';
+import { LinkNode } from '@lexical/link';
+import { ListItemNode, ListNode } from '@lexical/list';
+import { $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
 import {
   $createHeadingNode,
   HeadingNode,
-  QuoteNode,
   type HeadingTagType,
+  QuoteNode,
 } from '@lexical/rich-text';
-import { ListItemNode, ListNode } from '@lexical/list';
-import { CodeNode, CodeHighlightNode } from '@lexical/code';
-import { LinkNode } from '@lexical/link';
 import type { LexicalEditor } from 'lexical';
-import { $insertNodes, $getSelection } from 'lexical';
-import { $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
+import { $getSelection, $insertNodes } from 'lexical';
 
 // Create initial editor configuration
 export function createEditorConfig() {
@@ -24,9 +24,7 @@ export function createEditorConfig() {
       CodeHighlightNode,
       LinkNode,
     ],
-    onError: (error: Error) => {
-      console.error('Lexical error:', error);
-    },
+    onError: (_error: Error) => {},
   };
 }
 
@@ -37,7 +35,7 @@ export function createHeadingTransform(level: number) {
     export: null,
     importDOM: null,
     regExp: new RegExp(`^(#{1,${level}})\\s$`),
-    replace: (textNode: any) => {
+    replace: (_textNode: any) => {
       const selection = $getSelection();
       if (selection) {
         const headingTag = `h${level}` as HeadingTagType;

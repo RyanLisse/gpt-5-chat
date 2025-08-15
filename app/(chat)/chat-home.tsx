@@ -5,11 +5,9 @@ import { ChatInputProvider } from '@/providers/chat-input-provider';
 
 export function ChatHome({ id }: { id: string }) {
   return (
-    <>
-      <ChatInputProvider localStorageEnabled={true}>
-        <Chat key={id} id={id} initialMessages={[]} isReadonly={false} />
-        <DataStreamHandler id={id} />
-      </ChatInputProvider>
-    </>
+    <ChatInputProvider localStorageEnabled={true}>
+      <Chat id={id} initialMessages={[]} isReadonly={false} key={id} />
+      <DataStreamHandler id={id} />
+    </ChatInputProvider>
   );
 }

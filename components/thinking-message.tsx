@@ -6,13 +6,13 @@ export const ThinkingMessage = () => {
 
   return (
     <motion.div
-      data-testid="message-assistant-loading"
-      className="w-full mx-auto max-w-3xl px-4 group/message "
-      initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
+      className="group/message mx-auto w-full max-w-3xl px-4"
       data-role={role}
+      data-testid="message-assistant-loading"
+      initial={{ y: 5, opacity: 0 }}
     >
-      <PulseDotLoader className="bg-muted-foreground size-3 animate-[pulse-dot_2s_ease-in-out_infinite] m-1.5" />
+      <PulseDotLoader className="m-1.5 size-3 animate-[pulse-dot_2s_ease-in-out_infinite] bg-muted-foreground" />
     </motion.div>
   );
 };

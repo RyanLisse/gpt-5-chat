@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
 import type React from 'react';
+import { cn } from '@/lib/utils';
 
 export function Favicon({
   url,
@@ -11,15 +11,15 @@ export function Favicon({
 } & React.ImgHTMLAttributes<HTMLImageElement>) {
   return (
     <img
+      className={cn('h-4 w-4', className)}
       src={url}
-      className={cn('w-4 h-4', className)}
       {...props}
+      alt={`Favicon for ${url}`}
       onError={(e) => {
         const target = e.target as HTMLImageElement;
         target.style.display = 'none';
         target.nextElementSibling?.classList.remove('hidden');
       }}
-      alt={`Favicon for ${url}`}
     />
   );
 }

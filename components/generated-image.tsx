@@ -1,10 +1,10 @@
 'use client';
 
-import { CopyIcon } from '@/components/icons';
 import { toast } from 'sonner';
+import { CopyIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 
-interface GeneratedImageProps {
+type GeneratedImageProps = {
   result?: {
     imageUrl: string;
     prompt: string;
@@ -13,7 +13,7 @@ interface GeneratedImageProps {
     prompt: string;
   };
   isLoading?: boolean;
-}
+};
 
 export function GeneratedImage({
   result,
@@ -21,7 +21,9 @@ export function GeneratedImage({
   isLoading,
 }: GeneratedImageProps) {
   const handleCopyImage = async () => {
-    if (!result?.imageUrl) return;
+    if (!result?.imageUrl) {
+      return;
+    }
 
     try {
       const response = await fetch(result.imageUrl);
@@ -30,15 +32,15 @@ export function GeneratedImage({
         new ClipboardItem({ [blob.type]: blob }),
       ]);
       toast.success('Copied image to clipboard!');
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to copy image to clipboard');
     }
   };
 
   if (isLoading || !result) {
     return (
-      <div className="flex flex-col gap-4 w-full justify-center items-center border rounded-lg p-8">
-        <div className="animate-pulse rounded-lg bg-muted-foreground/20 w-full h-64" />
+      <div className="flex w-full flex-col items-center justify-center gap-4 rounded-lg border p-8">
+        <div className="h-64 w-full animate-pulse rounded-lg bg-muted-foreground/20" />
         <div className="text-muted-foreground">
           Generating image: &quot;{args?.prompt}&quot;
         </div>
@@ -47,27 +49,27 @@ export function GeneratedImage({
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full border rounded-lg overflow-hidden">
-      <div className="relative group">
+    <div className="flex w-full flex-col gap-4 overflow-hidden rounded-lg border">
+      <div className="group relative">
         <img
-          src={result.imageUrl}
           alt={result.prompt}
-          className="w-full h-auto max-w-full"
+          className="h-auto w-full max-w-full"
+          src={result.imageUrl}
         />
         <button
-          type="button"
-          onClick={handleCopyImage}
           className={cn(
-            'absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-lg',
-            'opacity-0 group-hover:opacity-100 transition-opacity',
-            'text-white flex items-center gap-2',
+            'absolute top-2 right-2 rounded-lg bg-black/50 p-2 hover:bg-black/70',
+            'opacity-0 transition-opacity group-hover:opacity-100',
+            'flex items-center gap-2 text-white',
           )}
+          onClick={handleCopyImage}
+          type="button"
         >
           <CopyIcon size={16} />
         </button>
       </div>
       <div className="p-4 pt-0">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Generated from: &quot;{result.prompt}&quot;
         </p>
       </div>

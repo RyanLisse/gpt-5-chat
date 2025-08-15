@@ -11,7 +11,7 @@ export const authConfig = {
   ],
   callbacks: {
     async authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
+      const isLoggedIn = Boolean(auth?.user);
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
 
       // Allow any API routes for authentication to pass through
@@ -55,7 +55,9 @@ export const authConfig = {
           return true;
         }
         // Require auth for specific chat IDs
-        if (isLoggedIn) return true;
+        if (isLoggedIn) {
+          return true;
+        }
         return false; // Redirect unauthenticated users to login page
       }
 

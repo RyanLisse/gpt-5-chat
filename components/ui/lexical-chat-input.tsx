@@ -1,25 +1,25 @@
 'use client';
 
-import * as React from 'react';
+import {
+  type InitialConfigType,
+  LexicalComposer,
+} from '@lexical/react/LexicalComposer';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import {
   $createParagraphNode,
   $createTextNode,
   $getRoot,
-  type EditorState,
-  type LexicalEditor,
   COMMAND_PRIORITY_HIGH,
+  type EditorState,
   KEY_ENTER_COMMAND,
+  type LexicalEditor,
 } from 'lexical';
-import {
-  LexicalComposer,
-  type InitialConfigType,
-} from '@lexical/react/LexicalComposer';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 // Custom error boundary for Lexical-specific errors
@@ -27,25 +27,26 @@ class LexicalEditorErrorBoundary extends React.Component<
   { children: React.ReactNode; onError?: (error: Error) => void },
   { hasError: boolean }
 > {
-  constructor(props: { children: React.ReactNode; onError?: (error: Error) => void }) {
+  constructor(props: {
+    children: React.ReactNode;
+    onError?: (error: Error) => void;
+  }) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error) {
-    console.error('Lexical Editor Error:', error);
+  static getDerivedStateFromError(_error: Error) {
     return { hasError: true };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Lexical Editor Error Details:', error, errorInfo);
+  componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
     this.props.onError?.(error);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-[80px] flex items-center justify-center text-muted-foreground border rounded-md p-3">
+        <div className="flex min-h-[80px] items-center justify-center rounded-md border p-3 text-muted-foreground">
           <span>Editor temporarily unavailable. Please refresh the page.</span>
         </div>
       );
@@ -65,7 +66,6 @@ function EnterKeySubmitPlugin({
 
   React.useEffect(() => {
     if (!editor) {
-      console.warn('EnterKeySubmitPlugin: Editor not available');
       return;
     }
 
@@ -88,8 +88,7 @@ function EnterKeySubmitPlugin({
         },
         COMMAND_PRIORITY_HIGH,
       );
-    } catch (error) {
-      console.error('EnterKeySubmitPlugin: Error registering command', error);
+    } catch (_error) {
       return;
     }
   }, [editor, onEnterSubmit]);
@@ -100,7 +99,9 @@ function EnterKeySubmitPlugin({
 // Plugin to get editor instance for imperative ref
 function EditorRefPlugin({
   setEditor,
-}: { setEditor: (editor: LexicalEditor | null) => void }) {
+}: {
+  setEditor: (editor: LexicalEditor | null) => void;
+}) {
   const [editor] = useLexicalComposerContext();
 
   React.useEffect(() => {
@@ -109,8 +110,7 @@ function EditorRefPlugin({
         // Test that the editor is properly initialized before setting it
         editor.getEditorState();
         setEditor(editor);
-      } catch (error) {
-        console.warn('EditorRefPlugin: Editor not ready yet', error);
+      } catch (_error) {
         setEditor(null);
       }
     } else {
@@ -121,13 +121,13 @@ function EditorRefPlugin({
   return null;
 }
 
-interface LexicalChatInputRef {
+type LexicalChatInputRef = {
   focus: () => void;
   clear: () => void;
   getValue: () => string;
-}
+};
 
-interface LexicalChatInputProps {
+type LexicalChatInputProps = {
   initialValue?: string;
   onInputChange?: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -138,7 +138,7 @@ interface LexicalChatInputProps {
   className?: string;
   maxRows?: number;
   'data-testid'?: string;
-}
+};
 
 const theme = {
   root: 'lexical-root',
@@ -148,9 +148,7 @@ const theme = {
   paragraph: 'editor-paragraph',
 };
 
-function onError(error: Error) {
-  console.error('Lexical error:', error);
-}
+function onError(_error: Error) {}
 
 export const LexicalChatInput = React.forwardRef<
   LexicalChatInputRef,
@@ -196,9 +194,7 @@ export const LexicalChatInput = React.forwardRef<
               const textContent = root.getTextContent();
               onInputChange(textContent);
             });
-          } catch (error) {
-            console.warn('LexicalChatInput handleChange failed:', error);
-          }
+          } catch (_error) {}
         }
       },
       [onInputChange],
@@ -211,9 +207,7 @@ export const LexicalChatInput = React.forwardRef<
           if (editor) {
             try {
               editor.focus();
-            } catch (error) {
-              console.warn('LexicalChatInput focus failed:', error);
-            }
+            } catch (_error) {}
           }
         },
         clear: () => {
@@ -223,9 +217,7 @@ export const LexicalChatInput = React.forwardRef<
                 const root = $getRoot();
                 root.clear();
               });
-            } catch (error) {
-              console.warn('LexicalChatInput clear failed:', error);
-            }
+            } catch (_error) {}
           }
         },
         getValue: () => {
@@ -235,8 +227,7 @@ export const LexicalChatInput = React.forwardRef<
                 const root = $getRoot();
                 return root.getTextContent();
               });
-            } catch (error) {
-              console.warn('LexicalChatInput getValue failed:', error);
+            } catch (_error) {
               return '';
             }
           }
@@ -264,15 +255,13 @@ export const LexicalChatInput = React.forwardRef<
               root.append(paragraph);
             }
           });
-        } catch (error) {
-          console.warn('LexicalChatInput initialValue update failed:', error);
-        }
+        } catch (_error) {}
       }
     }, [editor, initialValue]);
 
     const PlaceholderComponent = React.useCallback(
       () => (
-        <div className="lexical-placeholder absolute pointer-events-none text-muted-foreground pl-3 pt-2">
+        <div className="lexical-placeholder pointer-events-none absolute pt-2 pl-3 text-muted-foreground">
           {placeholder}
         </div>
       ),
@@ -282,11 +271,13 @@ export const LexicalChatInput = React.forwardRef<
     // Prevent SSR/hydration issues by only rendering after mount
     if (!isMounted) {
       return (
-        <div className={cn(
-          'min-h-[80px] flex items-center justify-start text-muted-foreground border rounded-md p-3',
-          className
-        )}>
-          <span className="pl-3 pt-2">{placeholder}</span>
+        <div
+          className={cn(
+            'flex min-h-[80px] items-center justify-start rounded-md border p-3 text-muted-foreground',
+            className,
+          )}
+        >
+          <span className="pt-2 pl-3">{placeholder}</span>
         </div>
       );
     }
@@ -305,20 +296,20 @@ export const LexicalChatInput = React.forwardRef<
                     'editor-input',
                     className,
                   )}
+                  data-testid={testId}
+                  onKeyDown={onKeyDown}
+                  onPaste={onPaste}
+                  spellCheck={true}
                   style={{
                     WebkitBoxShadow: 'none',
                     MozBoxShadow: 'none',
                     boxShadow: 'none',
                   }}
-                  data-testid={testId}
-                  spellCheck={true}
-                  onKeyDown={onKeyDown}
-                  onPaste={onPaste}
                   // aria-placeholder={placeholder}
                 />
               }
-              placeholder={<PlaceholderComponent />}
               ErrorBoundary={LexicalErrorBoundary}
+              placeholder={<PlaceholderComponent />}
             />
             <OnChangePlugin onChange={handleChange} />
             <HistoryPlugin />

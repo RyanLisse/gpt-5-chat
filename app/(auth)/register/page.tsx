@@ -1,9 +1,8 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
-
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
+import Link from 'next/link';
 import { SocialAuthProviders } from '@/components/social-auth-providers';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Create an account',
@@ -14,11 +13,11 @@ export default function RegisterPage() {
   return (
     <div className="container grid h-screen w-screen flex-col items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
       <Link
-        href="/login"
         className={cn(
           buttonVariants({ variant: 'ghost' }),
-          'absolute right-4 top-4 md:right-8 md:top-8',
+          'absolute top-4 right-4 md:top-8 md:right-8',
         )}
+        href="/login"
       >
         Login
       </Link>
@@ -28,10 +27,10 @@ export default function RegisterPage() {
           <div className="flex flex-col space-y-2 text-center">
             {/* Assuming Icons.logo exists */}
             {/* <Icons.logo className="mx-auto h-6 w-6" /> */}
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="font-semibold text-2xl tracking-tight">
               Create an account
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Sign up using your Google account
             </p>
           </div>

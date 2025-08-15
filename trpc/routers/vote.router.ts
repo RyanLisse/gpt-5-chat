@@ -1,7 +1,7 @@
-import { getChatById, getVotesByChatId, voteMessage } from '@/lib/db/queries';
-import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
+import { getChatById, getVotesByChatId, voteMessage } from '@/lib/db/queries';
+import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 
 export const voteRouter = createTRPCRouter({
   getVotes: protectedProcedure

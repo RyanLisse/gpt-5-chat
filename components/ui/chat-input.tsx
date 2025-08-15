@@ -12,11 +12,11 @@ const ChatInputContainer = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
-    ref={ref}
     className={cn(
-      'group relative flex h-full max-w-full flex-1 flex-col cursor-text rounded-3xl border px-3 py-1 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)] transition-colors dark:border-none dark:shadow-none bg-muted',
+      'group relative flex h-full max-w-full flex-1 cursor-text flex-col rounded-3xl border bg-muted px-3 py-1 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)] transition-colors dark:border-none dark:shadow-none',
       className,
     )}
+    ref={ref}
     {...props}
   />
 ));
@@ -27,8 +27,8 @@ const ChatInputTopRow = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
-    ref={ref}
     className={cn('mt-2 mb-1 flex items-center justify-between', className)}
+    ref={ref}
     {...props}
   />
 ));
@@ -38,7 +38,7 @@ const ChatInputTextArea = React.forwardRef<
   ChatInputTextAreaRef,
   React.ComponentProps<typeof LexicalChatInput>
 >(({ className, ...props }, ref) => {
-  return <LexicalChatInput ref={ref} className={className} {...props} />;
+  return <LexicalChatInput className={className} ref={ref} {...props} />;
 });
 ChatInputTextArea.displayName = 'ChatInputTextArea';
 
@@ -47,8 +47,8 @@ const ChatInputBottomRow = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
+    className={cn('mt-1 mb-2 flex items-center justify-end', className)}
     ref={ref}
-    className={cn('mb-2 mt-1 flex items-center justify-end', className)}
     {...props}
   />
 ));

@@ -1,21 +1,21 @@
 'use client';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import {
   type Dispatch,
   type SetStateAction,
-  useState,
+  useCallback,
   useEffect,
   useRef,
-  useCallback,
+  useState,
 } from 'react';
-import { MultimodalInput } from './multimodal-input';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { ChatMessage } from '@/lib/ai/types';
-import { ChatInputProvider } from '@/providers/chat-input-provider';
 import {
   getAttachmentsFromMessage,
   getTextContentFromMessage,
 } from '@/lib/utils';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ModelId } from '@/lib/ai/model-id';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
+import { MultimodalInput } from './multimodal-input';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -37,7 +37,6 @@ function MessageEditorContent({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      console.log('handleClickOutside', event);
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
@@ -71,14 +70,14 @@ function MessageEditorContent({
   );
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div className="w-full" ref={containerRef}>
       <MultimodalInput
         chatId={chatId}
-        status={isSubmitting ? 'submitted' : 'ready'}
-        stop={() => setIsSubmitting(false)}
-        sendMessage={handleAppend}
         isEditMode={true}
         parentMessageId={parentMessageId}
+        sendMessage={handleAppend}
+        status={isSubmitting ? 'submitted' : 'ready'}
+        stop={() => setIsSubmitting(false)}
       />
     </div>
   );
@@ -96,10 +95,10 @@ export function MessageEditor(
   const { parentMessageId, ...rest } = props;
   return (
     <ChatInputProvider
-      key={`edit-${props.message.id}`}
-      initialInput={initialInput}
       initialAttachments={initialAttachments}
+      initialInput={initialInput}
       initialTool={props.message.metadata?.selectedTool}
+      key={`edit-${props.message.id}`}
       localStorageEnabled={false}
       overrideModelId={messageSelectedModel || undefined}
     >

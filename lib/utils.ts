@@ -3,8 +3,8 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import type { Document } from '@/lib/db/schema';
-import type { Attachment, ChatMessage } from './ai/types';
 import { ChatSDKError, type ErrorCode } from './ai/errors';
+import type { Attachment, ChatMessage } from './ai/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,27 +38,26 @@ export async function fetchWithErrorHandlers(
 }
 
 export function findLastArtifact(
-  messages: Array<ChatMessage>,
+  messages: ChatMessage[],
 ): { messageIndex: number; toolCallId: string } | null {
   const allArtifacts: Array<{ messageIndex: number; toolCallId: string }> = [];
 
   messages.forEach((msg, messageIndex) => {
     msg.parts?.forEach((part) => {
       if (
-        part.type === 'tool-createDocument' ||
-        part.type === 'tool-updateDocument'
+        (part.type === 'tool-createDocument' ||
+          part.type === 'tool-updateDocument') &&
+        part.state === 'output-available'
       ) {
-        if (part.state === 'output-available') {
-          allArtifacts.push({
-            messageIndex,
-            toolCallId: part.toolCallId,
-          });
-        }
+        allArtifacts.push({
+          messageIndex,
+          toolCallId: part.toolCallId,
+        });
       }
     });
   });
 
-  return allArtifacts[allArtifacts.length - 1] || null;
+  return allArtifacts.at(-1) || null;
 }
 
 export const fetcher = async (url: string) => {
@@ -93,17 +92,21 @@ export function generateUUID(): string {
   });
 }
 
-export function getMostRecentUserMessage(messages: Array<ChatMessage>) {
+export function getMostRecentUserMessage(messages: ChatMessage[]) {
   const userMessages = messages.filter((message) => message.role === 'user');
   return userMessages.at(-1);
 }
 
 export function getDocumentTimestampByIndex(
-  documents: Array<Document>,
+  documents: Document[],
   index: number,
 ) {
-  if (!documents) return new Date();
-  if (index > documents.length) return new Date();
+  if (!documents) {
+    return new Date();
+  }
+  if (index > documents.length) {
+    return new Date();
+  }
 
   return documents[index].createdAt;
 }
@@ -111,11 +114,13 @@ export function getDocumentTimestampByIndex(
 export function getTrailingMessageId({
   messages,
 }: {
-  messages: Array<ChatMessage>;
+  messages: ChatMessage[];
 }): string | null {
   const trailingMessage = messages.at(-1);
 
-  if (!trailingMessage) return null;
+  if (!trailingMessage) {
+    return null;
+  }
 
   return trailingMessage.id;
 }

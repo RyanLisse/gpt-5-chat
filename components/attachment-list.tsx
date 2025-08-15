@@ -1,17 +1,17 @@
 'use client';
 
 import type { Attachment } from '@/lib/ai/types';
-import { PreviewAttachment } from './preview-attachment';
 import { cn } from '@/lib/utils';
+import { PreviewAttachment } from './preview-attachment';
 
-interface AttachmentListProps {
-  attachments: Array<Attachment>;
-  uploadQueue?: Array<string>;
+type AttachmentListProps = {
+  attachments: Attachment[];
+  uploadQueue?: string[];
   onRemove?: (attachment: Attachment) => void;
   onImageClick?: (imageUrl: string, imageName?: string) => void;
   testId?: string;
   className?: string;
-}
+};
 
 export function AttachmentList({
   attachments,
@@ -27,27 +27,27 @@ export function AttachmentList({
 
   return (
     <div
+      className={cn('flex flex-row items-end gap-2 overflow-x-auto', className)}
       data-testid={testId}
-      className={cn('flex flex-row gap-2 overflow-x-auto items-end', className)}
     >
       {attachments.map((attachment) => (
         <PreviewAttachment
-          key={attachment.url}
           attachment={attachment}
-          onRemove={onRemove ? () => onRemove(attachment) : undefined}
+          key={attachment.url}
           onImageClick={onImageClick}
+          onRemove={onRemove ? () => onRemove(attachment) : undefined}
         />
       ))}
 
       {uploadQueue.map((filename) => (
         <PreviewAttachment
-          key={filename}
           attachment={{
             url: '',
             name: filename,
             contentType: '',
           }}
           isUploading={true}
+          key={filename}
         />
       ))}
     </div>

@@ -5,8 +5,8 @@ import {
 import { reserveCredits } from './reserveCredits';
 
 export class CreditReservation {
-  private userId: string;
-  private amount: number;
+  private readonly userId: string;
+  private readonly amount: number;
   private released = false;
   public readonly budget: number;
 

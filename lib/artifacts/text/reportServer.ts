@@ -1,12 +1,12 @@
-import { createDocumentHandler } from '@/lib/artifacts/server';
 import { streamText } from 'ai';
+import { createDocumentHandler } from '@/lib/artifacts/server';
 
 type StreamTextConfig = Parameters<typeof streamText>[0];
 
 export class ReportDocumentWriter {
-  private streamTextConfig: StreamTextConfig;
+  private readonly streamTextConfig: StreamTextConfig;
 
-  private reportContent: string;
+  private readonly reportContent: string;
 
   constructor(streamTextConfig: StreamTextConfig) {
     this.streamTextConfig = streamTextConfig;

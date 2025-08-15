@@ -1,45 +1,43 @@
 'use client';
-import type { Attachment, ChatMessage } from '@/lib/ai/types';
-
-import type React from 'react';
-import { useRef, useState, useCallback, type ChangeEvent, memo } from 'react';
-import { toast } from 'sonner';
-import { useWindowSize } from 'usehooks-ts';
-import { useDropzone } from 'react-dropzone';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import { motion } from 'motion/react';
 import { useSession } from 'next-auth/react';
+import type React from 'react';
+import { type ChangeEvent, memo, useCallback, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { toast } from 'sonner';
+import { useWindowSize } from 'usehooks-ts';
+import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
+import {
+  DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL,
+  DEFAULT_PDF_MODEL,
+  getModelDefinition,
+} from '@/lib/ai/all-models';
+import type { Attachment, ChatMessage } from '@/lib/ai/types';
 import {
   chatStore,
-  useSetMessages,
   useMessageIds,
+  useSetMessages,
 } from '@/lib/stores/chat-store';
-
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
-import { AttachmentList } from './attachment-list';
-import { Button } from './ui/button';
-import { ImageModal } from './image-modal';
-import {
-  ChatInputContainer,
-  ChatInputTopRow,
-  ChatInputTextArea,
-  ChatInputBottomRow,
-} from './ui/chat-input';
-import { SuggestedActions } from './suggested-actions';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import { useChatInput } from '@/providers/chat-input-provider';
-import { ModelSelector } from './model-selector';
-import { ResponsiveTools } from './chat-tools';
-import { ScrollArea } from './ui/scroll-area';
-import {
-  getModelDefinition,
-  DEFAULT_PDF_MODEL,
-  DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL,
-} from '@/lib/ai/all-models';
-import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { generateUUID } from '@/lib/utils';
-import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
+import { useChatInput } from '@/providers/chat-input-provider';
+import { AttachmentList } from './attachment-list';
+import { ResponsiveTools } from './chat-tools';
+import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
+import { ImageModal } from './image-modal';
+import { ModelSelector } from './model-selector';
+import { SuggestedActions } from './suggested-actions';
+import { Button } from './ui/button';
+import {
+  ChatInputBottomRow,
+  ChatInputContainer,
+  ChatInputTextArea,
+  ChatInputTopRow,
+} from './ui/chat-input';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { ScrollArea } from './ui/scroll-area';
+import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
+import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 function PureMultimodalInput({
   chatId,
@@ -100,7 +98,7 @@ function PureMultimodalInput({
   }, [handleModelChange]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const [uploadQueue, setUploadQueue] = useState<string[]>([]);
   const [imageModal, setImageModal] = useState<{
     isOpen: boolean;
     imageUrl: string;
@@ -268,12 +266,12 @@ function PureMultimodalInput({
         return {
           url,
           name: pathname,
-          contentType: contentType,
+          contentType,
         };
       }
       const { error } = await response.json();
       toast.error(error);
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to upload file, please try again!');
     }
   };
@@ -283,7 +281,9 @@ function PureMultimodalInput({
       const files = Array.from(event.target.files || []);
       const validFiles = processFiles(files);
 
-      if (validFiles.length === 0) return;
+      if (validFiles.length === 0) {
+        return;
+      }
 
       setUploadQueue(validFiles.map((file) => file.name));
 
@@ -298,8 +298,7 @@ function PureMultimodalInput({
           ...currentAttachments,
           ...successfullyUploadedAttachments,
         ]);
-      } catch (error) {
-        console.error('Error uploading files!', error);
+      } catch (_error) {
       } finally {
         setUploadQueue([]);
       }
@@ -309,13 +308,19 @@ function PureMultimodalInput({
 
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent) => {
-      if (status !== 'ready') return;
+      if (status !== 'ready') {
+        return;
+      }
 
       const clipboardData = event.clipboardData;
-      if (!clipboardData) return;
+      if (!clipboardData) {
+        return;
+      }
 
       const files = Array.from(clipboardData.files);
-      if (files.length === 0) return;
+      if (files.length === 0) {
+        return;
+      }
 
       event.preventDefault();
 
@@ -326,7 +331,9 @@ function PureMultimodalInput({
       }
 
       const validFiles = processFiles(files);
-      if (validFiles.length === 0) return;
+      if (validFiles.length === 0) {
+        return;
+      }
 
       setUploadQueue(validFiles.map((file) => file.name));
 
@@ -345,8 +352,7 @@ function PureMultimodalInput({
         toast.success(
           `${successfullyUploadedAttachments.length} file(s) pasted from clipboard`,
         );
-      } catch (error) {
-        console.error('Error uploading pasted files!', error);
+      } catch (_error) {
       } finally {
         setUploadQueue([]);
       }
@@ -386,7 +392,9 @@ function PureMultimodalInput({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles) => {
-      if (acceptedFiles.length === 0) return;
+      if (acceptedFiles.length === 0) {
+        return;
+      }
 
       // Check if user is anonymous
       if (!session?.user) {
@@ -395,7 +403,9 @@ function PureMultimodalInput({
       }
 
       const validFiles = processFiles(acceptedFiles);
-      if (validFiles.length === 0) return;
+      if (validFiles.length === 0) {
+        return;
+      }
 
       setUploadQueue(validFiles.map((file) => file.name));
 
@@ -410,8 +420,7 @@ function PureMultimodalInput({
           ...currentAttachments,
           ...successfullyUploadedAttachments,
         ]);
-      } catch (error) {
-        console.error('Error uploading files!', error);
+      } catch (_error) {
       } finally {
         setUploadQueue([]);
       }
@@ -425,33 +434,33 @@ function PureMultimodalInput({
   });
 
   return (
-    <div className="relative flex flex-col w-full gap-4 mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background md:max-w-3xl">
+    <div className="relative mx-auto flex w-full flex-col gap-4 bg-background p-2 @[400px]:px-4 @[400px]:pb-4 md:max-w-3xl @[400px]:md:pb-6">
       {messageIds.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && (
           <SuggestedActions
-            sendMessage={sendMessage}
             chatId={chatId}
             selectedModelId={selectedModelId}
+            sendMessage={sendMessage}
           />
         )}
 
       {!isEditMode && <CreditLimitDisplay />}
 
       <input
-        type="file"
-        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
-        ref={fileInputRef}
-        multiple
         accept="image/*,.pdf"
+        className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
+        multiple
         onChange={handleFileChange}
+        ref={fileInputRef}
         tabIndex={-1}
+        type="file"
       />
 
       <div className="relative">
         <ChatInputContainer
-          className={`${className} transition-colors px-1.5 @container  @[400px]:px-3  ${
+          className={`${className} @container @[400px]:px-3 px-1.5 transition-colors ${
             isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20' : ''
           }`}
           {...getRootProps()}
@@ -459,8 +468,8 @@ function PureMultimodalInput({
           <input {...getInputProps()} />
 
           {isDragActive && (
-            <div className="absolute inset-0 flex items-center justify-center bg-blue-50/80 dark:bg-blue-950/40 border-2 border-dashed border-blue-500 rounded-2xl z-10">
-              <div className="text-blue-600 dark:text-blue-400 font-medium">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl border-2 border-blue-500 border-dashed bg-blue-50/80 dark:bg-blue-950/40">
+              <div className="font-medium text-blue-600 dark:text-blue-400">
                 Drop images or PDFs here to attach
               </div>
             </div>
@@ -472,18 +481,18 @@ function PureMultimodalInput({
                 attachments.length > 0 || uploadQueue.length > 0 ? 'auto' : 0,
               opacity: attachments.length > 0 || uploadQueue.length > 0 ? 1 : 0,
             }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
             style={{ overflow: 'hidden' }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <ChatInputTopRow>
               {(attachments.length > 0 || uploadQueue.length > 0) && (
                 <AttachmentList
                   attachments={attachments}
-                  uploadQueue={uploadQueue}
-                  onRemove={removeAttachment}
-                  onImageClick={handleImageClick}
-                  testId="attachments-preview"
                   className="px-3 py-2"
+                  onImageClick={handleImageClick}
+                  onRemove={removeAttachment}
+                  testId="attachments-preview"
+                  uploadQueue={uploadQueue}
                 />
               )}
             </ChatInputTopRow>
@@ -491,23 +500,15 @@ function PureMultimodalInput({
 
           <ScrollArea className="max-h-[50vh]">
             <ChatInputTextArea
-              data-testid="multimodal-input"
-              ref={editorRef}
-              className="min-h-[80px]"
-              placeholder={
-                isMobile
-                  ? 'Send a message... (Ctrl+Enter to send)'
-                  : 'Send a message...'
-              }
-              initialValue={getInitialInput()}
-              onInputChange={handleInputChange}
               autoFocus
-              onPaste={handlePaste}
+              className="min-h-[80px]"
+              data-testid="multimodal-input"
+              initialValue={getInitialInput()}
               onEnterSubmit={(event) => {
                 // Different key combinations for mobile vs desktop
                 const shouldSubmit = isMobile
                   ? event.ctrlKey && !event.isComposing
-                  : !event.shiftKey && !event.isComposing;
+                  : !(event.shiftKey || event.isComposing);
 
                 if (shouldSubmit) {
                   if (status !== 'ready' && status !== 'error') {
@@ -526,20 +527,28 @@ function PureMultimodalInput({
 
                 return false; // Allow default behavior (e.g., Shift+Enter for new line)
               }}
+              onInputChange={handleInputChange}
+              onPaste={handlePaste}
+              placeholder={
+                isMobile
+                  ? 'Send a message... (Ctrl+Enter to send)'
+                  : 'Send a message...'
+              }
+              ref={editorRef}
             />
           </ScrollArea>
 
-          <ChatInputBottomRow className="flex flex-row justify-between min-w-0 w-full">
-            <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-0">
+          <ChatInputBottomRow className="flex w-full min-w-0 flex-row justify-between">
+            <div className="flex min-w-0 flex-0 items-center @[400px]:gap-2 gap-1">
               <ModelSelector
-                selectedModelId={selectedModelId}
-                className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
+                className="h-fit min-w-0 max-w-none flex-1 shrink truncate @[400px]:px-3 px-2 @[400px]:py-1.5 py-1 @[400px]:text-sm text-xs"
                 onModelChange={handleModelChange}
+                selectedModelId={selectedModelId}
               />
               <ResponsiveTools
-                tools={selectedTool}
-                setTools={setSelectedTool}
                 selectedModelId={selectedModelId}
+                setTools={setSelectedTool}
+                tools={selectedTool}
               />
             </div>
             <div className="flex gap-2">
@@ -559,10 +568,10 @@ function PureMultimodalInput({
       </div>
 
       <ImageModal
+        imageName={imageModal.imageName}
+        imageUrl={imageModal.imageUrl}
         isOpen={imageModal.isOpen}
         onClose={handleImageModalClose}
-        imageUrl={imageModal.imageUrl}
-        imageName={imageModal.imageName}
       />
     </div>
   );
@@ -589,22 +598,22 @@ function PureAttachmentsButton({
   };
 
   return (
-    <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
+    <Popover onOpenChange={setShowLoginPopover} open={showLoginPopover}>
       <PopoverTrigger asChild>
         <Button
+          className="h-fit p-1.5 hover:bg-zinc-200 dark:border-zinc-700 hover:dark:bg-zinc-900"
           data-testid="attachments-button"
-          className="p-1.5 h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
-          onClick={handleClick}
           disabled={status !== 'ready'}
+          onClick={handleClick}
           variant="ghost"
         >
           <PaperclipIcon size={14} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent align="end" className="w-80 p-0">
         <LoginPrompt
-          title="Sign in to attach files"
           description="You can attach images and PDFs to your messages for the AI to analyze."
+          title="Sign in to attach files"
         />
       </PopoverContent>
     </Popover>
@@ -613,15 +622,11 @@ function PureAttachmentsButton({
 
 const AttachmentsButton = memo(PureAttachmentsButton);
 
-function PureStopButton({
-  stop,
-}: {
-  stop: () => void;
-}) {
+function PureStopButton({ stop }: { stop: () => void }) {
   return (
     <Button
+      className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
       data-testid="stop-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         stop();
@@ -642,17 +647,17 @@ function PureSendButton({
 }: {
   submitForm: () => void;
   isEmpty: boolean;
-  uploadQueue: Array<string>;
+  uploadQueue: string[];
 }) {
   return (
     <Button
+      className="h-fit rounded-full border p-1.5 dark:border-zinc-600"
       data-testid="send-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      disabled={isEmpty || uploadQueue.length > 0}
       onClick={(event) => {
         event.preventDefault();
         submitForm();
       }}
-      disabled={isEmpty || uploadQueue.length > 0}
     >
       <ArrowUpIcon size={14} />
     </Button>
@@ -660,10 +665,15 @@ function PureSendButton({
 }
 
 const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
-  if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
+  if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length) {
     return false;
-  if (prevProps.isEmpty !== nextProps.isEmpty) return false;
-  if (prevProps.submitForm !== nextProps.submitForm) return false;
+  }
+  if (prevProps.isEmpty !== nextProps.isEmpty) {
+    return false;
+  }
+  if (prevProps.submitForm !== nextProps.submitForm) {
+    return false;
+  }
   return true;
 });
 
@@ -671,10 +681,18 @@ export const MultimodalInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
     // More specific equality checks to prevent unnecessary re-renders
-    if (prevProps.status !== nextProps.status) return false;
-    if (prevProps.isEditMode !== nextProps.isEditMode) return false;
-    if (prevProps.chatId !== nextProps.chatId) return false;
-    if (prevProps.className !== nextProps.className) return false;
+    if (prevProps.status !== nextProps.status) {
+      return false;
+    }
+    if (prevProps.isEditMode !== nextProps.isEditMode) {
+      return false;
+    }
+    if (prevProps.chatId !== nextProps.chatId) {
+      return false;
+    }
+    if (prevProps.className !== nextProps.className) {
+      return false;
+    }
 
     return true;
   },

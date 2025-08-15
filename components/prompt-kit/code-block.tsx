@@ -1,23 +1,23 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { cn } from '@/lib/utils';
 
-interface CodeBlockProps {
+type CodeBlockProps = {
   className?: string;
   children: React.ReactNode;
-}
+};
 
-interface CodeBlockGroupProps {
+type CodeBlockGroupProps = {
   className?: string;
   children: React.ReactNode;
-}
+};
 
-interface CodeBlockCodeProps {
+type CodeBlockCodeProps = {
   code: string;
   language: string;
-}
+};
 
 export function CodeBlock({ className, children }: CodeBlockProps) {
   return (
@@ -30,27 +30,27 @@ export function CodeBlock({ className, children }: CodeBlockProps) {
 }
 
 export function CodeBlockGroup({ className, children }: CodeBlockGroupProps) {
-  return <div className={cn('bg-muted border-b', className)}>{children}</div>;
+  return <div className={cn('border-b bg-muted', className)}>{children}</div>;
 }
 
 export function CodeBlockCode({ code, language }: CodeBlockCodeProps) {
   return (
     <div className="overflow-x-auto">
       <SyntaxHighlighter
-        language={language}
-        style={oneDark}
-        customStyle={{
-          margin: 0,
-          padding: '1rem',
-          backgroundColor: 'transparent',
-          fontSize: '0.875rem',
-        }}
         codeTagProps={{
           style: {
             fontFamily:
               'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
           },
         }}
+        customStyle={{
+          margin: 0,
+          padding: '1rem',
+          backgroundColor: 'transparent',
+          fontSize: '0.875rem',
+        }}
+        language={language}
+        style={oneDark}
       >
         {code}
       </SyntaxHighlighter>

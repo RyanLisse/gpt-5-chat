@@ -22,7 +22,7 @@ export const providers = [
 
 export type ProviderId = (typeof providers)[number];
 
-export interface ModelData {
+export type ModelData = {
   id: ModelId;
   object: string;
   owned_by: ProviderId;
@@ -37,7 +37,7 @@ export interface ModelData {
     input_cache_read?: string; // Input cache read price per token
     input_cache_write?: string; // Input cache write price per token
   };
-}
+};
 
 // Define the data with proper typing
 export const modelsData: ModelData[] = [
@@ -48,8 +48,8 @@ export const modelsData: ModelData[] = [
     name: 'Qwen3-14B',
     description:
       'Qwen3 is the latest generation of large language models in Qwen series, offering a comprehensive suite of dense and mixture-of-experts (MoE) models. Built upon extensive training, Qwen3 delivers groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support',
-    context_window: 40960,
-    max_tokens: 16384,
+    context_window: 40_960,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.00000008',
@@ -63,8 +63,8 @@ export const modelsData: ModelData[] = [
     name: 'Qwen3 235B A22B Instruct 2507',
     description:
       'Qwen3 is the latest generation of large language models in Qwen series, offering a comprehensive suite of dense and mixture-of-experts (MoE) models. Built upon extensive training, Qwen3 delivers groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support',
-    context_window: 40960,
-    max_tokens: 16384,
+    context_window: 40_960,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000002',
@@ -78,8 +78,8 @@ export const modelsData: ModelData[] = [
     name: 'Qwen3-30B-A3B',
     description:
       'Qwen3 is the latest generation of large language models in Qwen series, offering a comprehensive suite of dense and mixture-of-experts (MoE) models. Built upon extensive training, Qwen3 delivers groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support',
-    context_window: 40960,
-    max_tokens: 16384,
+    context_window: 40_960,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000001',
@@ -93,8 +93,8 @@ export const modelsData: ModelData[] = [
     name: 'Qwen 3.32B',
     description:
       'Qwen3 is the latest generation of large language models in Qwen series, offering a comprehensive suite of dense and mixture-of-experts (MoE) models. Built upon extensive training, Qwen3 delivers groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support',
-    context_window: 40960,
-    max_tokens: 16384,
+    context_window: 40_960,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000001',
@@ -108,8 +108,8 @@ export const modelsData: ModelData[] = [
     name: 'Qwen3 Coder 480B A35B Instruct',
     description:
       "Qwen3-Coder-480B-A35B-Instruct is Qwen's most agentic code model, featuring significant performance on Agentic Coding, Agentic Browser-Use and other foundational coding tasks, achieving results comparable to Claude Sonnet.",
-    context_window: 262144,
-    max_tokens: 66536,
+    context_window: 262_144,
+    max_tokens: 66_536,
     type: 'language',
     pricing: {
       input: '0.0000004',
@@ -123,7 +123,7 @@ export const modelsData: ModelData[] = [
     name: 'Nova Lite',
     description:
       'A very low cost multimodal model that is lightning fast for processing image, video, and text inputs.',
-    context_window: 300000,
+    context_window: 300_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -138,7 +138,7 @@ export const modelsData: ModelData[] = [
     name: 'Nova Micro',
     description:
       'A text-only model that delivers the lowest latency responses at very low cost.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -153,7 +153,7 @@ export const modelsData: ModelData[] = [
     name: 'Nova Pro',
     description:
       'A highly capable multimodal model with the best combination of accuracy, speed, and cost for a wide range of tasks.',
-    context_window: 300000,
+    context_window: 300_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -183,7 +183,7 @@ export const modelsData: ModelData[] = [
     name: 'Claude 3 Haiku',
     description:
       "Claude 3 Haiku is Anthropic's fastest model yet, designed for enterprise workloads which often involve longer prompts. Haiku to quickly analyze large volumes of documents, such as quarterly filings, contracts, or legal cases, for half the cost of other models in its performance tier.",
-    context_window: 200000,
+    context_window: 200_000,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -200,7 +200,7 @@ export const modelsData: ModelData[] = [
     name: 'Claude 3 Opus',
     description:
       "Claude 3 Opus is Anthropic's most intelligent model, with best-in-market performance on highly complex tasks. It can navigate open-ended prompts and sight-unseen scenarios with remarkable fluency and human-like understanding. Opus shows us the outer limits of what's possible with generative AI.",
-    context_window: 200000,
+    context_window: 200_000,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -217,7 +217,7 @@ export const modelsData: ModelData[] = [
     name: 'Claude 3.5 Haiku',
     description:
       'Claude 3.5 Haiku is the next generation of our fastest model. For a similar speed to Claude 3 Haiku, Claude 3.5 Haiku improves across every skill set and surpasses Claude 3 Opus, the largest model in our previous generation, on many intelligence benchmarks.',
-    context_window: 200000,
+    context_window: 200_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -234,7 +234,7 @@ export const modelsData: ModelData[] = [
     name: 'Claude 3.5 Sonnet',
     description:
       'Claude 3.5 Sonnet strikes the ideal balance between intelligence and speed—particularly for enterprise workloads. It delivers strong performance at a lower cost compared to its peers, and is engineered for high endurance in large-scale AI deployments.',
-    context_window: 200000,
+    context_window: 200_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -251,8 +251,8 @@ export const modelsData: ModelData[] = [
     name: 'Claude 3.7 Sonnet',
     description:
       "Claude 3.7 Sonnet is the first hybrid reasoning model and Anthropic's most intelligent model to date. It delivers state-of-the-art performance for coding, content generation, data analysis, and planning tasks, building upon its predecessor Claude 3.5 Sonnet's capabilities in software engineering and computer use.",
-    context_window: 200000,
-    max_tokens: 64000,
+    context_window: 200_000,
+    max_tokens: 64_000,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -268,8 +268,8 @@ export const modelsData: ModelData[] = [
     name: 'Claude 4 Opus',
     description:
       "Claude Opus 4 is Anthropic's most powerful model yet and the best coding model in the world, leading on SWE-bench (72.5%) and Terminal-bench (43.2%). It delivers sustained performance on long-running tasks that require focused effort and thousands of steps, with the ability to work continuously for several hours—dramatically outperforming all Sonnet models and significantly expanding what AI agents can accomplish.",
-    context_window: 200000,
-    max_tokens: 32000,
+    context_window: 200_000,
+    max_tokens: 32_000,
     type: 'language',
     pricing: {
       input: '0.000015',
@@ -285,8 +285,8 @@ export const modelsData: ModelData[] = [
     name: 'Claude 4 Sonnet',
     description:
       "Claude Sonnet 4 significantly improves on Sonnet 3.7's industry-leading capabilities, excelling in coding with a state-of-the-art 72.7% on SWE-bench. The model balances performance and efficiency for internal and external use cases, with enhanced steerability for greater control over implementations. While not matching Opus 4 in most domains, it delivers an optimal mix of capability and practicality.",
-    context_window: 200000,
-    max_tokens: 64000,
+    context_window: 200_000,
+    max_tokens: 64_000,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -302,8 +302,8 @@ export const modelsData: ModelData[] = [
     name: 'Claude 4.1 Opus',
     description:
       'Claude Opus 4.1 is a drop-in replacement for Opus 4 that delivers superior performance and precision for real-world coding and agentic tasks. Opus 4.1 advances state-of-the-art coding performance to 74.5% on SWE-bench Verified, and handles complex, multi-step problems with more rigor and attention to detail.',
-    context_window: 200000,
-    max_tokens: 32000,
+    context_window: 200_000,
+    max_tokens: 32_000,
     type: 'language',
     pricing: {
       input: '0.000015',
@@ -319,7 +319,7 @@ export const modelsData: ModelData[] = [
     name: 'Command A',
     description:
       "Command A is Cohere's most performant model to date, excelling at tool use, agents, retrieval augmented generation (RAG), and multilingual use cases. Command A has a context length of 256K, only requires two GPUs to run, and has 150% higher throughput compared to Command R+ 08-2024.",
-    context_window: 256000,
+    context_window: 256_000,
     max_tokens: 8000,
     type: 'language',
     pricing: {
@@ -334,7 +334,7 @@ export const modelsData: ModelData[] = [
     name: 'Command R',
     description:
       'Command R is a large language model optimized for conversational interaction and long context tasks. It targets the "scalable" category of models that balance high performance with strong accuracy, enabling companies to move beyond proof of concept and into production.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -349,7 +349,7 @@ export const modelsData: ModelData[] = [
     name: 'Command R+',
     description:
       "Command R+ is Cohere's newest large language model, optimized for conversational interaction and long-context tasks. It aims at being extremely performant, enabling companies to move beyond proof of concept and into production.",
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -379,7 +379,7 @@ export const modelsData: ModelData[] = [
     name: 'DeepSeek R1 0528',
     description:
       'The DeepSeek R1 model has undergone a minor version upgrade, with the current version being DeepSeek-R1-0528. In the latest update, DeepSeek R1 has significantly improved its depth of reasoning and inference capabilities by leveraging increased computational resources and introducing algorithmic optimization mechanisms during post-training. The model has demonstrated outstanding performance across various benchmark evaluations, including mathematics, programming, and general logic. Its overall performance is now approaching that of leading models, such as O3 and Gemini 2.5 Pro.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -394,8 +394,8 @@ export const modelsData: ModelData[] = [
     name: 'DeepSeek R1 Distill Llama 70B',
     description:
       'DeepSeek-R1-Distill-Llama-70B is a distilled, more efficient variant of the 70B Llama model. It preserves strong performance across text-generation tasks, reducing computational overhead for easier deployment and research. Served by Groq with their custom Language Processing Units (LPUs) hardware to provide fast and efficient inference.',
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.00000075',
@@ -409,8 +409,8 @@ export const modelsData: ModelData[] = [
     name: 'DeepSeek V3 0324',
     description:
       'Fast general-purpose LLM with enhanced reasoning capabilities',
-    context_window: 163840,
-    max_tokens: 16384,
+    context_window: 163_840,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.00000077',
@@ -424,7 +424,7 @@ export const modelsData: ModelData[] = [
     name: 'Gemini 2.0 Flash',
     description:
       'Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, built-in tool use, multimodal generation, and a 1M token context window.',
-    context_window: 1048576,
+    context_window: 1_048_576,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -439,7 +439,7 @@ export const modelsData: ModelData[] = [
     name: 'Gemini 2.0 Flash Lite',
     description:
       'Gemini 2.0 Flash delivers next-gen features and improved capabilities, including superior speed, built-in tool use, multimodal generation, and a 1M token context window.',
-    context_window: 1048576,
+    context_window: 1_048_576,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -454,8 +454,8 @@ export const modelsData: ModelData[] = [
     name: 'Gemini 2.5 Flash',
     description:
       'Gemini 2.5 Flash is a thinking model that offers great, well-rounded capabilities. It is designed to offer a balance between price and performance with multimodal support and a 1M token context window.',
-    context_window: 1000000,
-    max_tokens: 65536,
+    context_window: 1_000_000,
+    max_tokens: 65_536,
     type: 'language',
     pricing: {
       input: '0.0000003',
@@ -469,8 +469,8 @@ export const modelsData: ModelData[] = [
     name: 'Gemini 2.5 Pro',
     description:
       'Gemini 2.5 Pro is our most advanced reasoning Gemini model, capable of solving complex problems. It features a 2M token context window and supports multimodal inputs including text, images, audio, video, and PDF documents.',
-    context_window: 1048576,
-    max_tokens: 65536,
+    context_window: 1_048_576,
+    max_tokens: 65_536,
     type: 'language',
     pricing: {
       input: '0.0000025',
@@ -544,8 +544,8 @@ export const modelsData: ModelData[] = [
     name: 'Mercury Coder Small Beta',
     description:
       'Mercury Coder Small is ideal for code generation, debugging, and refactoring tasks with minimal latency.',
-    context_window: 32000,
-    max_tokens: 16384,
+    context_window: 32_000,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.00000025',
@@ -589,7 +589,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.1 70B Instruct',
     description:
       'An update to Meta Llama 3 70B Instruct that includes an expanded 128K context length, multilinguality and improved reasoning capabilities.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -604,8 +604,8 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.1 8B Instruct',
     description:
       'Llama 3.1 8B with 128K context window support, making it ideal for real-time conversational interfaces and data analysis while offering significant cost savings compared to larger models. Served by Groq with their custom Language Processing Units (LPUs) hardware to provide fast and efficient inference.',
-    context_window: 131000,
-    max_tokens: 131072,
+    context_window: 131_000,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.00000005',
@@ -619,7 +619,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.2 11B Vision Instruct',
     description:
       'Instruction-tuned image reasoning generative model (text + images in / text out) optimized for visual recognition, image reasoning, captioning and answering general questions about the image.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -634,7 +634,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.2 1B Instruct',
     description:
       'Text-only model, supporting on-device use cases such as multilingual local knowledge retrieval, summarization, and rewriting.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -649,7 +649,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.2 3B Instruct',
     description:
       'Text-only model, fine-tuned for supporting on-device use cases such as multilingual local knowledge retrieval, summarization, and rewriting.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -664,7 +664,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.2 90B Vision Instruct',
     description:
       'Instruction-tuned image reasoning generative model (text + images in / text out) optimized for visual recognition, image reasoning, captioning and answering general questions about the image.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -679,7 +679,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 3.3 70B Instruct',
     description:
       'Where performance meets efficiency. This model supports high-performance conversational AI designed for content creation, enterprise applications, and research, offering advanced language understanding capabilities, including text summarization, classification, sentiment analysis, and code generation.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -694,7 +694,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 4 Maverick 17B 128E Instruct',
     description:
       'The Llama 4 collection of models are natively multimodal AI models that enable text and multimodal experiences. These models leverage a mixture-of-experts architecture to offer industry-leading performance in text and image understanding. Llama 4 Maverick, a 17 billion parameter model with 128 experts. Served by DeepInfra.',
-    context_window: 131072,
+    context_window: 131_072,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -709,7 +709,7 @@ export const modelsData: ModelData[] = [
     name: 'Llama 4 Scout 17B 16E Instruct',
     description:
       'The Llama 4 collection of models are natively multimodal AI models that enable text and multimodal experiences. These models leverage a mixture-of-experts architecture to offer industry-leading performance in text and image understanding. Llama 4 Scout, a 17 billion parameter model with 16 experts. Served by DeepInfra.',
-    context_window: 131072,
+    context_window: 131_072,
     max_tokens: 8192,
     type: 'language',
     pricing: {
@@ -724,7 +724,7 @@ export const modelsData: ModelData[] = [
     name: 'Mistral Codestral 25.01',
     description:
       'Mistral Codestral 25.01 is a state-of-the-art coding model optimized for low-latency, high-frequency use cases. Proficient in over 80 programming languages, it excels at tasks like fill-in-the-middle (FIM), code correction, and test generation.',
-    context_window: 256000,
+    context_window: 256_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -754,8 +754,8 @@ export const modelsData: ModelData[] = [
     name: 'Devstral Small',
     description:
       'Devstral is an agentic LLM for software engineering tasks, making it a great choice for software engineering agents.',
-    context_window: 128000,
-    max_tokens: 128000,
+    context_window: 128_000,
+    max_tokens: 128_000,
     type: 'language',
     pricing: {
       input: '0.00000007',
@@ -769,8 +769,8 @@ export const modelsData: ModelData[] = [
     name: 'Magistral Medium 2506',
     description:
       'Complex thinking, backed by deep understanding, with transparent reasoning you can follow and verify. The model excels in maintaining high-fidelity reasoning across numerous languages, even when switching between languages mid-task.',
-    context_window: 128000,
-    max_tokens: 64000,
+    context_window: 128_000,
+    max_tokens: 64_000,
     type: 'language',
     pricing: {
       input: '0.000002',
@@ -784,8 +784,8 @@ export const modelsData: ModelData[] = [
     name: 'Magistral Small 2506',
     description:
       'Complex thinking, backed by deep understanding, with transparent reasoning you can follow and verify. The model excels in maintaining high-fidelity reasoning across numerous languages, even when switching between languages mid-task.',
-    context_window: 128000,
-    max_tokens: 64000,
+    context_window: 128_000,
+    max_tokens: 64_000,
     type: 'language',
     pricing: {
       input: '0.0000005',
@@ -799,7 +799,7 @@ export const modelsData: ModelData[] = [
     name: 'Ministral 3B',
     description:
       'A compact, efficient model for on-device tasks like smart assistants and local analytics, offering low-latency performance.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -814,7 +814,7 @@ export const modelsData: ModelData[] = [
     name: 'Ministral 8B',
     description:
       'A more powerful model with faster, memory-efficient inference, ideal for complex workflows and demanding edge applications.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -844,7 +844,7 @@ export const modelsData: ModelData[] = [
     name: 'Mistral Large',
     description:
       'Mistral Large is ideal for complex tasks that require large reasoning capabilities or are highly specialized - like Synthetic Text Generation, Code Generation, RAG, or Agents.',
-    context_window: 32000,
+    context_window: 32_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -859,8 +859,8 @@ export const modelsData: ModelData[] = [
     name: 'Mistral Saba 24B',
     description:
       'Mistral Saba 24B is a 24 billion parameter open source model by Mistral.ai. Saba is a specialized model trained to excel in Arabic, Farsi, Urdu, Hebrew, and Indic languages. Served by Groq with their custom Language Processing Units (LPUs) hardware to provide fast and efficient inference.',
-    context_window: 32768,
-    max_tokens: 32768,
+    context_window: 32_768,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.00000079',
@@ -874,7 +874,7 @@ export const modelsData: ModelData[] = [
     name: 'Mistral Small',
     description:
       'Mistral Small is the ideal choice for simple tasks that one can do in bulk - like Classification, Customer Support, or Text Generation. It offers excellent performance at an affordable price point.',
-    context_window: 32000,
+    context_window: 32_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -889,7 +889,7 @@ export const modelsData: ModelData[] = [
     name: 'Mixtral MoE 8x22B Instruct',
     description:
       '8x22b Instruct model. 8x22b is mixture-of-experts open source model by Mistral served by Fireworks.',
-    context_window: 65536,
+    context_window: 65_536,
     max_tokens: 2048,
     type: 'language',
     pricing: {
@@ -904,7 +904,7 @@ export const modelsData: ModelData[] = [
     name: 'Pixtral 12B 2409',
     description:
       'A 12B model with image understanding capabilities in addition to text.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -919,7 +919,7 @@ export const modelsData: ModelData[] = [
     name: 'Pixtral Large',
     description:
       'Pixtral Large is the second model in our multimodal family and demonstrates frontier-level image understanding. Particularly, the model is able to understand documents, charts and natural images, while maintaining the leading text-only understanding of Mistral Large 2.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -934,8 +934,8 @@ export const modelsData: ModelData[] = [
     name: 'Kimi K2',
     description:
       'Kimi K2 is a large-scale Mixture-of-Experts (MoE) language model developed by Moonshot AI, featuring 1 trillion total parameters with 32 billion active per forward pass. It is optimized for agentic capabilities, including advanced tool use, reasoning, and code synthesis. Kimi K2 excels across a broad range of benchmarks, particularly in coding (LiveCodeBench, SWE-bench), reasoning (ZebraLogic, GPQA), and tool-use (Tau2, AceBench) tasks.',
-    context_window: 131072,
-    max_tokens: 16384,
+    context_window: 131_072,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.00000055',
@@ -949,8 +949,8 @@ export const modelsData: ModelData[] = [
     name: 'Morph V3 Fast',
     description:
       'Morph offers a specialized AI model that applies code changes suggested by frontier models (like Claude or GPT-4o) to your existing code files FAST - 4500+ tokens/second. It acts as the final step in the AI coding workflow. Supports 16k input tokens and 16k output tokens.',
-    context_window: 32768,
-    max_tokens: 16384,
+    context_window: 32_768,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000008',
@@ -964,8 +964,8 @@ export const modelsData: ModelData[] = [
     name: 'Morph V3 Large',
     description:
       'Morph offers a specialized AI model that applies code changes suggested by frontier models (like Claude or GPT-4o) to your existing code files FAST - 2500+ tokens/second. It acts as the final step in the AI coding workflow. Supports 16k input tokens and 16k output tokens.',
-    context_window: 32768,
-    max_tokens: 16384,
+    context_window: 32_768,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000009',
@@ -979,7 +979,7 @@ export const modelsData: ModelData[] = [
     name: 'GPT-3.5 Turbo',
     description:
       "OpenAI's most capable and cost effective model in the GPT-3.5 family optimized for chat purposes, but also works well for traditional completions tasks.",
-    context_window: 16385,
+    context_window: 16_385,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -1009,7 +1009,7 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4 Turbo',
     description:
       'gpt-4-turbo from OpenAI has broad general knowledge and domain expertise allowing it to follow complex instructions in natural language and solve difficult problems accurately. It has a knowledge cutoff of April 2023 and a 128,000 token context window.',
-    context_window: 128000,
+    context_window: 128_000,
     max_tokens: 4096,
     type: 'language',
     pricing: {
@@ -1024,8 +1024,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4.1',
     description:
       "GPT 4.1 is OpenAI's flagship model for complex tasks. It is well suited for problem solving across domains.",
-    context_window: 1047576,
-    max_tokens: 32768,
+    context_window: 1_047_576,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.000002',
@@ -1041,8 +1041,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4.1 mini',
     description:
       'GPT 4.1 mini provides a balance between intelligence, speed, and cost that makes it an attractive model for many use cases.',
-    context_window: 1047576,
-    max_tokens: 32768,
+    context_window: 1_047_576,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.0000004',
@@ -1058,8 +1058,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4.1 nano',
     description:
       'GPT-4.1 nano is the fastest, most cost-effective GPT 4.1 model.',
-    context_window: 1047576,
-    max_tokens: 32768,
+    context_window: 1_047_576,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.0000001',
@@ -1075,8 +1075,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4o',
     description:
       'GPT-4o from OpenAI has broad general knowledge and domain expertise allowing it to follow complex instructions in natural language and solve difficult problems accurately. It matches GPT-4 Turbo performance with a faster and cheaper API.',
-    context_window: 128000,
-    max_tokens: 16384,
+    context_window: 128_000,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.0000025',
@@ -1092,8 +1092,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-4o mini',
     description:
       'GPT-4o mini from OpenAI is their most advanced and cost-efficient small model. It is multi-modal (accepting text or image inputs and outputting text) and has higher intelligence than gpt-3.5-turbo but is just as fast.',
-    context_window: 128000,
-    max_tokens: 16384,
+    context_window: 128_000,
+    max_tokens: 16_384,
     type: 'language',
     pricing: {
       input: '0.00000015',
@@ -1109,8 +1109,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5',
     description:
       "GPT-5 is OpenAI's flagship language model that excels at complex reasoning, broad real-world knowledge, code-intensive, and multi-step agentic tasks.",
-    context_window: 400000,
-    max_tokens: 128000,
+    context_window: 400_000,
+    max_tokens: 128_000,
     type: 'language',
     pricing: {
       input: '0.00000125',
@@ -1126,8 +1126,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5 mini',
     description:
       'GPT-5 mini is a cost optimized model that excels at reasoning/chat tasks. It offers an optimal balance between speed, cost, and capability.',
-    context_window: 400000,
-    max_tokens: 128000,
+    context_window: 400_000,
+    max_tokens: 128_000,
     type: 'language',
     pricing: {
       input: '0.00000025',
@@ -1143,8 +1143,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5 nano',
     description:
       'GPT-5 nano is a high throughput model that excels at simple instruction or classification tasks.',
-    context_window: 400000,
-    max_tokens: 128000,
+    context_window: 400_000,
+    max_tokens: 128_000,
     type: 'language',
     pricing: {
       input: '0.00000005',
@@ -1160,8 +1160,8 @@ export const modelsData: ModelData[] = [
     name: 'gpt-oss-120b',
     description:
       'Extremely capable general-purpose LLM with strong, controllable reasoning capabilities',
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.0000001',
@@ -1175,8 +1175,8 @@ export const modelsData: ModelData[] = [
     name: 'gpt-oss-20b',
     description:
       'A compact, open-weight language model optimized for low-latency and resource-constrained environments, including local and edge deployments',
-    context_window: 128000,
-    max_tokens: 128000,
+    context_window: 128_000,
+    max_tokens: 128_000,
     type: 'language',
     pricing: {
       input: '0.00000007',
@@ -1190,8 +1190,8 @@ export const modelsData: ModelData[] = [
     name: 'o1',
     description:
       "o1 is OpenAI's flagship reasoning model, designed for complex problems that require deep thinking. It provides strong reasoning capabilities with improved accuracy for complex multi-step tasks.",
-    context_window: 200000,
-    max_tokens: 100000,
+    context_window: 200_000,
+    max_tokens: 100_000,
     type: 'language',
     pricing: {
       input: '0.000015',
@@ -1207,8 +1207,8 @@ export const modelsData: ModelData[] = [
     name: 'o3',
     description:
       "OpenAI's o3 is their most powerful reasoning model, setting new state-of-the-art benchmarks in coding, math, science, and visual perception. It excels at complex queries requiring multi-faceted analysis, with particular strength in analyzing images, charts, and graphics.",
-    context_window: 200000,
-    max_tokens: 100000,
+    context_window: 200_000,
+    max_tokens: 100_000,
     type: 'language',
     pricing: {
       input: '0.000002',
@@ -1224,8 +1224,8 @@ export const modelsData: ModelData[] = [
     name: 'o3-mini',
     description:
       "o3-mini is OpenAI's most recent small reasoning model, providing high intelligence at the same cost and latency targets of o1-mini.",
-    context_window: 200000,
-    max_tokens: 100000,
+    context_window: 200_000,
+    max_tokens: 100_000,
     type: 'language',
     pricing: {
       input: '0.0000011',
@@ -1241,8 +1241,8 @@ export const modelsData: ModelData[] = [
     name: 'o4-mini',
     description:
       "OpenAI's o4-mini delivers fast, cost-efficient reasoning with exceptional performance for its size, particularly excelling in math (best-performing on AIME benchmarks), coding, and visual tasks.",
-    context_window: 200000,
-    max_tokens: 100000,
+    context_window: 200_000,
+    max_tokens: 100_000,
     type: 'language',
     pricing: {
       input: '0.0000011',
@@ -1302,7 +1302,7 @@ export const modelsData: ModelData[] = [
     name: 'Sonar',
     description:
       "Perplexity's lightweight offering with search grounding, quicker and cheaper than Sonar Pro.",
-    context_window: 127000,
+    context_window: 127_000,
     max_tokens: 8000,
     type: 'language',
     pricing: {
@@ -1317,7 +1317,7 @@ export const modelsData: ModelData[] = [
     name: 'Sonar Pro',
     description:
       "Perplexity's premier offering with search grounding, supporting advanced queries and follow-ups.",
-    context_window: 200000,
+    context_window: 200_000,
     max_tokens: 8000,
     type: 'language',
     pricing: {
@@ -1332,7 +1332,7 @@ export const modelsData: ModelData[] = [
     name: 'Sonar Reasoning',
     description:
       'A reasoning-focused model that outputs Chain of Thought (CoT) in responses, providing detailed explanations with search grounding.',
-    context_window: 127000,
+    context_window: 127_000,
     max_tokens: 8000,
     type: 'language',
     pricing: {
@@ -1347,7 +1347,7 @@ export const modelsData: ModelData[] = [
     name: 'Sonar Reasoning Pro',
     description:
       'A premium reasoning-focused model that outputs Chain of Thought (CoT) in responses, providing comprehensive explanations with enhanced search capabilities and multiple search queries per request.',
-    context_window: 127000,
+    context_window: 127_000,
     max_tokens: 8000,
     type: 'language',
     pricing: {
@@ -1362,8 +1362,8 @@ export const modelsData: ModelData[] = [
     name: 'v0-1.0-md',
     description:
       'Access the model behind v0 to generate, fix, and optimize modern web apps with framework-specific reasoning and up-to-date knowledge.',
-    context_window: 128000,
-    max_tokens: 32000,
+    context_window: 128_000,
+    max_tokens: 32_000,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -1377,8 +1377,8 @@ export const modelsData: ModelData[] = [
     name: 'v0-1.5-md',
     description:
       'Access the model behind v0 to generate, fix, and optimize modern web apps with framework-specific reasoning and up-to-date knowledge.',
-    context_window: 128000,
-    max_tokens: 32768,
+    context_window: 128_000,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -1392,7 +1392,7 @@ export const modelsData: ModelData[] = [
     name: 'Grok 2',
     description:
       'Grok 2 is a frontier language model with state-of-the-art reasoning capabilities. It features advanced capabilities in chat, coding, and reasoning, outperforming both Claude 3.5 Sonnet and GPT-4-Turbo on the LMSYS leaderboard.',
-    context_window: 131072,
+    context_window: 131_072,
     max_tokens: 4000,
     type: 'language',
     pricing: {
@@ -1407,8 +1407,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 2 Vision',
     description:
       'Grok 2 vision model excels in vision-based tasks, delivering state-of-the-art performance in visual math reasoning (MathVista) and document-based question answering (DocVQA). It can process a wide variety of visual information including documents, diagrams, charts, screenshots, and photographs.',
-    context_window: 32768,
-    max_tokens: 32768,
+    context_window: 32_768,
+    max_tokens: 32_768,
     type: 'language',
     pricing: {
       input: '0.000002',
@@ -1422,8 +1422,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 3 Beta',
     description:
       "xAI's flagship model that excels at enterprise use cases like data extraction, coding, and text summarization. Possesses deep domain knowledge in finance, healthcare, law, and science.",
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -1437,8 +1437,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 3 Fast Beta',
     description:
       "xAI's flagship model that excels at enterprise use cases like data extraction, coding, and text summarization. Possesses deep domain knowledge in finance, healthcare, law, and science. The fast model variant is served on faster infrastructure, offering response times that are significantly faster than the standard. The increased speed comes at a higher cost per output token.",
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.000005',
@@ -1452,8 +1452,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 3 Mini Beta',
     description:
       "xAI's lightweight model that thinks before responding. Great for simple or logic-based tasks that do not require deep domain knowledge. The raw thinking traces are accessible.",
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.0000003',
@@ -1467,8 +1467,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 3 Mini Fast Beta',
     description:
       "xAI's lightweight model that thinks before responding. Great for simple or logic-based tasks that do not require deep domain knowledge. The raw thinking traces are accessible. The fast model variant is served on faster infrastructure, offering response times that are significantly faster than the standard. The increased speed comes at a higher cost per output token.",
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.0000006',
@@ -1482,8 +1482,8 @@ export const modelsData: ModelData[] = [
     name: 'Grok 4',
     description:
       "xAI's latest and greatest flagship model, offering unparalleled performance in natural language, math and reasoning - the perfect jack of all trades.",
-    context_window: 256000,
-    max_tokens: 256000,
+    context_window: 256_000,
+    max_tokens: 256_000,
     type: 'language',
     pricing: {
       input: '0.000003',
@@ -1497,8 +1497,8 @@ export const modelsData: ModelData[] = [
     name: 'GLM-4.5',
     description:
       'GLM-4.5 Series Models are foundation models specifically engineered for intelligent agents. The flagship GLM-4.5 integrates 355 billion total parameters (32 billion active), unifying reasoning, coding, and agent capabilities to address complex application demands. As a hybrid reasoning system, it offers dual operational modes.',
-    context_window: 131072,
-    max_tokens: 131072,
+    context_window: 131_072,
+    max_tokens: 131_072,
     type: 'language',
     pricing: {
       input: '0.0000006',
@@ -1512,8 +1512,8 @@ export const modelsData: ModelData[] = [
     name: 'GLM 4.5 Air',
     description:
       'GLM-4.5 and GLM-4.5-Air are our latest flagship models, purpose-built as foundational models for agent-oriented applications. Both leverage a Mixture-of-Experts (MoE) architecture. GLM-4.5 has a total parameter count of 355B with 32B active parameters per forward pass, while GLM-4.5-Air adopts a more streamlined design with 106B total parameters and 12B active parameters.',
-    context_window: 128000,
-    max_tokens: 96000,
+    context_window: 128_000,
+    max_tokens: 96_000,
     type: 'language',
     pricing: {
       input: '0.0000002',

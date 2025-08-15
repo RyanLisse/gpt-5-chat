@@ -6,8 +6,6 @@ const { execSync } = require('node:child_process');
 
 async function fetchAndConvertModels() {
   try {
-    console.log('Fetching models from API...');
-
     // Fetch the JSON data from the API
     const response = await fetch('https://ai-gateway.vercel.sh/v1/models');
 
@@ -20,7 +18,6 @@ async function fetchAndConvertModels() {
     // Write the JSON file
     const jsonPath = path.join(__dirname, '../providers/models.json');
     fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2));
-    console.log('Saved JSON file:', jsonPath);
 
     // Extract unique providers from owned_by property
     const providers = [
@@ -63,22 +60,14 @@ export const modelsData: ModelData[] = ${JSON.stringify(
 
     // Write the TypeScript file
     fs.writeFileSync(outputPath, tsContent);
-    console.log('Generated TypeScript file:', outputPath);
 
     // Format the generated TypeScript file with biome
     try {
-      console.log('Formatting TypeScript file with biome...');
       execSync(`npx biome format --write "${outputPath}"`, {
         cwd: path.join(__dirname, '..'),
         stdio: 'inherit',
       });
-      console.log('Successfully formatted TypeScript file');
-    } catch (formatError) {
-      console.warn(
-        'Warning: Failed to format with biome:',
-        formatError.message,
-      );
-    }
+    } catch (_formatError) {}
 
     // Also write the providers list to a separate JSON file
     const providersJsonPath = path.join(
@@ -86,9 +75,7 @@ export const modelsData: ModelData[] = ${JSON.stringify(
       '../providers/providers-list.json',
     );
     fs.writeFileSync(providersJsonPath, JSON.stringify(providers, null, 2));
-    console.log('Generated providers list:', providersJsonPath);
-  } catch (error) {
-    console.error('Error fetching or converting models:', error);
+  } catch (_error) {
     process.exit(1);
   }
 }

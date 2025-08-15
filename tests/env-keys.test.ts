@@ -1,16 +1,18 @@
-import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import { describe, expect, it } from 'vitest';
 
-function hasRealisticSecret(value?: string | null) {
-  if (!value) return false;
+function _hasRealisticSecret(value?: string | null) {
+  if (!value) {
+    return false;
+  }
   // Heuristics: very long tokens with base64-like charset
-  return value.length > 60 && /[A-Za-z0-9_\-]+=*/.test(value);
+  return value.length > 60 && /[A-Za-z0-9_-]+=*/.test(value);
 }
 
 describe('Environment Keys', () => {
   it('validates optional API key formats when present', () => {
-    const checks: Array<[string, RegExp]> = [
+    const checks: [string, RegExp][] = [
       ['OPENAI_API_KEY', /^sk-.+/],
       ['LANGSMITH_API_KEY', /^(ls|lsv2)_.+/],
       ['LANGSMITH_TRACING', /^(true|false)?$/],

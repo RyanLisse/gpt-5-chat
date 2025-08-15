@@ -1,9 +1,9 @@
-import React from 'react';
 import ReactECharts from 'echarts-for-react/lib/index';
 import type { EChartsOption } from 'echarts-for-react/lib/types';
-import { Card } from '@/components/ui/card';
-import { useTheme } from 'next-themes';
 import { motion } from 'motion/react';
+import { useTheme } from 'next-themes';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 
 const CHART_COLORS = [
   '#22c55e', // green
@@ -16,14 +16,14 @@ const CHART_COLORS = [
   '#84cc16', // lime
 ];
 
-export interface BaseChart {
+export type BaseChart = {
   type: string;
   title: string;
   x_label?: string;
   y_label?: string;
   elements: any[];
   x_scale?: string;
-}
+};
 
 export function InteractiveChart({ chart }: { chart: BaseChart }) {
   const { theme } = useTheme();
@@ -174,7 +174,9 @@ export function InteractiveChart({ chart }: { chart: BaseChart }) {
     if (chart.type === 'bar') {
       const data = chart.elements.reduce((acc: Record<string, any[]>, item) => {
         const key = item.group;
-        if (!acc[key]) acc[key] = [];
+        if (!acc[key]) {
+          acc[key] = [];
+        }
         acc[key].push(item);
         return acc;
       }, {});
@@ -221,22 +223,22 @@ export function InteractiveChart({ chart }: { chart: BaseChart }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="overflow-hidden bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+      <Card className="overflow-hidden border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div className="p-6">
           {chart.title && (
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-4">
+            <h3 className="mb-4 font-medium text-lg text-neutral-900 dark:text-neutral-100">
               {chart.title}
             </h3>
           )}
           <ReactECharts
+            notMerge={true}
             option={getChartOptions()}
             style={{ height: '400px', width: '100%' }}
             theme={theme === 'dark' ? 'dark' : undefined}
-            notMerge={true}
           />
         </div>
       </Card>

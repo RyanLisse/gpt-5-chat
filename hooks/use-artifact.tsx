@@ -1,14 +1,14 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useMemo,
+  useState,
 } from 'react';
 import type { UIArtifact } from '@/components/artifact';
-import type { ReactNode } from 'react';
 
 const initialArtifactData: UIArtifact = {
   documentId: 'init',
@@ -28,7 +28,7 @@ const initialArtifactData: UIArtifact = {
 
 type Selector<T> = (state: UIArtifact) => T;
 
-interface ArtifactContextType {
+type ArtifactContextType = {
   artifact: UIArtifact;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
@@ -41,7 +41,7 @@ interface ArtifactContextType {
       | null
       | ((current: Record<string, any> | null) => Record<string, any> | null),
   ) => void;
-}
+};
 
 const ArtifactContext = createContext<ArtifactContextType | undefined>(
   undefined,
@@ -54,8 +54,6 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
     string,
     any
   > | null>(initialArtifactData);
-
-  console.log('metadataStore', metadataStore);
 
   const setArtifact = useCallback(
     (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => {

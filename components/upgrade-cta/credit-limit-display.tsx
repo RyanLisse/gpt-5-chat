@@ -1,31 +1,37 @@
 'use client';
 
-import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
-import { Button } from '../ui/button';
-import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { useGetCredits } from '@/hooks/chat-sync-hooks';
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 
-interface CreditLimitDisplayProps {
+type CreditLimitDisplayProps = {
   className?: string;
-}
+};
 
 export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
   const { credits, isLoadingCredits } = useGetCredits();
   const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = Boolean(session?.user);
   const [dismissed, setDismissed] = useState(false);
 
   // Don't show for authenticated users
-  if (isAuthenticated) return null;
+  if (isAuthenticated) {
+    return null;
+  }
 
-  if (isLoadingCredits) return null;
+  if (isLoadingCredits) {
+    return null;
+  }
 
   // Don't show if dismissed
-  if (dismissed) return null;
+  if (dismissed) {
+    return null;
+  }
 
   const remaining = credits ?? 0;
 
@@ -35,18 +41,18 @@ export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
         animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.2 }}
         className={cn('w-full', className)}
+        exit={{ opacity: 0, height: 0 }}
+        initial={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.2 }}
       >
         <div
           className={cn(
-            'flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm ',
+            'flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm',
             isAtLimit
-              ? 'bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-200'
-              : 'bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200',
+              ? 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-200'
+              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200',
           )}
         >
           <div className="flex-1">
@@ -54,8 +60,8 @@ export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
               <span>
                 You&apos;ve reached your credit limit.{' '}
                 <Link
+                  className="font-medium text-red-700 underline hover:no-underline dark:text-red-300"
                   href="/login"
-                  className="text-red-700 dark:text-red-300 underline font-medium hover:no-underline"
                 >
                   Sign in to reset your limits
                 </Link>
@@ -68,8 +74,8 @@ export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
                 </strong>{' '}
                 left.{' '}
                 <Link
+                  className="font-medium text-amber-700 underline hover:no-underline dark:text-amber-300"
                   href="/login"
-                  className="text-amber-700 dark:text-amber-300 underline font-medium hover:no-underline"
                 >
                   Sign in to reset your limits
                 </Link>
@@ -77,10 +83,10 @@ export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
             )}
           </div>
           <Button
-            variant="ghost"
-            size="sm"
             className="h-6 w-6 p-0 hover:bg-transparent"
             onClick={() => setDismissed(true)}
+            size="sm"
+            variant="ghost"
           >
             <X className="h-4 w-4" />
           </Button>

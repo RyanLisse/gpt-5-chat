@@ -1,17 +1,17 @@
 'use client';
 
 import type { User } from 'next-auth';
+import { AnonymousSessionInit } from '@/components/anonymous-session-init';
+import { ChatPrefetch } from '@/components/chat-prefetch';
+import { DataStreamProvider } from '@/components/data-stream-provider';
+import { ArtifactProvider } from '@/hooks/use-artifact';
 import { ChatIdProvider } from '@/providers/chat-id-provider';
 import { MessageTreeProvider } from '@/providers/message-tree-provider';
-import { ArtifactProvider } from '@/hooks/use-artifact';
-import { DataStreamProvider } from '@/components/data-stream-provider';
-import { ChatPrefetch } from '@/components/chat-prefetch';
-import { AnonymousSessionInit } from '@/components/anonymous-session-init';
 
-interface ChatProvidersProps {
+type ChatProvidersProps = {
   children: React.ReactNode;
   user: User | undefined;
-}
+};
 
 export function ChatProviders({ children, user }: ChatProvidersProps) {
   return (

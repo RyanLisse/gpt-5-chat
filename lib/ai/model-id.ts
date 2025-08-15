@@ -1,5 +1,5 @@
-import type { OpenAIProvider } from '@ai-sdk/openai';
 import type { GatewayModelId, GatewayProvider } from '@ai-sdk/gateway';
+import type { OpenAIProvider } from '@ai-sdk/openai';
 
 // Exclude the non-literal model ids
 type GatewayLiteralModelId = GatewayModelId extends infer T

@@ -16,11 +16,11 @@ import {
 import { useDeleteChat } from '@/hooks/chat-sync-hooks';
 import { useChatId } from '@/providers/chat-id-provider';
 
-interface DeleteDialogProps {
+type DeleteDialogProps = {
   deleteId: string | null;
   showDeleteDialog: boolean;
   setShowDeleteDialog: (show: boolean) => void;
-}
+};
 
 export function DeleteDialog({
   deleteId,
@@ -32,14 +32,16 @@ export function DeleteDialog({
   const { deleteChat } = useDeleteChat();
 
   const handleDelete = useCallback(async () => {
-    if (!deleteId) return;
+    if (!deleteId) {
+      return;
+    }
 
     try {
       await deleteChat(deleteId, {
         onSuccess: () => toast.success('Chat deleted successfully'),
         onError: () => toast.error('Failed to delete chat'),
       });
-    } catch (error) {
+    } catch (_error) {
       // Error already handled by onError callback
     }
 
@@ -60,7 +62,7 @@ export function DeleteDialog({
   ]);
 
   return (
-    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+    <AlertDialog onOpenChange={setShowDeleteDialog} open={showDeleteDialog}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>

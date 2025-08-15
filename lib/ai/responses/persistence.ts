@@ -1,11 +1,14 @@
 // AGENT 3: Database Persistence Implementation for London School TDD
 import { eq, lt, sql } from 'drizzle-orm';
-import type { IPersistenceProvider, ConversationState } from './types';
 import { db } from '@/lib/db/client';
 import { conversationState as conversationStateTable } from '@/lib/db/schema';
+import type { ConversationState, IPersistenceProvider } from './types';
 
 export class DatabasePersistenceProvider implements IPersistenceProvider {
-  async saveConversation(conversationId: string, state: ConversationState): Promise<void> {
+  async saveConversation(
+    _conversationId: string,
+    state: ConversationState,
+  ): Promise<void> {
     const dbState = {
       conversationId: state.conversationId,
       userId: state.userId!,
@@ -30,7 +33,9 @@ export class DatabasePersistenceProvider implements IPersistenceProvider {
       });
   }
 
-  async getConversation(conversationId: string): Promise<ConversationState | null> {
+  async getConversation(
+    conversationId: string,
+  ): Promise<ConversationState | null> {
     const result = await db
       .select()
       .from(conversationStateTable)
@@ -46,7 +51,8 @@ export class DatabasePersistenceProvider implements IPersistenceProvider {
       conversationId: dbState.conversationId,
       userId: dbState.userId,
       previousResponseId: dbState.previousResponseId,
-      contextMetadata: dbState.contextMetadata as ConversationState['contextMetadata'],
+      contextMetadata:
+        dbState.contextMetadata as ConversationState['contextMetadata'],
       createdAt: dbState.createdAt.toISOString(),
       updatedAt: dbState.updatedAt.toISOString(),
       version: dbState.version,
@@ -74,13 +80,18 @@ export class DatabasePersistenceProvider implements IPersistenceProvider {
 
 // Mock implementation for testing
 export class InMemoryPersistenceProvider implements IPersistenceProvider {
-  private store = new Map<string, ConversationState>();
+  private readonly store = new Map<string, ConversationState>();
 
-  async saveConversation(conversationId: string, state: ConversationState): Promise<void> {
+  async saveConversation(
+    conversationId: string,
+    state: ConversationState,
+  ): Promise<void> {
     this.store.set(conversationId, { ...state });
   }
 
-  async getConversation(conversationId: string): Promise<ConversationState | null> {
+  async getConversation(
+    conversationId: string,
+  ): Promise<ConversationState | null> {
     return this.store.get(conversationId) || null;
   }
 
@@ -89,7 +100,7 @@ export class InMemoryPersistenceProvider implements IPersistenceProvider {
   }
 
   async cleanupExpiredConversations(olderThanHours: number): Promise<number> {
-    const cutoffTime = Date.now() - (olderThanHours * 60 * 60 * 1000);
+    const cutoffTime = Date.now() - olderThanHours * 60 * 60 * 1000;
     let cleaned = 0;
 
     for (const [id, state] of this.store.entries()) {

@@ -2,7 +2,8 @@
 // Prevents Bun/Vitest from importing Playwright and failing unit test runs.
 if (process.env.PLAYWRIGHT === '1') {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const { test, expect } = require('@playwright/test') as typeof import('@playwright/test');
+  const { test, expect } =
+    require('@playwright/test') as typeof import('@playwright/test');
   const { ChatPage } = require('./pages/chat');
 
   test.describe('chat activity', () => {
@@ -74,7 +75,8 @@ if (process.env.PLAYWRIGHT === '1') {
 
       await chatPage.isGenerationComplete();
 
-      const updatedAssistantMessage = await chatPage.getRecentAssistantMessage();
+      const updatedAssistantMessage =
+        await chatPage.getRecentAssistantMessage();
       expect(updatedAssistantMessage.content).toContain("It's just blue duh!");
     });
 

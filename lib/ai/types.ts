@@ -1,17 +1,16 @@
-import { z } from 'zod';
-import type { getWeather } from '@/lib/ai/tools/get-weather';
-import type { updateDocument } from '@/lib/ai/tools/update-document';
-import type { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import type { readDocument } from '@/lib/ai/tools/read-document';
-import type { generateImage } from '@/lib/ai/tools/generate-image';
-import type { stockChart } from '@/lib/ai/tools/stock-chart';
-import type { retrieve } from '@/lib/ai/tools/retrieve';
 import type { InferUITool, UIMessage, UIMessageStreamWriter } from 'ai';
-
-import type { ArtifactKind } from '../artifacts/artifact-kind';
+import { z } from 'zod';
+import type { generateImage } from '@/lib/ai/tools/generate-image';
+import type { getWeather } from '@/lib/ai/tools/get-weather';
+import type { readDocument } from '@/lib/ai/tools/read-document';
+import type { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
+import type { retrieve } from '@/lib/ai/tools/retrieve';
+import type { stockChart } from '@/lib/ai/tools/stock-chart';
+import type { updateDocument } from '@/lib/ai/tools/update-document';
 import type { Suggestion } from '@/lib/db/schema';
-import type { createDocumentTool as createDocument } from './tools/create-document';
+import type { ArtifactKind } from '../artifacts/artifact-kind';
 import type { ModelId } from './model-id';
+import type { createDocumentTool as createDocument } from './tools/create-document';
 
 export const toolNameSchema = z.enum([
   'getWeather',
@@ -28,10 +27,7 @@ const _ = toolNameSchema.options satisfies ToolName[];
 
 type ToolNameInternal = z.infer<typeof toolNameSchema>;
 
-export const frontendToolsSchema = z.enum([
-  'generateImage',
-  'createDocument',
-]);
+export const frontendToolsSchema = z.enum(['generateImage', 'createDocument']);
 
 const __ = frontendToolsSchema.options satisfies ToolNameInternal[];
 
@@ -56,7 +52,6 @@ type readDocumentTool = InferUITool<ReturnType<typeof readDocument>>;
 type generateImageTool = InferUITool<ReturnType<typeof generateImage>>;
 type stockChartTool = InferUITool<typeof stockChart>;
 type retrieveTool = InferUITool<typeof retrieve>;
-
 
 export type ChatTools = {
   getWeather: weatherTool;
@@ -95,8 +90,8 @@ export type ToolName = keyof ChatTools;
 
 export type StreamWriter = UIMessageStreamWriter<ChatMessage>;
 
-export interface Attachment {
+export type Attachment = {
   name: string;
   url: string;
   contentType: string;
-}
+};

@@ -1,21 +1,21 @@
 'use client';
-import type { ProviderId } from '@/providers/models-generated';
 import {
-  OpenAI,
+  Alibaba,
   Anthropic,
-  XAI,
+  Aws,
+  Cohere,
+  DeepSeek,
   Gemini,
   Meta,
   Mistral,
-  Alibaba,
-  Cohere,
-  DeepSeek,
+  Moonshot,
+  OpenAI,
   Perplexity,
   Vercel,
-  Aws,
-  Moonshot,
+  XAI,
   ZAI,
 } from '@lobehub/icons';
+import type { ProviderId } from '@/providers/models-generated';
 
 export function getProviderIcon(provider: ProviderId, size = 16) {
   const iconProps = { size };

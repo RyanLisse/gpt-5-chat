@@ -1,19 +1,17 @@
 'use client';
 import { motion } from 'motion/react';
 import { useWindowSize } from 'usehooks-ts';
-
+import { useSaveDocument } from '@/hooks/chat-sync-hooks';
+import { useArtifact } from '@/hooks/use-artifact';
 import type { Document } from '@/lib/db/schema';
-
 import { LoaderIcon } from './icons';
 import { Button } from './ui/button';
-import { useArtifact } from '@/hooks/use-artifact';
-import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 
-interface VersionFooterProps {
+type VersionFooterProps = {
   handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
-  documents: Array<Document> | undefined;
+  documents: Document[] | undefined;
   currentVersionIndex: number;
-}
+};
 
 export const VersionFooter = ({
   handleVersionChange,
@@ -30,14 +28,16 @@ export const VersionFooter = ({
     artifact.messageId,
   );
 
-  if (!documents) return;
+  if (!documents) {
+    return;
+  }
 
   return (
     <motion.div
-      className="absolute flex flex-col gap-4 lg:flex-row bottom-0 bg-background p-4 w-full border-t z-50 justify-between"
-      initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
+      className="absolute bottom-0 z-50 flex w-full flex-col justify-between gap-4 border-t bg-background p-4 lg:flex-row"
       exit={{ y: isMobile ? 200 : 77 }}
+      initial={{ y: isMobile ? 200 : 77 }}
       transition={{ type: 'spring', stiffness: 140, damping: 20 }}
     >
       <div>
@@ -69,10 +69,10 @@ export const VersionFooter = ({
           )}
         </Button>
         <Button
-          variant="outline"
           onClick={() => {
             handleVersionChange('latest');
           }}
+          variant="outline"
         >
           Back to latest version
         </Button>

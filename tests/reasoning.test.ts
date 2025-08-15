@@ -1,6 +1,7 @@
 if (process.env.PLAYWRIGHT === '1') {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  const { test, expect } = require('@playwright/test') as typeof import('@playwright/test');
+  const { test, expect } =
+    require('@playwright/test') as typeof import('@playwright/test');
   const { ChatPage } = require('./pages/chat');
 
   test.describe('chat activity with reasoning', () => {
@@ -53,7 +54,8 @@ if (process.env.PLAYWRIGHT === '1') {
       await userMessage.edit('Why is grass green?');
       await chatPage.isGenerationComplete();
 
-      const updatedAssistantMessage = await chatPage.getRecentAssistantMessage();
+      const updatedAssistantMessage =
+        await chatPage.getRecentAssistantMessage();
 
       expect(updatedAssistantMessage.content).toBe("It's just green duh!");
 

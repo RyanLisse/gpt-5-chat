@@ -1,14 +1,14 @@
-import { z } from 'zod';
-import { tool, experimental_generateImage, type FileUIPart } from 'ai';
-import { getImageModel } from '@/lib/ai/providers';
-import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
+import { experimental_generateImage, type FileUIPart, tool } from 'ai';
 import OpenAI, { toFile } from 'openai';
+import { z } from 'zod';
+import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
+import { getImageModel } from '@/lib/ai/providers';
 import { uploadFile } from '@/lib/blob';
 
-interface GenerateImageProps {
-  attachments?: Array<FileUIPart>;
+type GenerateImageProps = {
+  attachments?: FileUIPart[];
   lastGeneratedImage?: { imageUrl: string; name: string } | null;
-}
+};
 
 const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -42,13 +42,7 @@ Use for:
 
       const hasLastGeneratedImage = lastGeneratedImage !== null;
       const isEdit = imageParts.length > 0 || hasLastGeneratedImage;
-      console.log('CAlling generateImageTool with isEdit', isEdit);
       if (isEdit) {
-        console.log(
-          'Using OpenAI edit mode with images:',
-          `lastGenerated: ${hasLastGeneratedImage ? 1 : 0}, attachments: ${imageParts.length}`,
-        );
-
         // Convert parts and lastGeneratedImage to the format expected by OpenAI
         const inputImages = [];
 
@@ -107,8 +101,6 @@ Use for:
           telemetry: { isEnabled: true },
         },
       });
-
-      console.log('res', res);
 
       // Convert base64 to buffer and upload to blob storage
       const buffer = Buffer.from(res.images[0].base64, 'base64');

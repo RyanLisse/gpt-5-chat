@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
-import { MessageSquare } from 'lucide-react';
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
+import { MessageSquare } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
 
 import {
   CommandDialog,
@@ -56,15 +56,17 @@ const groupChatsByDate = (chats: UIChat[]): GroupedChats => {
   );
 };
 
-interface SearchChatsListProps {
+type SearchChatsListProps = {
   onSelectChat: (chatId: string) => void;
-}
+};
 
 function SearchChatsList({ onSelectChat }: SearchChatsListProps) {
   const { data: chats, isLoading } = useGetAllChats();
 
   const groupedChats = useMemo(() => {
-    if (!chats) return null;
+    if (!chats) {
+      return null;
+    }
     return groupChatsByDate(chats);
   }, [chats]);
 
@@ -73,20 +75,22 @@ function SearchChatsList({ onSelectChat }: SearchChatsListProps) {
     groupName: string,
     key: string,
   ) => {
-    if (groupChats.length === 0) return null;
+    if (groupChats.length === 0) {
+      return null;
+    }
 
     return (
       <CommandGroup heading={groupName} key={key}>
         {groupChats.map((chat) => (
           <CommandItem
+            className="flex cursor-pointer items-center gap-2 p-2"
             key={chat.id}
-            value={`${chat.title} ${chat.id}`}
             onSelect={() => onSelectChat(chat.id)}
-            className="flex items-center gap-2 p-2 cursor-pointer"
+            value={`${chat.title} ${chat.id}`}
           >
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="font-medium truncate">{chat.title}</span>
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-medium">{chat.title}</span>
             </div>
           </CommandItem>
         ))}
@@ -113,11 +117,11 @@ function SearchChatsList({ onSelectChat }: SearchChatsListProps) {
   );
 }
 
-interface SearchChatsDialogProps {
+type SearchChatsDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectChat: () => void;
-}
+};
 
 export function SearchChatsDialog({
   open,
@@ -134,7 +138,7 @@ export function SearchChatsDialog({
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog onOpenChange={onOpenChange} open={open}>
       <CommandInput placeholder="Search your chats..." />
       <CommandList>
         {open && <SearchChatsList onSelectChat={handleSelectChat} />}
