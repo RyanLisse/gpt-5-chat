@@ -3,8 +3,8 @@
 import {
   startTransition,
   useMemo,
-  useOptimistic,
   useState,
+  useEffect,
   memo,
   type ComponentProps,
   useCallback,
@@ -134,8 +134,12 @@ export function PureModelSelector({
 } & ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [optimisticModelId, setOptimisticModelId] =
-    useOptimistic(selectedModelId);
+  const [optimisticModelId, setOptimisticModelId] = useState(selectedModelId);
+
+  // Sync optimistic state when selectedModelId prop changes
+  useEffect(() => {
+    setOptimisticModelId(selectedModelId);
+  }, [selectedModelId]);
 
   const { data: session } = useSession();
   const isAnonymous = !session?.user;

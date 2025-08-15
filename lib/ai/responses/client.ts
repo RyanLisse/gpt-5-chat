@@ -36,14 +36,14 @@ export class ResponsesAPIClient {
     const input = Array.isArray(req.input)
       ? req.input.map((item) => {
           if (item.type === 'text')
-            return { type: 'text', text: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } as const;
+            return { type: 'message', text: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } as const;
           if (item.type === 'image')
             return { type: 'input_image', image: { data: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } } as const;
           if (item.type === 'audio')
             return { type: 'input_audio', audio: { data: item.content, ...(item.metadata ? { metadata: item.metadata } : {}) } } as const;
-          return { type: 'text', text: String((item as any).content ?? '') } as const;
+          return { type: 'message', text: String((item as any).content ?? '') } as const;
         })
-      : [{ type: 'text', text: req.input }];
+      : [{ type: 'message', text: req.input }];
 
     // Map tools (Slice 2: support file_search minimal config)
     const tools = mapTools(req.tools);

@@ -21,7 +21,14 @@ export async function getUserByEmail(email: string): Promise<Array<User>> {
   try {
     return await db.select().from(user).where(eq(user.email, email));
   } catch (error) {
-    console.error('Failed to get user from database');
+    console.error('Failed to get user from database:', error);
+    
+    // Return empty array for graceful degradation
+    if (error instanceof Error && error.message.includes('unavailable')) {
+      console.warn('Database unavailable, returning empty user array');
+      return [];
+    }
+    
     throw error;
   }
 }

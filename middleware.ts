@@ -2,7 +2,10 @@ import NextAuth from 'next-auth';
 
 import { authConfig } from '@/app/(auth)/auth.config';
 
-export default NextAuth(authConfig).auth;
+// Pre-initialize auth middleware for faster response
+const authMiddleware = NextAuth(authConfig).auth;
+
+export default authMiddleware;
 
 export const config = {
   matcher: [

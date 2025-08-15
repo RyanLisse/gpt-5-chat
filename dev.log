@@ -1,0 +1,444 @@
+$ next dev --turbo
+   ▲ Next.js 15.4.6 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.171:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Compiled instrumentation Node.js in 347ms
+ ✓ Compiled instrumentation Edge in 234ms
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 747ms
+ ✓ Ready in 3.5s
+ ○ Compiling / ...
+ ✓ Compiled / in 14.6s
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id b9e9586b-2eec-40c1-8c50-2a7e654061cf store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '1351895899'
+}
+ GET / 200 in 17177ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 25482d35-82ff-42bd-9834-efedb8f7079c store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '1351895899'
+}
+ GET / 200 in 461ms
+ ✓ Compiled in 10s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 2d554ad3-31ea-412b-9f5d-4f919729cf15 store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '648609745'
+}
+ GET / 200 in 6003ms
+ ○ Compiling /manifest.webmanifest ...
+ ✓ Compiled /manifest.webmanifest in 3.5s
+ GET /manifest.webmanifest 200 in 3885ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 3913ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 459ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id f2f55ff7-ac17-4f03-9e58-eb82b21ae3ff store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '2903361906'
+}
+ GET / 200 in 3443ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 369ms
+ GET /manifest.webmanifest 200 in 369ms
+ ✓ Compiled in 857ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id c8e181e2-2ff3-4822-9bd0-1ad2070bce02 store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '3721340724'
+}
+ GET / 200 in 6154ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 297ms
+ GET /manifest.webmanifest 200 in 315ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 1211ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 4ff3c1a8-8765-48f7-a5ec-80b696fe7f09 store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '50562876'
+}
+ GET / 200 in 4440ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 309ms
+ GET /manifest.webmanifest 200 in 311ms
+ ✓ Compiled in 3.5s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 5bc46f60-52a0-492a-809c-7c8f647a9474 store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '4222773844'
+}
+ GET / 200 in 4750ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 483ms
+ GET /manifest.webmanifest 200 in 484ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 3.2s
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id dc68e3bc-fba7-4357-bc4d-a9d8405dd48a store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '557140252'
+}
+ GET / 200 in 3557ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 382ms
+ GET /manifest.webmanifest 200 in 377ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 5.9s
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id e2002d35-eadb-4f16-9c08-c33f0e315249 store id undefined
+messages []
+ ⨯ [Error: Unable to find an active editor state. State helpers or node methods can only be used synchronously during the callback of editor.update(), editor.read(), or editorState.read(). Detected on the page: 0 compatible editor(s) with version 0.34.0+dev.esm] {
+  digest: '3836356335'
+}
+ GET / 200 in 4389ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 413ms
+ GET /manifest.webmanifest 200 in 419ms
+ ✓ Compiled in 5s
+ ✓ Compiled in 705ms
+ ✓ Compiled in 12.6s
+ ✓ Compiled in 3.6s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /manifest.webmanifest 200 in 5363ms
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 5374ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 0627f25d-a781-40f0-b03b-f676487f5471 store id undefined
+messages []
+ GET / 200 in 12161ms
+ ○ Compiling /icon1.png ...
+ GET /favicon.ico?favicon.54f861cb.ico 200 in 283ms
+ GET /manifest.webmanifest 200 in 284ms
+ ✓ Compiled /icon1.png in 9.6s
+ GET /icon1.png?icon1.f2464419.png 200 in 9851ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id e707eaf9-0ada-4658-803e-5ec898259d3f store id undefined
+messages []
+ GET / 200 in 3476ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 19.5s
+ GET /api/auth/session 200 in 28354ms
+RESPONSE > POST /api/chat: selectedTool null
+Indicating explicitly requested tools []
+[
+  {
+    role: 'user',
+    content: [
+      {
+        type: 'text',
+        text: "Write code to demonstrate djikstra's algorithm"
+      }
+    ]
+  }
+]
+active tools [ 'createDocument', 'updateDocument' ]
+ GET /api/auth/session 200 in 169ms
+error found in try block Error: 400 Invalid value: 'text'. Supported values are: 'code_interpreter_call', 'computer_call', 'computer_call_output', 'file_search_call', 'function_call', 'function_call_output', 'image_generation_call', 'item_reference', 'local_shell_call', 'local_shell_call_output', 'message', 'reasoning', and 'web_search_call'.
+    at APIError.generate (../src/core/error.ts:72:13)
+    at OpenAI.makeStatusError (src/client.ts:445:27)
+    at OpenAI.makeRequest (src/client.ts:668:23)
+    at async ResponsesAPIClient.createResponse (lib/ai/responses/client.ts:74:8)
+    at async POST (app/(chat)/api/chat/route.ts:422:18)
+  72 |     const res = this.config.traceWrapper
+  73 |       ? await this.config.traceWrapper('openai.responses.create', call)
+> 74 |       : await call();
+     |        ^
+  75 |
+  76 |     const outputText =
+  77 |       (res?.output?. {
+  status: 400,
+  headers: Headers {
+    date: 'Thu, 14 Aug 2025 22:18:03 GMT',
+    'content-type': 'application/json',
+    'content-length': '437',
+    connection: 'keep-alive',
+    'openai-version': '2020-10-01',
+    'openai-organization': 'user-fipn4mdoz0vapuu0td8lboqz',
+    'openai-project': 'proj_4PE0OohGUYEebRCnMZy2X5TG',
+    'x-request-id': 'req_1f8624cb8e9c8230713d1c773e17f30f',
+    'openai-processing-ms': '6',
+    'x-envoy-upstream-service-time': '11',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=DPyWrM0NsnXmhcUxew_XBGyG9jFL3UvzvA1Ii2s3ge0-1755209883-1.0.1.1-HT7PrNkLFn3dU4cBSv.oWW2KptatNjEfQS_WDnojlNvblkc6yvOk4fbl8slE4xbxp61MnVYXYrM22XRaU78nLPaVQWUDO5IXotJ97U6YuxM; path=/; expires=Thu, 14-Aug-25 22:48:03 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=maIaNOAzkXt8NvWrGV9twn1GBBFWtnVaYCjeVQkF7is-1755209883622-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '96f3d369dbb6671b-AMS',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_1f8624cb8e9c8230713d1c773e17f30f',
+  error: [Object],
+  code: 'invalid_value',
+  param: 'input[0]',
+  type: 'invalid_request_error'
+}
+RESPONSE > POST /api/chat error: Error: 400 Invalid value: 'text'. Supported values are: 'code_interpreter_call', 'computer_call', 'computer_call_output', 'file_search_call', 'function_call', 'function_call_output', 'image_generation_call', 'item_reference', 'local_shell_call', 'local_shell_call_output', 'message', 'reasoning', and 'web_search_call'.
+    at APIError.generate (../src/core/error.ts:72:13)
+    at OpenAI.makeStatusError (src/client.ts:445:27)
+    at OpenAI.makeRequest (src/client.ts:668:23)
+    at async ResponsesAPIClient.createResponse (lib/ai/responses/client.ts:74:8)
+    at async POST (app/(chat)/api/chat/route.ts:422:18)
+  72 |     const res = this.config.traceWrapper
+  73 |       ? await this.config.traceWrapper('openai.responses.create', call)
+> 74 |       : await call();
+     |        ^
+  75 |
+  76 |     const outputText =
+  77 |       (res?.output?. {
+  status: 400,
+  headers: Headers {
+    date: 'Thu, 14 Aug 2025 22:18:03 GMT',
+    'content-type': 'application/json',
+    'content-length': '437',
+    connection: 'keep-alive',
+    'openai-version': '2020-10-01',
+    'openai-organization': 'user-fipn4mdoz0vapuu0td8lboqz',
+    'openai-project': 'proj_4PE0OohGUYEebRCnMZy2X5TG',
+    'x-request-id': 'req_1f8624cb8e9c8230713d1c773e17f30f',
+    'openai-processing-ms': '6',
+    'x-envoy-upstream-service-time': '11',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=DPyWrM0NsnXmhcUxew_XBGyG9jFL3UvzvA1Ii2s3ge0-1755209883-1.0.1.1-HT7PrNkLFn3dU4cBSv.oWW2KptatNjEfQS_WDnojlNvblkc6yvOk4fbl8slE4xbxp61MnVYXYrM22XRaU78nLPaVQWUDO5IXotJ97U6YuxM; path=/; expires=Thu, 14-Aug-25 22:48:03 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=maIaNOAzkXt8NvWrGV9twn1GBBFWtnVaYCjeVQkF7is-1755209883622-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '96f3d369dbb6671b-AMS',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_1f8624cb8e9c8230713d1c773e17f30f',
+  error: [Object],
+  code: 'invalid_value',
+  param: 'input[0]',
+  type: 'invalid_request_error'
+}
+ POST /api/chat 404 in 20754ms
+metadataStore {
+  documentId: 'init',
+  content: '',
+  kind: 'text',
+  title: '',
+  messageId: '',
+  status: 'idle',
+  isVisible: false,
+  boundingBox: { top: 0, left: 0, width: 0, height: 0 }
+}
+renewing chat
+building zustand chat with id 1faef52f-dcb1-426b-936c-537ac3f9e570 store id undefined
+messages []
+ GET / 200 in 7801ms
+RESPONSE > POST /api/chat: selectedTool null
+Indicating explicitly requested tools []
+[
+  {
+    role: 'user',
+    content: [
+      {
+        type: 'text',
+        text: 'What are the advantages of using Next.js?'
+      }
+    ]
+  }
+]
+active tools [ 'createDocument', 'updateDocument' ]
+error found in try block Error: 400 Invalid value: ''. Supported values are: 'assistant', 'system', 'developer', and 'user'.
+    at APIError.generate (../src/core/error.ts:72:13)
+    at OpenAI.makeStatusError (src/client.ts:445:27)
+    at OpenAI.makeRequest (src/client.ts:668:23)
+    at async ResponsesAPIClient.createResponse (lib/ai/responses/client.ts:74:8)
+    at async POST (app/(chat)/api/chat/route.ts:422:18)
+  72 |     const res = this.config.traceWrapper
+  73 |       ? await this.config.traceWrapper('openai.responses.create', call)
+> 74 |       : await call();
+     |        ^
+  75 |
+  76 |     const outputText =
+  77 |       (res?.output?. {
+  status: 400,
+  headers: Headers {
+    date: 'Thu, 14 Aug 2025 22:25:07 GMT',
+    'content-type': 'application/json',
+    'content-length': '217',
+    connection: 'keep-alive',
+    'openai-version': '2020-10-01',
+    'openai-organization': 'user-fipn4mdoz0vapuu0td8lboqz',
+    'openai-project': 'proj_4PE0OohGUYEebRCnMZy2X5TG',
+    'x-request-id': 'req_87d47a7fc977312e6e9316cee74d5973',
+    'openai-processing-ms': '13',
+    'x-envoy-upstream-service-time': '16',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=vgwyMoRRT_CMv6czQKko49PenPJxbWTJ_wcwsFax7ww-1755210307-1.0.1.1-.5J0d3TD31TOEUOxEDfSosTcHG0j15G6LtkLU05wgkG_hXzOAF9Diz6mg3gKBsvi0dXQy7TuEbrkAL5k3YzZ._vSHcXb4OZcm5ie8ObPs3Y; path=/; expires=Thu, 14-Aug-25 22:55:07 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=EcoB4wPjonIzrBHowZdHJpXDeovp83PYDVRJHYiW_VA-1755210307373-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '96f3ddbd9f5020ec-AMS',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_87d47a7fc977312e6e9316cee74d5973',
+  error: [Object],
+  code: 'invalid_value',
+  param: 'input[0]',
+  type: 'invalid_request_error'
+}
+RESPONSE > POST /api/chat error: Error: 400 Invalid value: ''. Supported values are: 'assistant', 'system', 'developer', and 'user'.
+    at APIError.generate (../src/core/error.ts:72:13)
+    at OpenAI.makeStatusError (src/client.ts:445:27)
+    at OpenAI.makeRequest (src/client.ts:668:23)
+    at async ResponsesAPIClient.createResponse (lib/ai/responses/client.ts:74:8)
+    at async POST (app/(chat)/api/chat/route.ts:422:18)
+  72 |     const res = this.config.traceWrapper
+  73 |       ? await this.config.traceWrapper('openai.responses.create', call)
+> 74 |       : await call();
+     |        ^
+  75 |
+  76 |     const outputText =
+  77 |       (res?.output?. {
+  status: 400,
+  headers: Headers {
+    date: 'Thu, 14 Aug 2025 22:25:07 GMT',
+    'content-type': 'application/json',
+    'content-length': '217',
+    connection: 'keep-alive',
+    'openai-version': '2020-10-01',
+    'openai-organization': 'user-fipn4mdoz0vapuu0td8lboqz',
+    'openai-project': 'proj_4PE0OohGUYEebRCnMZy2X5TG',
+    'x-request-id': 'req_87d47a7fc977312e6e9316cee74d5973',
+    'openai-processing-ms': '13',
+    'x-envoy-upstream-service-time': '16',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    'cf-cache-status': 'DYNAMIC',
+    'set-cookie': '__cf_bm=vgwyMoRRT_CMv6czQKko49PenPJxbWTJ_wcwsFax7ww-1755210307-1.0.1.1-.5J0d3TD31TOEUOxEDfSosTcHG0j15G6LtkLU05wgkG_hXzOAF9Diz6mg3gKBsvi0dXQy7TuEbrkAL5k3YzZ._vSHcXb4OZcm5ie8ObPs3Y; path=/; expires=Thu, 14-Aug-25 22:55:07 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=EcoB4wPjonIzrBHowZdHJpXDeovp83PYDVRJHYiW_VA-1755210307373-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'x-content-type-options': 'nosniff',
+    server: 'cloudflare',
+    'cf-ray': '96f3ddbd9f5020ec-AMS',
+    'alt-svc': 'h3=":443"; ma=86400'
+  },
+  requestID: 'req_87d47a7fc977312e6e9316cee74d5973',
+  error: [Object],
+  code: 'invalid_value',
+  param: 'input[0]',
+  type: 'invalid_request_error'
+}
+ POST /api/chat 404 in 16480ms
+[?25h

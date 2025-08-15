@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   experimental: {
-    ppr: true,
+    ppr: false, // Disable PPR for stable version compatibility
     optimizePackageImports: [
       'react-tweet',
       'echarts-for-react',
