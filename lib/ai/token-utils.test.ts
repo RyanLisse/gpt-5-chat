@@ -60,7 +60,7 @@ describe('truncateMessages', () => {
     // May or may not have messages, but if it does, first shouldn't necessarily be system
     if (result.length > 0) {
       // Should prefer newer messages when system is not preserved
-      expect(result.at(-1).role).toBe('user');
+      expect(result.at(-1)?.role).toBe('user');
     }
   });
 

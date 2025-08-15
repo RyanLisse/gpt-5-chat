@@ -36,7 +36,7 @@ export function chatMessageToDbMessage(
   chatId: string,
 ): DBMessage {
   const parentMessageId = message.metadata.parentMessageId || null;
-  const isPartial = message.metadata.isPartial;
+  const isPartial = message.metadata.isPartial ?? false;
   const selectedModel = message.metadata.selectedModel;
 
   return {

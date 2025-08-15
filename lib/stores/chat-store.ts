@@ -116,7 +116,9 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           getLastMessageId: () => {
             const state = get();
-            return state.messages.length > 0 ? state.messages.at(-1).id : null;
+            return state.messages.length > 0
+              ? (state.messages.at(-1)?.id ?? null)
+              : null;
           },
 
           getMessageIds: () => {

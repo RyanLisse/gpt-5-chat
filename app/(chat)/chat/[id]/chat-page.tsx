@@ -9,7 +9,7 @@ import { getDefaultThread } from '@/lib/thread-utils';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useTRPC } from '@/trpc/react';
 
-const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
+const MemoizedChatWrapper = memo(function ChatWrapper({
   id,
   initialMessages,
   isReadonly,
@@ -52,7 +52,7 @@ export function ChatPage({ id }: { id: string }) {
     );
   }, [messages]);
 
-  const initialTool = useMemo<UiToolName | null>(() => null, [messages]);
+  const initialTool = useMemo<UiToolName | null>(() => null, []);
 
   if (!id) {
     return notFound();

@@ -36,6 +36,10 @@ import {
   publicProcedure,
 } from '@/trpc/init';
 
+// Constants for validation limits
+const MAX_CHAT_TITLE_LENGTH = 255;
+const MAX_MESSAGE_LENGTH = 2000;
+
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
     const chats = await getChatsByUserId({ id: ctx.user.id });
@@ -97,7 +101,7 @@ export const chatRouter = createTRPCRouter({
     .input(
       z.object({
         chatId: z.string().uuid(),
-        title: z.string().min(1).max(255),
+        title: z.string().min(1).max(MAX_CHAT_TITLE_LENGTH),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -111,7 +115,6 @@ export const chatRouter = createTRPCRouter({
         chatId: input.chatId,
         title: input.title,
       });
-      return;
     }),
 
   deleteTrailingMessages: protectedProcedure
@@ -142,8 +145,6 @@ export const chatRouter = createTRPCRouter({
         chatId: message.chatId,
         messageId: input.messageId,
       });
-
-      return;
     }),
 
   setVisibility: protectedProcedure
@@ -220,7 +221,7 @@ export const chatRouter = createTRPCRouter({
   generateTitle: publicProcedure
     .input(
       z.object({
-        message: z.string().min(1).max(2000),
+        message: z.string().min(1).max(MAX_MESSAGE_LENGTH),
       }),
     )
     .mutation(async ({ input }) => {

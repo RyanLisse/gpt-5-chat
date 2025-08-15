@@ -6,7 +6,7 @@ type StreamTextConfig = Parameters<typeof streamText>[0];
 export class ReportDocumentWriter {
   private readonly streamTextConfig: StreamTextConfig;
 
-  private readonly reportContent: string;
+  private reportContent: string;
 
   constructor(streamTextConfig: StreamTextConfig) {
     this.streamTextConfig = streamTextConfig;

@@ -28,7 +28,8 @@ export default function VectorStoreSearchPage() {
   // Local UI state for inputs
   const [vectorstoreId, setVectorstoreId] = useState('');
   const [query, setQuery] = useState('');
-  const [topK, setTopK] = useState('5');
+  const DEFAULT_TOP_K = 5;
+  const [topK, setTopK] = useState(String(DEFAULT_TOP_K));
 
   // Request / UI state
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,7 @@ export default function VectorStoreSearchPage() {
     const k =
       Number.isFinite(Number(topK)) && Number(topK) > 0
         ? Math.floor(Number(topK))
-        : 5;
+        : DEFAULT_TOP_K;
 
     try {
       setLoading(true);

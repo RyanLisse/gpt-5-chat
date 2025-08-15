@@ -113,6 +113,10 @@ export class ChatPage {
       .all();
     const lastMessageElement = messageElements.at(-1);
 
+    if (!lastMessageElement) {
+      throw new Error('No assistant message found');
+    }
+
     const content = await lastMessageElement
       .getByTestId('message-content')
       .innerText()
@@ -151,6 +155,10 @@ export class ChatPage {
   async getRecentUserMessage() {
     const messageElements = await this.page.getByTestId('message-user').all();
     const lastMessageElement = messageElements.at(-1);
+
+    if (!lastMessageElement) {
+      throw new Error('No user message found');
+    }
 
     const content = await lastMessageElement.innerText();
 

@@ -121,6 +121,7 @@ export function truncateMessages(
   if (currentTokens > availableTokens && truncatedMessages.length > 0) {
     const lastMessage = truncatedMessages.at(-1);
     if (
+      lastMessage &&
       typeof lastMessage.content === 'string' &&
       lastMessage.role !== 'tool'
     ) {
@@ -133,6 +134,7 @@ export function truncateMessages(
         content: trimPrompt(truncatedContent, availableTokens),
       };
     } else if (
+      lastMessage &&
       Array.isArray(lastMessage.content) &&
       lastMessage.role === 'tool'
     ) {

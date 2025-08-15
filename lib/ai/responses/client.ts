@@ -14,6 +14,11 @@ export type ResponsesAPIConfig = {
     apiKey?: string;
     baseURL?: string;
   };
+  // Optional injected OpenAI-like client for testing
+  openaiClient?: { responses: { create: (payload: any) => Promise<any> } };
+  // Testing hooks: override sleep and random for deterministic, no-delay retries
+  sleep?: (ms: number) => Promise<void>;
+  random?: () => number;
   // Optional tracing wrapper; when provided, all API calls go through it
   traceWrapper?: <TReturn>(
     name: string,
@@ -22,15 +27,20 @@ export type ResponsesAPIConfig = {
 };
 
 export class ResponsesAPIClient {
-  private readonly openai: OpenAI | null;
+  private readonly openai: {
+    responses: { create: (payload: any) => Promise<any> };
+  } | null;
   private readonly config: ResponsesAPIConfig;
 
   constructor(config: ResponsesAPIConfig = {}) {
     this.config = config;
-    const apiKey = config.openai?.apiKey ?? process.env.OPENAI_API_KEY;
-    const baseURL = config.openai?.baseURL ?? process.env.OPENAI_BASE_URL;
-
-    this.openai = apiKey ? new OpenAI({ apiKey, baseURL }) : null;
+    if (config.openaiClient) {
+      this.openai = config.openaiClient;
+    } else {
+      const apiKey = config.openai?.apiKey ?? process.env.OPENAI_API_KEY;
+      const baseURL = config.openai?.baseURL ?? process.env.OPENAI_BASE_URL;
+      this.openai = apiKey ? (new OpenAI({ apiKey, baseURL }) as any) : null;
+    }
   }
 
   static buildOpenAIRequest(req: ResponseRequest) {
@@ -95,10 +105,48 @@ export class ResponsesAPIClient {
 
     const payload = ResponsesAPIClient.buildOpenAIRequest(request);
     const client = this.openai; // local narrow for lints
-    const call = () => client.responses.create(payload as any);
-    const res = this.config.traceWrapper
-      ? await this.config.traceWrapper('openai.responses.create', call)
-      : await call();
+
+    // Simple exponential backoff with jitter for transient errors
+    const sleep =
+      this.config.sleep ??
+      ((ms: number) => new Promise((r) => setTimeout(r, ms)));
+    const isRetryable = (err: any) => {
+      const status = err?.status ?? err?.response?.status;
+      const message = String(err?.message || '').toLowerCase();
+      // Retry on common transient/network/rate-limit/server errors
+      return (
+        status === 408 ||
+        status === 409 ||
+        status === 429 ||
+        (status >= 500 && status < 600) ||
+        message.includes('timeout') ||
+        message.includes('timed out') ||
+        message.includes('econnreset') ||
+        message.includes('network') ||
+        message.includes('rate')
+      );
+    };
+
+    const maxAttempts = 5;
+    let res: any;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const call = () => client.responses.create(payload as any);
+        res = this.config.traceWrapper
+          ? await this.config.traceWrapper('openai.responses.create', call)
+          : await call();
+        break; // success
+      } catch (err) {
+        if (!isRetryable(err) || attempt === maxAttempts) {
+          throw err;
+        }
+        // Exponential backoff with jitter (base 200ms)
+        const backoff = Math.min(200 * 2 ** (attempt - 1), 5000);
+        const rng = this.config.random ?? Math.random;
+        const jitter = Math.floor(rng() * 100);
+        await sleep(backoff + jitter);
+      }
+    }
 
     const outputText =
       res?.output

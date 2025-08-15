@@ -62,6 +62,10 @@ export function extractFilenameFromUrl(url: string): string | null {
     const parts = url.split('/');
     const lastPart = parts.at(-1);
 
+    if (!lastPart) {
+      return null;
+    }
+
     // Remove query parameters if any
     const filename = lastPart.split('?')[0];
 

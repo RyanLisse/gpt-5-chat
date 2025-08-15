@@ -2,7 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { deleteFilesByUrls, listFiles } from '@/lib/blob';
 import { getAllAttachmentUrls } from '@/lib/db/queries';
 
-const ORPHANED_ATTACHMENTS_RETENTION_TIME = 4 * 60 * 60 * 1000; // 4 hours
+const RETENTION_HOURS = 4;
+const MINUTES_PER_HOUR = 60;
+const SECONDS_PER_MINUTE = 60;
+const MILLISECONDS_PER_SECOND = 1000;
+const ORPHANED_ATTACHMENTS_RETENTION_TIME =
+  RETENTION_HOURS *
+  MINUTES_PER_HOUR *
+  SECONDS_PER_MINUTE *
+  MILLISECONDS_PER_SECOND; // 4 hours
 
 export async function GET(request: NextRequest) {
   try {

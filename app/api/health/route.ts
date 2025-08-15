@@ -4,6 +4,12 @@ import {
   getDatabaseConnectionState,
 } from '@/lib/db/client';
 
+const BYTES_TO_KB = 1024;
+const KB_TO_MB = 1024;
+const BYTES_TO_MB = BYTES_TO_KB * KB_TO_MB;
+const HTTP_OK = 200;
+const HTTP_SERVICE_UNAVAILABLE = 503;
+
 export async function GET() {
   try {
     const startTime = Date.now();
@@ -30,8 +36,8 @@ export async function GET() {
           status: 'ok',
           uptime: process.uptime(),
           memory: {
-            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+            used: Math.round(process.memoryUsage().heapUsed / BYTES_TO_MB),
+            total: Math.round(process.memoryUsage().heapTotal / BYTES_TO_MB),
           },
         },
       },
@@ -39,7 +45,8 @@ export async function GET() {
     };
 
     // Return appropriate status code based on health
-    const statusCode = healthStatus.status === 'ok' ? 200 : 503;
+    const statusCode =
+      healthStatus.status === 'ok' ? HTTP_OK : HTTP_SERVICE_UNAVAILABLE;
 
     return NextResponse.json(healthStatus, { status: statusCode });
   } catch (error) {
@@ -53,7 +60,7 @@ export async function GET() {
           server: { status: 'error' },
         },
       },
-      { status: 503 },
+      { status: HTTP_SERVICE_UNAVAILABLE },
     );
   }
 }

@@ -4,6 +4,7 @@ import Script from 'next/script';
 
 import './globals.css';
 import { Toaster } from 'sonner';
+import { ThemeColorMeta } from '@/components/theme-color';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TRPCReactProvider } from '@/trpc/react';
 
@@ -37,27 +38,9 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
 });
 
-const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
-const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';
-const THEME_COLOR_SCRIPT = `\
-(function() {
-  var html = document.documentElement;
-  var meta = document.querySelector('meta[name="theme-color"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.setAttribute('name', 'theme-color');
-    document.head.appendChild(meta);
-  }
-  function updateThemeColor() {
-    var isDark = html.classList.contains('dark');
-    meta.setAttribute('content', isDark ? '${DARK_THEME_COLOR}' : '${LIGHT_THEME_COLOR}');
-  }
-  var observer = new MutationObserver(updateThemeColor);
-  observer.observe(html, { attributes: true, attributeFilter: ['class'] });
-  updateThemeColor();
-})();`;
+// Theme color meta is managed by a tiny client component to avoid inline scripts
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -73,11 +56,6 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
         {process.env.NODE_ENV !== 'production' ? (
           <Script
             src="https://unpkg.com/react-scan/dist/auto.global.js"
@@ -86,10 +64,7 @@ export default async function RootLayout({
         ) : null}
       </head>
       <body className="antialiased">
-        <Script
-          src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
-          strategy="beforeInteractive"
-        />
+        <ThemeColorMeta />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

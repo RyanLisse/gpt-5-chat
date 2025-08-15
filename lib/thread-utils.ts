@@ -83,9 +83,13 @@ export function findLeafDfsToRightFromMessageId<T extends MessageNode>(
   }
 
   const rightmostChild = children.at(-1);
+  if (!rightmostChild) {
+    return null;
+  }
+
   const leaf = findLeafDfsToRightFromMessageId(
     childrenMapSorted,
     rightmostChild.id,
   );
-  return leaf || rightmostChild;
+  return leaf ?? rightmostChild;
 }

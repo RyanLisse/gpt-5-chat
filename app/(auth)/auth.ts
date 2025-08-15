@@ -44,26 +44,26 @@ export const {
             name: name ?? null,
             image: image ?? null,
           });
-        } else {
         }
         return true;
       } catch (_error) {
         return false;
       }
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account: _account, profile: _profile }) {
       if (user?.email) {
         try {
           const dbUserArray = await getUserByEmail(user.email);
           if (dbUserArray.length > 0) {
             token.id = dbUserArray[0].id;
-          } else {
           }
-        } catch (_error) {}
+        } catch (_error) {
+          // Error getting user ID from database - continue without token.id
+        }
       }
       return token;
     },
-    async session({
+    session({
       session,
       token,
     }: {
@@ -72,7 +72,6 @@ export const {
     }) {
       if (session.user && token.id) {
         session.user.id = token.id;
-      } else if (!token.id) {
       }
       return session;
     },

@@ -50,7 +50,8 @@
       "correctness": {
         "noUnusedImports": "warn",
         "useJsxKeyInIterable": "off",
-        "useExhaustiveDependencies": "off"
+        "useExhaustiveDependencies": "off",
+        "noSolidDestructuredProps": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"

@@ -17,6 +17,9 @@ build
 .DS_Store
 *.pem
 
+# QLTY outputs (config files are committed)
+.qlty/out/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
