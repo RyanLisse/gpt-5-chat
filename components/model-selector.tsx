@@ -36,7 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 import {
   chatModels,
   getModelDefinition,
@@ -44,7 +43,7 @@ import {
 } from '@/lib/ai/all-models';
 import type { ModelId } from '@/lib/ai/model-id';
 import { getEnabledFeatures } from '@/lib/features-config';
-import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
+// Anonymous model gating removed
 import { cn } from '@/lib/utils';
 import type { ProviderId } from '@/providers/models-generated';
 import { getProviderIcon } from './get-provider-icon';
@@ -143,7 +142,7 @@ export function PureModelSelector({
   }, [selectedModelId]);
 
   const { data: session } = useSession();
-  const isAnonymous = !session?.user;
+  const _isAnonymous = !session?.user;
 
   const [featureFilters, setFeatureFilters] =
     useState<FeatureFilter>(initialFilters);
@@ -194,21 +193,12 @@ export function PureModelSelector({
 
   // Memoize model availability checks
   const modelAvailability = useMemo(() => {
-    const isModelAvailableForAnonymous = (modelId: ModelId) => {
-      return ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(modelId as any);
-    };
-
-    const isModelDisabled = (modelId: ModelId) => {
-      return isAnonymous && !isModelAvailableForAnonymous(modelId);
-    };
-
+    const isModelDisabled = (_modelId: ModelId) => false;
     return {
       isModelDisabled,
-      hasDisabledModels:
-        isAnonymous &&
-        filteredModels.some((model) => isModelDisabled(model.id)),
+      hasDisabledModels: false,
     };
-  }, [isAnonymous, filteredModels]);
+  }, [filteredModels]);
 
   const selectedChatModel = useMemo(
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
@@ -325,15 +315,7 @@ export function PureModelSelector({
             </PopoverContent>
           </Popover>
         </div>
-        {modelAvailability.hasDisabledModels && (
-          <div className="p-3">
-            <LoginCtaBanner
-              compact
-              message="Sign in to unlock all models."
-              variant="default"
-            />
-          </div>
-        )}
+        {/* All models available for anonymous users now */}
         <CommandList
           className="max-h-[400px]"
           onMouseDown={(event) => {
@@ -406,12 +388,8 @@ export function PureModelSelector({
                       >
                         <ModelCard
                           className="w-[280px] border shadow-lg"
-                          disabledReason={
-                            disabled
-                              ? 'Sign in to access this model'
-                              : undefined
-                          }
-                          isDisabled={disabled}
+                          disabledReason={undefined}
+                          isDisabled={false}
                           isSelected={isSelected}
                           model={modelDefinition}
                         />

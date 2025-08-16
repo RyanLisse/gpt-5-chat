@@ -6,11 +6,10 @@ type StreamTextConfig = Parameters<typeof streamText>[0];
 export class ReportDocumentWriter {
   private readonly streamTextConfig: StreamTextConfig;
 
-  private reportContent: string;
+  private readonly reportContentRef = { value: '' as string };
 
   constructor(streamTextConfig: StreamTextConfig) {
     this.streamTextConfig = streamTextConfig;
-    this.reportContent = '';
   }
 
   createDocumentHandler = () => {
@@ -43,7 +42,7 @@ export class ReportDocumentWriter {
           }
         }
 
-        this.reportContent = draftContent;
+        this.reportContentRef.value = draftContent;
         return draftContent;
       },
       onUpdateDocument: async () => {
@@ -53,6 +52,6 @@ export class ReportDocumentWriter {
   };
 
   getReportContent = () => {
-    return this.reportContent;
+    return this.reportContentRef.value;
   };
 }

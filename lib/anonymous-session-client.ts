@@ -40,7 +40,6 @@ function deleteCookie(name: string): void {
 export function createAnonymousSession(): AnonymousSession {
   return {
     id: generateUUID(),
-    remainingCredits: ANONYMOUS_LIMITS.CREDITS,
     createdAt: new Date(),
   };
 }

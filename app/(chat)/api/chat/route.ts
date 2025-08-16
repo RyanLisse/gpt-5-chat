@@ -5,12 +5,6 @@ import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
 // Removed getTools: not used with Responses API path
 import { allTools } from '@/lib/ai/tools/tools-definitions';
 import type { ChatMessage, ToolName } from '@/lib/ai/types';
-// Removed getLanguageModel/getModelProviderOptions: not used with Responses API path
-import type { CreditReservation } from '@/lib/credits/credit-reservation';
-import {
-  filterAffordableTools,
-  getBaseModelCostByModelId,
-} from '@/lib/credits/credits-utils';
 // Removed systemPrompt: not used with Responses API path
 import {
   getChatById,
@@ -37,29 +31,19 @@ import {
 import type { ResponseRequest } from '@/lib/ai/responses/types';
 import { calculateMessagesTokens } from '@/lib/ai/token-utils';
 // 'after' was only used for resumable streams; not needed in Responses API path
-import {
-  createAnonymousSession,
-  getAnonymousSession,
-  setAnonymousSession,
-} from '@/lib/anonymous-session-server';
-import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 // Removed markdownJoinerTransform: not used with Responses API path
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 import { addExplicitToolRequestToMessages } from './add-explicit-tool-request-to-messages';
 import { filterReasoningParts } from './filter-reasoning-parts';
-import { getCreditReservation } from './get-credit-reservation';
-import { getRecentGeneratedImage } from './get-recent-generated-image';
 import { getThreadUpToMessageId } from './get-thread-up-to-message-id';
 
 // Constants
 const MAX_INPUT_TOKENS = 50_000;
-const REQUEST_TIMEOUT_MS = 290_000; // 290 seconds
 const MAX_RECENT_MESSAGES = 5;
 const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
-  PAYMENT_REQUIRED: 402,
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   RATE_LIMITED: 429,
@@ -67,14 +51,12 @@ const HTTP_STATUS = {
 
 // Create shared Redis clients for resumable stream and cleanup
 let redisPublisher: any = null;
-let redisSubscriber: any = null;
 
 if (process.env.REDIS_URL) {
   (async () => {
     const redis = await import('redis');
     redisPublisher = redis.createClient({ url: process.env.REDIS_URL });
-    redisSubscriber = redis.createClient({ url: process.env.REDIS_URL });
-    await Promise.all([redisPublisher.connect(), redisSubscriber.connect()]);
+    await redisPublisher.connect();
   })();
 }
 
@@ -113,13 +95,29 @@ async function handleAuthentication(session: any): Promise<AuthResult> {
 
 type RateLimitResult = {
   success: boolean;
-  anonymousSession?: AnonymousSession;
   error?: Response;
 };
 
+function createRateLimitErrorResponse(
+  error: string,
+  type: string,
+  status: number,
+  headers?: Record<string, string>,
+): Response {
+  return new Response(JSON.stringify({ error, type }), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(headers || {}),
+    },
+  });
+}
+
+// Removed model restriction for anonymous users
+
 async function handleAnonymousRateLimit(
   request: NextRequest,
-  selectedModelId: ModelId,
+  _selectedModelId: ModelId,
 ): Promise<RateLimitResult> {
   const clientIP = getClientIP(request);
   const rateLimitResult = await checkAnonymousRateLimit(
@@ -130,69 +128,16 @@ async function handleAnonymousRateLimit(
   if (!rateLimitResult.success) {
     return {
       success: false,
-      error: new Response(
-        JSON.stringify({
-          error: rateLimitResult.error,
-          type: 'RATE_LIMIT_EXCEEDED',
-        }),
-        {
-          status: HTTP_STATUS.RATE_LIMITED,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(rateLimitResult.headers || {}),
-          },
-        },
+      error: createRateLimitErrorResponse(
+        rateLimitResult.error || 'Rate limit exceeded',
+        'RATE_LIMIT_EXCEEDED',
+        HTTP_STATUS.RATE_LIMITED,
+        rateLimitResult.headers,
       ),
     };
   }
 
-  let anonymousSession = await getAnonymousSession();
-  if (!anonymousSession) {
-    anonymousSession = await createAnonymousSession();
-  }
-
-  if (anonymousSession.remainingCredits <= 0) {
-    return {
-      success: false,
-      error: new Response(
-        JSON.stringify({
-          error: `You've used all ${ANONYMOUS_LIMITS.CREDITS} free messages. Sign up to continue chatting with unlimited access!`,
-          type: 'ANONYMOUS_LIMIT_EXCEEDED',
-          maxMessages: ANONYMOUS_LIMITS.CREDITS,
-          suggestion:
-            'Create an account to get unlimited messages and access to more AI models',
-        }),
-        {
-          status: HTTP_STATUS.PAYMENT_REQUIRED,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(rateLimitResult.headers || {}),
-          },
-        },
-      ),
-    };
-  }
-
-  if (!ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(selectedModelId as any)) {
-    return {
-      success: false,
-      error: new Response(
-        JSON.stringify({
-          error: 'Model not available for anonymous users',
-          availableModels: ANONYMOUS_LIMITS.AVAILABLE_MODELS,
-        }),
-        {
-          status: HTTP_STATUS.FORBIDDEN,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(rateLimitResult.headers || {}),
-          },
-        },
-      ),
-    };
-  }
-
-  return { success: true, anonymousSession };
+  return { success: true };
 }
 
 type ValidationResult = {
@@ -204,10 +149,8 @@ type ValidationResult = {
   error?: Response;
 };
 
-async function validateRequest(
-  request: NextRequest,
-): Promise<ValidationResult> {
-  const { id: chatId, message: userMessage } = await request.json();
+function validateRequest(body: any): ValidationResult {
+  const { id: chatId, message: userMessage } = body;
 
   if (!userMessage) {
     return {
@@ -264,13 +207,20 @@ type DatabaseResult = {
   error?: Response;
 };
 
+type DatabaseOperationsOptions = {
+  chatId: string;
+  userMessage: ChatMessage;
+  userId: string;
+  selectedModelId: ModelId;
+  selectedTool: string | null;
+};
+
 async function handleDatabaseOperations(
-  chatId: string,
-  userMessage: ChatMessage,
-  userId: string,
-  selectedModelId: ModelId,
-  selectedTool: string | null,
+  options: DatabaseOperationsOptions,
 ): Promise<DatabaseResult> {
+  const { chatId, userMessage, userId, selectedModelId, selectedTool } =
+    options;
+
   const chat = await getChatById({ id: chatId });
 
   if (chat && chat.userId !== userId) {
@@ -317,91 +267,86 @@ async function handleDatabaseOperations(
 
 type CreditManagementResult = {
   success: boolean;
-  reservation?: CreditReservation;
-  anonymousSession?: AnonymousSession;
   activeTools: ToolName[];
   error?: Response;
 };
 
-async function handleCreditManagement(
-  userMessage: ChatMessage,
-  isAnonymous: boolean,
-  userId: string | null,
-  anonymousSession: AnonymousSession | null,
-  modelDefinition: ModelDefinition,
-  selectedModelId: ModelId,
-): Promise<CreditManagementResult> {
-  const selectedTool = userMessage.metadata.selectedTool || null;
+type CreditManagementOptions = {
+  userMessage: ChatMessage;
+  isAnonymous: boolean;
+  userId: string | null;
+  modelDefinition: ModelDefinition;
+  selectedModelId: ModelId;
+};
 
-  let explicitlyRequestedTools: ToolName[] | null = null;
+function getExplicitlyRequestedTools(
+  selectedTool: string | null,
+): ToolName[] | null {
   if (selectedTool === 'generateImage') {
-    explicitlyRequestedTools = ['generateImage'];
-  } else if (selectedTool === 'createDocument') {
-    explicitlyRequestedTools = ['createDocument', 'updateDocument'];
+    return ['generateImage'];
   }
-
-  const baseModelCost = getBaseModelCostByModelId(selectedModelId);
-  let reservation: CreditReservation | null = null;
-
-  if (!isAnonymous && userId) {
-    const { reservation: res, error: creditError } = await getCreditReservation(
-      userId,
-      baseModelCost,
-    );
-    if (creditError) {
-      return {
-        success: false,
-        activeTools: [],
-        error: new Response(creditError, {
-          status: HTTP_STATUS.PAYMENT_REQUIRED,
-        }),
-      };
-    }
-    reservation = res;
-  } else if (anonymousSession) {
-    anonymousSession.remainingCredits -= baseModelCost;
-    await setAnonymousSession(anonymousSession);
+  if (selectedTool === 'createDocument') {
+    return ['createDocument', 'updateDocument'];
   }
+  return null;
+}
 
+function calculateActiveTools(
+  isAnonymous: boolean,
+  modelDefinition: ModelDefinition,
+  explicitlyRequestedTools: ToolName[] | null,
+): { activeTools: ToolName[]; error?: string } {
   const availableTools = isAnonymous
     ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS
     : allTools;
-  let budget = 0;
-  if (isAnonymous) {
-    budget = ANONYMOUS_LIMITS.CREDITS;
-  } else if (reservation) {
-    budget = reservation.budget - baseModelCost;
-  }
-
-  let activeTools: ToolName[] = filterAffordableTools(availableTools, budget);
+  let activeTools: ToolName[] = [...availableTools];
 
   if (!modelDefinition.features) {
     activeTools = [];
   }
 
-  if (explicitlyRequestedTools?.length && explicitlyRequestedTools.length > 0) {
-    if (
-      !activeTools.some((tool: ToolName) =>
-        explicitlyRequestedTools?.includes(tool),
-      )
-    ) {
+  if (explicitlyRequestedTools?.length) {
+    const hasRequestedTool = activeTools.some((tool: ToolName) =>
+      explicitlyRequestedTools.includes(tool),
+    );
+
+    if (!hasRequestedTool) {
       return {
-        success: false,
         activeTools: [],
-        error: new Response(
-          `Insufficient budget for requested tool: ${explicitlyRequestedTools}.`,
-          { status: HTTP_STATUS.PAYMENT_REQUIRED },
-        ),
+        error: `Requested tool not available: ${explicitlyRequestedTools}.`,
       };
     }
     activeTools = explicitlyRequestedTools;
   }
 
+  return { activeTools };
+}
+
+function handleCreditManagement(
+  options: CreditManagementOptions,
+): CreditManagementResult {
+  const { userMessage, isAnonymous, modelDefinition } = options;
+
+  const selectedTool = userMessage.metadata.selectedTool || null;
+  const explicitlyRequestedTools = getExplicitlyRequestedTools(selectedTool);
+
+  const toolResult = calculateActiveTools(
+    isAnonymous,
+    modelDefinition,
+    explicitlyRequestedTools,
+  );
+
+  if (toolResult.error) {
+    return {
+      success: false,
+      activeTools: [],
+      error: new Response(toolResult.error, { status: HTTP_STATUS.FORBIDDEN }),
+    };
+  }
+
   return {
     success: true,
-    reservation: reservation || undefined,
-    anonymousSession: anonymousSession || undefined,
-    activeTools,
+    activeTools: toolResult.activeTools,
   };
 }
 
@@ -411,36 +356,45 @@ type AIProcessingResult = {
   error?: Response;
 };
 
-async function processAIRequest({
-  chatId,
-  userMessage,
-  anonymousPreviousMessages,
-  isAnonymous,
-  userId,
-  selectedModelId,
-  activeTools,
-  explicitlyRequestedTools,
-}: {
-  chatId: string;
-  userMessage: ChatMessage;
-  anonymousPreviousMessages: ChatMessage[];
-  isAnonymous: boolean;
-  userId: string | null;
-  selectedModelId: ModelId;
-  activeTools: ToolName[];
-  explicitlyRequestedTools: ToolName[];
-}): Promise<AIProcessingResult> {
-  // Validate input token limit
+function validateInputTokens(userMessage: ChatMessage): {
+  valid: boolean;
+  error?: Response;
+} {
   const totalTokens = calculateMessagesTokens(
     convertToModelMessages([userMessage]),
   );
+
   if (totalTokens > MAX_INPUT_TOKENS) {
     const error = new ChatSDKError(
       'input_too_long:chat',
       `Message too long: ${totalTokens} tokens (max: ${MAX_INPUT_TOKENS})`,
     );
-    return { success: false, error: error.toResponse() };
+    return { valid: false, error: error.toResponse() };
   }
+
+  return { valid: true };
+}
+
+type MessageContextOptions = {
+  chatId: string;
+  userMessage: ChatMessage;
+  anonymousPreviousMessages: ChatMessage[];
+  isAnonymous: boolean;
+  activeTools: ToolName[];
+  explicitlyRequestedTools: ToolName[];
+};
+
+async function prepareMessageContext(
+  options: MessageContextOptions,
+): Promise<any[]> {
+  const {
+    chatId,
+    userMessage,
+    anonymousPreviousMessages,
+    isAnonymous,
+    activeTools,
+    explicitlyRequestedTools,
+  } = options;
 
   const messageThreadToParent = isAnonymous
     ? anonymousPreviousMessages
@@ -453,7 +407,6 @@ async function processAIRequest({
     -MAX_RECENT_MESSAGES,
   );
 
-  const _lastGeneratedImage = getRecentGeneratedImage(messages);
   addExplicitToolRequestToMessages(
     messages,
     activeTools,
@@ -464,18 +417,25 @@ async function processAIRequest({
     messages.slice(-MAX_RECENT_MESSAGES),
   );
   const modelMessages = convertToModelMessages(messagesWithoutReasoning);
-  const contextForLLM =
-    await replaceFilePartUrlByBinaryDataInMessages(modelMessages);
 
+  return await replaceFilePartUrlByBinaryDataInMessages(modelMessages);
+}
+
+async function createAIResponse(
+  chatId: string,
+  userId: string | null,
+  selectedModelId: ModelId,
+  contextForLLM: any[],
+): Promise<{ response: any; convManager: any; messageId: string }> {
   const messageId = generateUUID();
   const { convManager, previousResponseId } = await initializeConversationState(
     chatId,
-    isAnonymous ? null : userId,
+    userId,
   );
 
   const selectedOrDefaultModel = (selectedModelId ??
     'openai/gpt-5-mini') as ModelId;
-  const { inputs, textInput } = buildMultimodalInputs(contextForLLM as any[]);
+  const { inputs, textInput } = buildMultimodalInputs(contextForLLM);
 
   const client = createResponsesClient({
     openai: {
@@ -496,18 +456,63 @@ async function processAIRequest({
     },
   };
 
-  const res = await client.createResponse(req);
+  const response = await client.createResponse(req);
+
+  return { response, convManager, messageId };
+}
+
+async function processAIRequest({
+  chatId,
+  userMessage,
+  anonymousPreviousMessages,
+  isAnonymous,
+  userId,
+  selectedModelId,
+  activeTools,
+  explicitlyRequestedTools,
+}: {
+  chatId: string;
+  userMessage: ChatMessage;
+  anonymousPreviousMessages: ChatMessage[];
+  isAnonymous: boolean;
+  userId: string | null;
+  selectedModelId: ModelId;
+  activeTools: ToolName[];
+  explicitlyRequestedTools: ToolName[];
+}): Promise<AIProcessingResult> {
+  const tokenValidation = validateInputTokens(userMessage);
+  if (!tokenValidation.valid) {
+    return { success: false, error: tokenValidation.error };
+  }
+
+  const contextForLLM = await prepareMessageContext({
+    chatId,
+    userMessage,
+    anonymousPreviousMessages,
+    isAnonymous,
+    activeTools,
+    explicitlyRequestedTools,
+  });
+
+  const { response, convManager, messageId } = await createAIResponse(
+    chatId,
+    isAnonymous ? null : userId,
+    selectedModelId,
+    contextForLLM,
+  );
 
   if (convManager && !isAnonymous) {
     await convManager.updateConversationWithResponse(chatId, {
-      id: res.id,
-      content: res.outputText,
+      id: response.id,
+      content: response.outputText,
       metadata: {},
     });
   }
 
+  const selectedOrDefaultModel = (selectedModelId ??
+    'openai/gpt-5-mini') as ModelId;
   const assistantMessage = buildAssistantMessage({
-    res,
+    res: response,
     messageId,
     chatId,
     userMessage,
@@ -529,136 +534,238 @@ function getExplicitTools(selectedTool: string | null): ToolName[] {
 
 async function finalizeResponse(
   assistantMessage: any,
-  reservation: CreditReservation | null,
   isAnonymous: boolean,
-  baseModelCost: number,
 ): Promise<Response> {
-  // Create AbortController with timeout for credit cleanup
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(async () => {
-    if (reservation) {
-      await reservation.cleanup();
-    }
-    abortController.abort();
-  }, REQUEST_TIMEOUT_MS);
-
-  try {
-    // Persist assistant message for authenticated users
-    if (!isAnonymous) {
-      await saveMessage({ _message: assistantMessage });
-    }
-
-    // Finalize credits: add tool cost if defined
-    const toolCost = 0; // No per-call tool costing implemented for file_search
-    const actualCost = baseModelCost + toolCost;
-    if (reservation) {
-      await reservation.finalize(actualCost);
-    }
-
-    // Return as single-event SSE for client compatibility
-    const body = buildSSEFromMessage(assistantMessage);
-
-    return new Response(body, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
-    });
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (reservation) {
-      await reservation.cleanup();
-    }
-    throw error;
+  // Persist assistant message for authenticated users
+  if (!isAnonymous) {
+    await saveMessage({ _message: assistantMessage });
   }
+
+  // Return as single-event SSE for client compatibility
+  const body = buildSSEFromMessage(assistantMessage);
+
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  });
+}
+
+async function processAuthenticatedUser(
+  chatId: string,
+  userMessage: ChatMessage,
+  userId: string,
+  selectedModelId: ModelId,
+): Promise<{ success: boolean; error?: Response }> {
+  const dbResult = await handleDatabaseOperations({
+    chatId,
+    userMessage,
+    userId,
+    selectedModelId,
+    selectedTool: userMessage.metadata.selectedTool ?? null,
+  });
+
+  return dbResult.success
+    ? { success: true }
+    : { success: false, error: dbResult.error };
+}
+
+async function processAnonymousUser(
+  request: NextRequest,
+  selectedModelId: ModelId,
+): Promise<{
+  success: boolean;
+  error?: Response;
+}> {
+  const rateLimitResult = await handleAnonymousRateLimit(
+    request,
+    selectedModelId,
+  );
+
+  if (!rateLimitResult.success) {
+    return { success: false, error: rateLimitResult.error };
+  }
+
+  return { success: true };
+}
+
+async function processRequestValidationAndAuth(
+  _request: NextRequest,
+  body: any,
+): Promise<{
+  success: boolean;
+  data?: {
+    chatId: string;
+    userMessage: ChatMessage;
+    selectedModelId: ModelId;
+    modelDefinition: ModelDefinition;
+    userId: string | null;
+    isAnonymous: boolean;
+  };
+  error?: Response;
+}> {
+  const validation = validateRequest(body);
+  if (!validation.valid) {
+    return { success: false, error: validation.error };
+  }
+  const { chatId, userMessage, selectedModelId, modelDefinition } = validation;
+
+  const session = await auth();
+  const authResult = await handleAuthentication(session);
+  if (authResult.error) {
+    return { success: false, error: authResult.error };
+  }
+  const { userId, isAnonymous } = authResult;
+
+  return {
+    success: true,
+    data: {
+      chatId,
+      userMessage,
+      selectedModelId,
+      modelDefinition,
+      userId,
+      isAnonymous,
+    },
+  };
+}
+
+type UserProcessingOptions = {
+  request: NextRequest;
+  isAnonymous: boolean;
+  userId: string | null;
+  chatId: string;
+  userMessage: ChatMessage;
+  selectedModelId: ModelId;
+};
+
+async function handleUserProcessing(options: UserProcessingOptions): Promise<{
+  success: boolean;
+  error?: Response;
+}> {
+  const { request, isAnonymous, userId, chatId, userMessage, selectedModelId } =
+    options;
+
+  if (isAnonymous) {
+    return await processAnonymousUser(request, selectedModelId);
+  }
+
+  if (userId) {
+    const authUserResult = await processAuthenticatedUser(
+      chatId,
+      userMessage,
+      userId,
+      selectedModelId,
+    );
+    return authUserResult.success
+      ? { success: true }
+      : { success: false, error: authUserResult.error };
+  }
+
+  return { success: true };
+}
+
+async function processAIAndFinalize({
+  chatId,
+  userMessage,
+  anonymousPreviousMessages,
+  isAnonymous,
+  userId,
+  selectedModelId,
+  modelDefinition,
+}: {
+  chatId: string;
+  userMessage: ChatMessage;
+  anonymousPreviousMessages: ChatMessage[];
+  isAnonymous: boolean;
+  userId: string | null;
+  selectedModelId: ModelId;
+  modelDefinition: ModelDefinition;
+}): Promise<Response> {
+  const creditResult = await handleCreditManagement({
+    userMessage,
+    isAnonymous,
+    userId,
+    modelDefinition,
+    selectedModelId,
+  });
+  if (!creditResult.success) {
+    return (
+      creditResult.error ||
+      new Response('Tool selection failed', { status: HTTP_STATUS.FORBIDDEN })
+    );
+  }
+
+  const explicitlyRequestedTools = getExplicitTools(
+    userMessage.metadata.selectedTool ?? null,
+  );
+  const aiResult = await processAIRequest({
+    chatId,
+    userMessage,
+    anonymousPreviousMessages,
+    isAnonymous,
+    userId,
+    selectedModelId,
+    activeTools: creditResult.activeTools,
+    explicitlyRequestedTools,
+  });
+  if (!aiResult.success) {
+    return (
+      aiResult.error ||
+      new Response('AI processing failed', { status: HTTP_STATUS.BAD_REQUEST })
+    );
+  }
+
+  return await finalizeResponse(aiResult.assistantMessage, isAnonymous);
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { prevMessages: anonymousPreviousMessages } = await request.json();
+    const body = await request.json();
+    const { prevMessages: anonymousPreviousMessages } = body;
 
-    // Validate request and extract data
-    const validation = await validateRequest(request);
-    if (!validation.valid) {
-      return validation.error;
-    }
-    const { chatId, userMessage, selectedModelId, modelDefinition } =
-      validation;
-
-    // Handle authentication
-    const session = await auth();
-    const authResult = await handleAuthentication(session);
-    if (authResult.error) {
-      return authResult.error;
-    }
-    const { userId, isAnonymous } = authResult;
-
-    // Handle anonymous rate limiting
-    let anonymousSession: AnonymousSession | null = null;
-    if (isAnonymous) {
-      const rateLimitResult = await handleAnonymousRateLimit(
-        request,
-        selectedModelId,
+    const validationResult = await processRequestValidationAndAuth(
+      request,
+      body,
+    );
+    if (!(validationResult.success && validationResult.data)) {
+      return (
+        validationResult.error ||
+        new Response('Validation failed', { status: HTTP_STATUS.BAD_REQUEST })
       );
-      if (!rateLimitResult.success) {
-        return rateLimitResult.error;
-      }
-      anonymousSession = rateLimitResult.anonymousSession || null;
     }
-
-    // Handle database operations for authenticated users
-    if (!isAnonymous && userId) {
-      const dbResult = await handleDatabaseOperations(
-        chatId,
-        userMessage,
-        userId,
-        selectedModelId,
-        userMessage.metadata.selectedTool ?? null,
-      );
-      if (!dbResult.success) {
-        return dbResult.error;
-      }
-    }
-
-    // Handle credit management and tool configuration
-    const creditResult = await handleCreditManagement(
+    const {
+      chatId,
       userMessage,
+      selectedModelId,
+      modelDefinition,
+      userId,
+      isAnonymous,
+    } = validationResult.data;
+
+    const userProcessingResult = await handleUserProcessing({
+      request,
       isAnonymous,
       userId,
-      anonymousSession,
-      modelDefinition,
+      chatId,
+      userMessage,
       selectedModelId,
-    );
-    if (!creditResult.success) {
-      return creditResult.error;
+    });
+    if (!userProcessingResult.success) {
+      return userProcessingResult.error;
     }
 
-    // Process AI request and get response
-    const explicitlyRequestedTools = getExplicitTools(
-      userMessage.metadata.selectedTool ?? null,
-    );
-    const aiResult = await processAIRequest({
+    return await processAIAndFinalize({
       chatId,
       userMessage,
       anonymousPreviousMessages,
       isAnonymous,
       userId,
       selectedModelId,
-      activeTools: creditResult.activeTools,
-      explicitlyRequestedTools,
+      modelDefinition,
     });
-    if (!aiResult.success) {
-      return aiResult.error;
-    }
-
-    // Finalize processing
-    return await finalizeResponse(
-      aiResult.assistantMessage,
-      creditResult.reservation ?? null,
-      isAnonymous,
-      getBaseModelCostByModelId(selectedModelId),
-    );
   } catch (_error) {
     return new Response('An error occurred while processing your request!', {
       status: HTTP_STATUS.NOT_FOUND,

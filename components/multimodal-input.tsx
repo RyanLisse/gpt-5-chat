@@ -36,7 +36,6 @@ import {
 } from './ui/chat-input';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
-import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 function PureMultimodalInput({
@@ -446,7 +445,7 @@ function PureMultimodalInput({
           />
         )}
 
-      {!isEditMode && <CreditLimitDisplay />}
+      {/* CreditLimitDisplay removed */}
 
       <input
         accept="image/*,.pdf"

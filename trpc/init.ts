@@ -12,6 +12,7 @@ import { cache } from 'react';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 import { auth } from '@/app/(auth)/auth';
+import { getAnonymousSession } from '@/lib/anonymous-session-server';
 
 /**
  * 1. CONTEXT
@@ -27,8 +28,11 @@ import { auth } from '@/app/(auth)/auth';
  */
 export const createTRPCContext = cache(async () => {
   const session = await auth();
+  const anon = await getAnonymousSession();
   return {
     user: session?.user,
+    viewerId: session?.user?.id ?? anon?.id ?? null,
+    isAnonymous: !session?.user?.id,
   };
 });
 
@@ -76,24 +80,25 @@ export const createCallerFactory = t.createCallerFactory;
  */
 export const createTRPCRouter = t.router;
 
+// Constants for development timing simulation
+const DEV_DELAY_MAX_MS = 400;
+const DEV_DELAY_MIN_MS = 100;
+
 /**
  * Middleware for timing procedure execution and adding an artificial delay in development.
  *
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
  * network latency that would occur in production but not in local development.
  */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
-  const _start = Date.now();
-
+const timingMiddleware = t.middleware(async ({ next }) => {
   if (t._config.isDev) {
     // artificial delay in dev
-    const waitMs = Math.floor(Math.random() * 400) + 100;
+    const waitMs =
+      Math.floor(Math.random() * DEV_DELAY_MAX_MS) + DEV_DELAY_MIN_MS;
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
   const result = await next();
-
-  const _end = Date.now();
 
   return result;
 });

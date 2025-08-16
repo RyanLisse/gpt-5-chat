@@ -48,7 +48,6 @@ export async function setAnonymousSession(
 export async function createAnonymousSession(): Promise<AnonymousSession> {
   return {
     id: generateUUID(),
-    remainingCredits: ANONYMOUS_LIMITS.CREDITS,
     createdAt: new Date(),
   };
 }

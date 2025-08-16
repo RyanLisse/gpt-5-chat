@@ -33,8 +33,12 @@ export function ChatPrefetch({ user }: ChatPrefetchProps) {
 
     // Execute all prefetch operations in parallel
     Promise.allSettled(prefetchPromises)
-      .then(() => {})
-      .catch((_error) => {});
+      .then(() => {
+        // Prefetch operations completed successfully
+      })
+      .catch((_error) => {
+        // Prefetch errors are non-critical and can be safely ignored
+      });
   }, [chats, user, queryClient, trpc.chat.getChatMessages]);
 
   return null;

@@ -4,14 +4,12 @@ import { BookText } from 'lucide-react';
 import Link from 'next/link';
 import { NewChatButton } from '@/components/new-chat-button';
 import { SearchChatsButton } from '@/components/search-chats';
-import { SidebarCredits } from '@/components/sidebar-credits';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarTopRow } from '@/components/sidebar-top-row';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -58,14 +56,7 @@ export function AppSidebar() {
         </SidebarContent>
       </ScrollArea>
 
-      {(open || openMobile) && (
-        <>
-          <SidebarSeparator />
-          <SidebarFooter>
-            <SidebarCredits />
-          </SidebarFooter>
-        </>
-      )}
+      {/* Credits removed */}
     </Sidebar>
   );
 }

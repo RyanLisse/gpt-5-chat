@@ -2,30 +2,291 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatDistance } from 'date-fns';
 import equal from 'fast-deep-equal';
-import { AnimatePresence, motion } from 'motion/react';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
+import { AnimatePresence } from 'motion/react';
+import { memo, useEffect, useState } from 'react';
 import { CloneChatButton } from '@/components/clone-chat-button';
-import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useArtifact } from '@/hooks/use-artifact';
+import { useArtifactDocument } from '@/hooks/use-artifact-document';
 import type { ChatMessage } from '@/lib/ai/types';
 import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import { codeArtifact } from '@/lib/artifacts/code/client';
 import { sheetArtifact } from '@/lib/artifacts/sheet/client';
 import { textArtifact } from '@/lib/artifacts/text/client';
-import type { Document, Vote } from '@/lib/db/schema';
+import type { Vote } from '@/lib/db/schema';
 import { chatStore } from '@/lib/stores/chat-store';
 import { useTRPC } from '@/trpc/react';
 import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
+import { ArtifactLayout } from './artifact-layout';
 import { ArtifactMessages } from './artifact-messages';
 import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
 import { ScrollArea } from './ui/scroll-area';
-import { useSidebar } from './ui/sidebar';
 import { VersionFooter } from './version-footer';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
+
+// Custom hook for artifact state management
+function useArtifactState(
+  artifact: UIArtifact,
+  setArtifact: any,
+  isReadonly: boolean,
+) {
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
+  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
+
+  const artifactDefinition = artifactDefinitions.find(
+    (definition) => definition.kind === artifact.kind,
+  );
+
+  if (!artifactDefinition) {
+    throw new Error('Artifact definition not found!');
+  }
+
+  const documentHook = useArtifactDocument(artifact, setArtifact, isReadonly);
+
+  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
+    if (type === 'toggle') {
+      setMode((currentMode) => (currentMode === 'edit' ? 'diff' : 'edit'));
+    } else if (type === 'latest') {
+      documentHook.handleVersionChange(type);
+      setMode('edit');
+    } else {
+      documentHook.handleVersionChange(type);
+    }
+  };
+
+  return {
+    ...documentHook,
+    mode,
+    setMode,
+    isToolbarVisible,
+    setIsToolbarVisible,
+    artifactDefinition,
+    handleVersionChange,
+    queryClient,
+    trpc,
+  };
+}
+
+// Chat panel component
+function ArtifactChatPanel({
+  chatId,
+  artifact,
+  isReadonly,
+  regenerate,
+  sendMessage,
+  votes,
+  status,
+  stop,
+}: {
+  chatId: string;
+  artifact: UIArtifact;
+  isReadonly: boolean;
+  regenerate: any;
+  sendMessage: any;
+  votes: Vote[] | undefined;
+  status: any;
+  stop: any;
+}) {
+  return (
+    <div className="@container flex h-full flex-col items-center justify-between">
+      <ArtifactMessages
+        artifactStatus={artifact.status}
+        isReadonly={isReadonly}
+        isVisible={true}
+        regenerate={regenerate}
+        sendMessage={sendMessage}
+        votes={votes}
+      />
+
+      {isReadonly ? (
+        <CloneChatButton chatId={chatId} />
+      ) : (
+        <MultimodalInput
+          chatId={chatId}
+          className=""
+          isEditMode={isReadonly}
+          parentMessageId={chatStore.getState().getLastMessageId()}
+          sendMessage={sendMessage}
+          status={status}
+          stop={stop}
+        />
+      )}
+    </div>
+  );
+}
+
+// Artifact header component
+function ArtifactHeader({
+  artifact,
+  document,
+  isContentDirty,
+  currentVersionIndex,
+  handleVersionChange,
+  isCurrentVersion,
+  isReadonly,
+  metadata,
+  mode,
+  setMetadata,
+}: {
+  artifact: UIArtifact;
+  document: any;
+  isContentDirty: boolean;
+  currentVersionIndex: number;
+  handleVersionChange: any;
+  isCurrentVersion: boolean;
+  isReadonly: boolean;
+  metadata: any;
+  mode: 'edit' | 'diff';
+  setMetadata: any;
+}) {
+  return (
+    <div className="flex flex-row items-start justify-between bg-background/80 p-2">
+      <div className="flex flex-row items-start gap-4">
+        <ArtifactCloseButton />
+
+        <div className="flex flex-col">
+          <div className="font-medium">{artifact.title}</div>
+
+          {(() => {
+            if (isContentDirty) {
+              return (
+                <div className="text-muted-foreground text-sm">
+                  Saving changes...
+                </div>
+              );
+            }
+
+            if (document) {
+              return (
+                <div className="text-muted-foreground text-sm">
+                  {`Updated ${formatDistance(
+                    new Date(document.createdAt),
+                    new Date(),
+                    {
+                      addSuffix: true,
+                    },
+                  )}`}
+                </div>
+              );
+            }
+
+            return (
+              <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
+            );
+          })()}
+        </div>
+      </div>
+
+      <ArtifactActions
+        artifact={artifact}
+        currentVersionIndex={currentVersionIndex}
+        handleVersionChange={handleVersionChange}
+        isCurrentVersion={isCurrentVersion}
+        isReadonly={isReadonly}
+        metadata={metadata}
+        mode={mode}
+        setMetadata={setMetadata}
+      />
+    </div>
+  );
+}
+
+// Main content area component
+function ArtifactMainContent({
+  artifact,
+  artifactDefinition,
+  isCurrentVersion,
+  getDocumentContentById,
+  currentVersionIndex,
+  isDocumentsFetching,
+  isReadonly,
+  metadata,
+  mode,
+  saveContent,
+  setMetadata,
+  isToolbarVisible,
+  setIsToolbarVisible,
+  sendMessage,
+  status,
+  stop,
+  documents,
+  handleVersionChange,
+}: {
+  artifact: UIArtifact;
+  artifactDefinition: any;
+  isCurrentVersion: boolean;
+  getDocumentContentById: any;
+  currentVersionIndex: number;
+  isDocumentsFetching: boolean;
+  isReadonly: boolean;
+  metadata: any;
+  mode: 'edit' | 'diff';
+  saveContent: any;
+  setMetadata: any;
+  isToolbarVisible: boolean;
+  setIsToolbarVisible: any;
+  sendMessage: any;
+  status: any;
+  stop: any;
+  documents: any;
+  handleVersionChange: any;
+}) {
+  return (
+    <>
+      <ScrollArea className="!max-w-full h-full">
+        <div className="flex flex-col items-center bg-background/80">
+          <artifactDefinition.content
+            content={
+              isCurrentVersion
+                ? artifact.content
+                : getDocumentContentById(currentVersionIndex)
+            }
+            currentVersionIndex={currentVersionIndex}
+            getDocumentContentById={getDocumentContentById}
+            isCurrentVersion={isCurrentVersion}
+            isInline={false}
+            isLoading={isDocumentsFetching && !artifact.content}
+            isReadonly={isReadonly}
+            metadata={metadata}
+            mode={mode}
+            onSaveContent={saveContent}
+            setMetadata={setMetadata}
+            status={artifact.status}
+            suggestions={[]}
+            title={artifact.title}
+          />
+
+          <AnimatePresence>
+            {isCurrentVersion && !isReadonly && (
+              <Toolbar
+                artifactKind={artifact.kind}
+                isToolbarVisible={isToolbarVisible}
+                sendMessage={sendMessage}
+                setIsToolbarVisible={setIsToolbarVisible}
+                status={status}
+                stop={stop}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      <AnimatePresence>
+        {!(isCurrentVersion || isReadonly) && (
+          <VersionFooter
+            currentVersionIndex={currentVersionIndex}
+            documents={documents}
+            handleVersionChange={handleVersionChange}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
 
 export type UIArtifact = {
   title: string;
@@ -49,7 +310,7 @@ function PureArtifact({
   regenerate,
   status,
   stop,
-  messages,
+  messages: _messages,
   votes,
   isReadonly,
   isAuthenticated,
@@ -65,172 +326,25 @@ function PureArtifact({
   isAuthenticated: boolean;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
-  const queryClient = useQueryClient();
-  const trpc = useTRPC();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
-    artifact.documentId || '',
-    artifact.documentId === 'init' || artifact.status === 'streaming',
-  );
-
-  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
-  const [document, setDocument] = useState<Document | null>(null);
-  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
-  const lastSavedContentRef = useRef<string>('');
-
-  const { open: isSidebarOpen } = useSidebar();
-
-  useEffect(() => {
-    if (documents && documents.length > 0) {
-      // At first we set the most recent document realted to the messageId selected
-      const mostRecentDocumentIndex = documents.findLastIndex(
-        (document) => document.messageId === artifact.messageId,
-      );
-
-      if (mostRecentDocumentIndex !== -1) {
-        const mostRecentDocument = documents[mostRecentDocumentIndex];
-        setDocument(mostRecentDocument);
-        setCurrentVersionIndex(mostRecentDocumentIndex);
-        setArtifact((currentArtifact) => ({
-          ...currentArtifact,
-          content: mostRecentDocument.content ?? '',
-        }));
-      } else {
-        // Fallback to the most recent document
-        const document = documents.at(-1);
-        if (document) {
-          setDocument(document);
-          setCurrentVersionIndex(documents.length - 1);
-          setArtifact((currentArtifact) => ({
-            ...currentArtifact,
-            content: document.content ?? '',
-          }));
-        }
-      }
-    }
-  }, [documents, setArtifact, artifact.messageId]);
-
-  const [isContentDirty, setIsContentDirty] = useState(false);
-
-  const saveDocumentMutation = useSaveDocument(
-    artifact.documentId,
-    artifact.messageId,
-    {
-      onSettled: () => {
-        setIsContentDirty(false);
-      },
-    },
-  );
-
-  const handleContentChange = useCallback(
-    (updatedContent: string) => {
-      if (!documents) {
-        return;
-      }
-
-      const lastDocument = documents.at(-1);
-      if (!lastDocument) {
-        return;
-      }
-
-      if (
-        lastDocument?.content !== updatedContent &&
-        lastSavedContentRef.current === updatedContent
-      ) {
-        setIsContentDirty(true);
-        saveDocumentMutation.mutate({
-          id: lastDocument.id,
-          title: lastDocument.title,
-          content: updatedContent,
-          kind: lastDocument.kind,
-        });
-      }
-    },
-    [saveDocumentMutation, documents],
-  );
-
-  const debouncedHandleContentChange = useDebounceCallback(
-    handleContentChange,
-    2000,
-  );
-
-  const saveContent = useCallback(
-    (updatedContent: string, debounce: boolean) => {
-      if (isReadonly) {
-        return;
-      }
-      // Update the last saved content reference
-      lastSavedContentRef.current = updatedContent;
-
-      if (document && updatedContent !== document.content) {
-        setIsContentDirty(true);
-
-        if (debounce) {
-          debouncedHandleContentChange(updatedContent);
-        } else {
-          handleContentChange(updatedContent);
-        }
-      }
-    },
-    [document, debouncedHandleContentChange, handleContentChange, isReadonly],
-  );
-
-  function getDocumentContentById(index: number) {
-    if (!documents) {
-      return '';
-    }
-    if (!documents[index]) {
-      return '';
-    }
-    return documents[index].content ?? '';
-  }
-
-  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) {
-      return;
-    }
-
-    if (type === 'latest') {
-      setCurrentVersionIndex(documents.length - 1);
-      setMode('edit');
-    }
-
-    if (type === 'toggle') {
-      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'));
-    }
-
-    if (type === 'prev') {
-      if (currentVersionIndex > 0) {
-        setCurrentVersionIndex((index) => index - 1);
-      }
-    } else if (type === 'next' && currentVersionIndex < documents.length - 1) {
-      setCurrentVersionIndex((index) => index + 1);
-    }
-  };
-
-  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
-
-  /*
-   * NOTE: if there are no documents, or if
-   * the documents are being fetched, then
-   * we mark it as the current version.
-   */
-
-  const isCurrentVersion =
-    documents && documents.length > 0
-      ? currentVersionIndex === documents.length - 1
-      : true;
-
-  const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const isMobile = windowWidth ? windowWidth < 768 : false;
-
-  const artifactDefinition = artifactDefinitions.find(
-    (definition) => definition.kind === artifact.kind,
-  );
-
-  if (!artifactDefinition) {
-    throw new Error('Artifact definition not found!');
-  }
+  const artifactState = useArtifactState(artifact, setArtifact, isReadonly);
+  const {
+    documents,
+    document,
+    currentVersionIndex,
+    isContentDirty,
+    isDocumentsFetching,
+    saveContent,
+    getDocumentContentById,
+    isCurrentVersion,
+    mode,
+    isToolbarVisible,
+    setIsToolbarVisible,
+    artifactDefinition,
+    handleVersionChange,
+    queryClient,
+    trpc,
+  } = artifactState;
 
   useEffect(() => {
     if (
@@ -256,248 +370,64 @@ function PureArtifact({
     artifact.status,
   ]);
 
+  const chatPanel = (
+    <ArtifactChatPanel
+      artifact={artifact}
+      chatId={chatId}
+      isReadonly={isReadonly}
+      regenerate={regenerate}
+      sendMessage={sendMessage}
+      status={status}
+      stop={stop}
+      votes={votes}
+    />
+  );
+
+  const mainContent = (
+    <>
+      <ArtifactHeader
+        artifact={artifact}
+        currentVersionIndex={currentVersionIndex}
+        document={document}
+        handleVersionChange={handleVersionChange}
+        isContentDirty={isContentDirty}
+        isCurrentVersion={isCurrentVersion}
+        isReadonly={isReadonly}
+        metadata={metadata}
+        mode={mode}
+        setMetadata={setMetadata}
+      />
+
+      <ArtifactMainContent
+        artifact={artifact}
+        artifactDefinition={artifactDefinition}
+        currentVersionIndex={currentVersionIndex}
+        documents={documents}
+        getDocumentContentById={getDocumentContentById}
+        handleVersionChange={handleVersionChange}
+        isCurrentVersion={isCurrentVersion}
+        isDocumentsFetching={isDocumentsFetching}
+        isReadonly={isReadonly}
+        isToolbarVisible={isToolbarVisible}
+        metadata={metadata}
+        mode={mode}
+        saveContent={saveContent}
+        sendMessage={sendMessage}
+        setIsToolbarVisible={setIsToolbarVisible}
+        setMetadata={setMetadata}
+        status={status}
+        stop={stop}
+      />
+    </>
+  );
+
   return (
-    <AnimatePresence>
-      {artifact.isVisible && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed top-0 left-0 z-50 flex h-dvh w-dvw flex-row bg-transparent"
-          data-testid="artifact"
-          exit={{ opacity: 0, transition: { delay: 0.4 } }}
-          initial={{ opacity: 1 }}
-        >
-          {!isMobile && (
-            <motion.div
-              animate={{ width: windowWidth, right: 0 }}
-              className="fixed h-dvh bg-background"
-              exit={{
-                width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
-              }}
-              initial={{
-                width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
-              }}
-            />
-          )}
-
-          {!isMobile && (
-            <motion.div
-              animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
-                transition: {
-                  delay: 0.2,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 30,
-                },
-              }}
-              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
-              exit={{
-                opacity: 0,
-                x: 0,
-                scale: 1,
-                transition: { duration: 0 },
-              }}
-              initial={{ opacity: 0, x: 10, scale: 1 }}
-            >
-              <AnimatePresence>
-                {!isCurrentVersion && (
-                  <motion.div
-                    animate={{ opacity: 1 }}
-                    className="absolute top-0 left-0 z-50 h-dvh w-[400px] bg-zinc-900/50"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0 }}
-                  />
-                )}
-              </AnimatePresence>
-
-              <div className="@container flex h-full flex-col items-center justify-between">
-                <ArtifactMessages
-                  artifactStatus={artifact.status}
-                  isReadonly={isReadonly}
-                  isVisible={true}
-                  regenerate={regenerate}
-                  sendMessage={sendMessage}
-                  votes={votes}
-                />
-
-                {isReadonly ? (
-                  <CloneChatButton chatId={chatId} />
-                ) : (
-                  <MultimodalInput
-                    chatId={chatId}
-                    className=""
-                    isEditMode={isReadonly}
-                    parentMessageId={chatStore.getState().getLastMessageId()}
-                    sendMessage={sendMessage}
-                    status={status}
-                    stop={stop}
-                  />
-                )}
-              </div>
-            </motion.div>
-          )}
-
-          <motion.div
-            animate={
-              isMobile
-                ? {
-                    opacity: 1,
-                    x: 0,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth ? windowWidth : 'calc(100dvw)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
-                : {
-                    opacity: 1,
-                    x: 400,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth
-                      ? windowWidth - 400
-                      : 'calc(100dvw-400px)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
-            }
-            className="fixed flex h-dvh flex-col overflow-y-auto border-zinc-200 bg-background md:border-l dark:border-zinc-700"
-            exit={{
-              opacity: 0,
-              scale: 0.5,
-              transition: {
-                delay: 0.1,
-                type: 'spring',
-                stiffness: 600,
-                damping: 30,
-              },
-            }}
-            initial={
-              isMobile
-                ? {
-                    opacity: 1,
-                    x: artifact.boundingBox.left,
-                    y: artifact.boundingBox.top,
-                    height: artifact.boundingBox.height,
-                    width: artifact.boundingBox.width,
-                    borderRadius: 50,
-                  }
-                : {
-                    opacity: 1,
-                    x: artifact.boundingBox.left,
-                    y: artifact.boundingBox.top,
-                    height: artifact.boundingBox.height,
-                    width: artifact.boundingBox.width,
-                    borderRadius: 50,
-                  }
-            }
-          >
-            <div className="flex flex-row items-start justify-between bg-background/80 p-2">
-              <div className="flex flex-row items-start gap-4">
-                <ArtifactCloseButton />
-
-                <div className="flex flex-col">
-                  <div className="font-medium">{artifact.title}</div>
-
-                  {isContentDirty ? (
-                    <div className="text-muted-foreground text-sm">
-                      Saving changes...
-                    </div>
-                  ) : document ? (
-                    <div className="text-muted-foreground text-sm">
-                      {`Updated ${formatDistance(
-                        new Date(document.createdAt),
-                        new Date(),
-                        {
-                          addSuffix: true,
-                        },
-                      )}`}
-                    </div>
-                  ) : (
-                    <div className="mt-2 h-3 w-32 animate-pulse rounded-md bg-muted-foreground/20" />
-                  )}
-                </div>
-              </div>
-
-              <ArtifactActions
-                artifact={artifact}
-                currentVersionIndex={currentVersionIndex}
-                handleVersionChange={handleVersionChange}
-                isCurrentVersion={isCurrentVersion}
-                isReadonly={isReadonly}
-                metadata={metadata}
-                mode={mode}
-                setMetadata={setMetadata}
-              />
-            </div>
-
-            <ScrollArea className="!max-w-full h-full">
-              <div className="flex flex-col items-center bg-background/80">
-                <artifactDefinition.content
-                  content={
-                    isCurrentVersion
-                      ? artifact.content
-                      : getDocumentContentById(currentVersionIndex)
-                  }
-                  currentVersionIndex={currentVersionIndex}
-                  getDocumentContentById={getDocumentContentById}
-                  isCurrentVersion={isCurrentVersion}
-                  isInline={false}
-                  isLoading={isDocumentsFetching && !artifact.content}
-                  isReadonly={isReadonly}
-                  metadata={metadata}
-                  mode={mode}
-                  onSaveContent={saveContent}
-                  setMetadata={setMetadata}
-                  status={artifact.status}
-                  suggestions={[]}
-                  title={artifact.title}
-                />
-
-                <AnimatePresence>
-                  {isCurrentVersion && !isReadonly && (
-                    <Toolbar
-                      artifactKind={artifact.kind}
-                      isToolbarVisible={isToolbarVisible}
-                      sendMessage={sendMessage}
-                      setIsToolbarVisible={setIsToolbarVisible}
-                      status={status}
-                      stop={stop}
-                    />
-                  )}
-                </AnimatePresence>
-              </div>
-            </ScrollArea>
-
-            <AnimatePresence>
-              {!(isCurrentVersion || isReadonly) && (
-                <VersionFooter
-                  currentVersionIndex={currentVersionIndex}
-                  documents={documents}
-                  handleVersionChange={handleVersionChange}
-                />
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <ArtifactLayout
+      artifact={artifact}
+      chatPanel={chatPanel}
+      isCurrentVersion={isCurrentVersion}
+      mainContent={mainContent}
+    />
   );
 }
 
@@ -517,7 +447,7 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (!equal(prevProps.votes, nextProps.votes)) {
     return false;
   }
-  if (!equal(prevProps.messages, nextProps.messages.length)) {
+  if (!equal(prevProps.messages, nextProps.messages)) {
     return false;
   }
   if (prevProps.isReadonly !== nextProps.isReadonly) {

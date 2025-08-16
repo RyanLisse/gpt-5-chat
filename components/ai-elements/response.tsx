@@ -12,6 +12,127 @@ import 'katex/dist/katex.min.css';
 import hardenReactMarkdown from 'harden-react-markdown';
 import { components as markdownComponents } from '../markdown';
 
+// Constants
+const TRIPLE_BACKTICK_LENGTH = 3;
+
+// Regex patterns for incomplete markdown parsing
+const LINK_IMAGE_PATTERN = /(!?\[)([^\]]*?)$/;
+const BOLD_PATTERN = /(\*\*)([^*]*?)$/;
+const ITALIC_PATTERN = /(__)([^_]*?)$/;
+const SINGLE_ASTERISK_PATTERN = /(\*)([^*]*?)$/;
+const SINGLE_UNDERSCORE_PATTERN = /(_)([^_]*?)$/;
+const INLINE_CODE_PATTERN = /(`)([^`]*?)$/;
+const STRIKETHROUGH_PATTERN = /(~~)([^~]*?)$/;
+const _CODE_BLOCK_PATTERN = /```[\s\S]*?```/g;
+const TRIPLE_BACKTICKS_PATTERN = /```/g;
+
+/**
+ * Counts single characters that are not part of double character pairs
+ */
+function countSingleCharacters(text: string, char: string): number {
+  return text.split('').reduce((acc, currentChar, index) => {
+    if (currentChar === char) {
+      const prevChar = text[index - 1];
+      const nextChar = text[index + 1];
+      if (prevChar !== char && nextChar !== char) {
+        return acc + 1;
+      }
+    }
+    return acc;
+  }, 0);
+}
+
+/**
+ * Counts single backticks that are not part of triple backtick sequences
+ */
+function countSingleBackticks(text: string): number {
+  let count = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '`') {
+      const isTripleStart =
+        text.substring(i, i + TRIPLE_BACKTICK_LENGTH) === '```';
+      const isTripleMiddle = i > 0 && text.substring(i - 1, i + 2) === '```';
+      const isTripleEnd = i > 1 && text.substring(i - 2, i + 1) === '```';
+
+      if (!(isTripleStart || isTripleMiddle || isTripleEnd)) {
+        count++;
+      }
+    }
+  }
+  return count;
+}
+
+/**
+ * Handles incomplete links and images
+ */
+function handleIncompleteLinksAndImages(text: string): string {
+  const linkMatch = text.match(LINK_IMAGE_PATTERN);
+  if (linkMatch) {
+    const startIndex = text.lastIndexOf(linkMatch[1]);
+    return text.substring(0, startIndex);
+  }
+  return text;
+}
+
+/**
+ * Handles incomplete formatting pairs (**, __, ~~)
+ */
+function handleIncompleteFormattingPairs(
+  text: string,
+  pattern: RegExp,
+  pairPattern: RegExp,
+  completionString: string,
+): string {
+  const match = text.match(pattern);
+  if (match) {
+    const pairs = (text.match(pairPattern) || []).length;
+    if (pairs % 2 === 1) {
+      return `${text}${completionString}`;
+    }
+  }
+  return text;
+}
+
+/**
+ * Handles incomplete single character formatting (*, _)
+ */
+function handleIncompleteSingleCharFormatting(
+  text: string,
+  pattern: RegExp,
+  char: string,
+): string {
+  const match = text.match(pattern);
+  if (match) {
+    const singleCharCount = countSingleCharacters(text, char);
+    if (singleCharCount % 2 === 1) {
+      return `${text}${char}`;
+    }
+  }
+  return text;
+}
+
+/**
+ * Handles incomplete inline code blocks
+ */
+function handleIncompleteInlineCode(text: string): string {
+  const inlineCodeMatch = text.match(INLINE_CODE_PATTERN);
+  if (!inlineCodeMatch) {
+    return text;
+  }
+
+  const allTripleBackticks = (text.match(TRIPLE_BACKTICKS_PATTERN) || [])
+    .length;
+  const insideIncompleteCodeBlock = allTripleBackticks % 2 === 1;
+
+  if (!insideIncompleteCodeBlock) {
+    const singleBacktickCount = countSingleBackticks(text);
+    if (singleBacktickCount % 2 === 1) {
+      return `${text}\``;
+    }
+  }
+  return text;
+}
+
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
  * of links, images, bold, and italic formatting during streaming.
@@ -24,134 +145,38 @@ function parseIncompleteMarkdown(text: string): string {
   let result = text;
 
   // Handle incomplete links and images
-  // Pattern: [...] or ![...] where the closing ] is missing
-  const linkImagePattern = /(!?\[)([^\]]*?)$/;
-  const linkMatch = result.match(linkImagePattern);
-  if (linkMatch) {
-    // If we have an unterminated [ or ![, remove it and everything after
-    const startIndex = result.lastIndexOf(linkMatch[1]);
-    result = result.substring(0, startIndex);
-  }
+  result = handleIncompleteLinksAndImages(result);
 
   // Handle incomplete bold formatting (**)
-  const boldPattern = /(\*\*)([^*]*?)$/;
-  const boldMatch = result.match(boldPattern);
-  if (boldMatch) {
-    // Count the number of ** in the entire string
-    const asteriskPairs = (result.match(/\*\*/g) || []).length;
-    // If odd number of **, we have an incomplete bold - complete it
-    if (asteriskPairs % 2 === 1) {
-      result = `${result}**`;
-    }
-  }
+  result = handleIncompleteFormattingPairs(result, BOLD_PATTERN, /\*\*/g, '**');
 
   // Handle incomplete italic formatting (__)
-  const italicPattern = /(__)([^_]*?)$/;
-  const italicMatch = result.match(italicPattern);
-  if (italicMatch) {
-    // Count the number of __ in the entire string
-    const underscorePairs = (result.match(/__/g) || []).length;
-    // If odd number of __, we have an incomplete italic - complete it
-    if (underscorePairs % 2 === 1) {
-      result = `${result}__`;
-    }
-  }
+  result = handleIncompleteFormattingPairs(result, ITALIC_PATTERN, /__/g, '__');
 
   // Handle incomplete single asterisk italic (*)
-  const singleAsteriskPattern = /(\*)([^*]*?)$/;
-  const singleAsteriskMatch = result.match(singleAsteriskPattern);
-  if (singleAsteriskMatch) {
-    // Count single asterisks that aren't part of **
-    const singleAsterisks = result.split('').reduce((acc, char, index) => {
-      if (char === '*') {
-        // Check if it's part of a ** pair
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '*' && nextChar !== '*') {
-          return acc + 1;
-        }
-      }
-      return acc;
-    }, 0);
-
-    // If odd number of single *, we have an incomplete italic - complete it
-    if (singleAsterisks % 2 === 1) {
-      result = `${result}*`;
-    }
-  }
+  result = handleIncompleteSingleCharFormatting(
+    result,
+    SINGLE_ASTERISK_PATTERN,
+    '*',
+  );
 
   // Handle incomplete single underscore italic (_)
-  const singleUnderscorePattern = /(_)([^_]*?)$/;
-  const singleUnderscoreMatch = result.match(singleUnderscorePattern);
-  if (singleUnderscoreMatch) {
-    // Count single underscores that aren't part of __
-    const singleUnderscores = result.split('').reduce((acc, char, index) => {
-      if (char === '_') {
-        // Check if it's part of a __ pair
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '_' && nextChar !== '_') {
-          return acc + 1;
-        }
-      }
-      return acc;
-    }, 0);
+  result = handleIncompleteSingleCharFormatting(
+    result,
+    SINGLE_UNDERSCORE_PATTERN,
+    '_',
+  );
 
-    // If odd number of single _, we have an incomplete italic - complete it
-    if (singleUnderscores % 2 === 1) {
-      result = `${result}_`;
-    }
-  }
-
-  // Handle incomplete inline code blocks (`) - but avoid code blocks (```)
-  const inlineCodePattern = /(`)([^`]*?)$/;
-  const inlineCodeMatch = result.match(inlineCodePattern);
-  if (inlineCodeMatch) {
-    // Check if we're dealing with a code block (triple backticks)
-    const _hasCodeBlockStart = result.includes('```');
-    const codeBlockPattern = /```[\s\S]*?```/g;
-    const _completeCodeBlocks = (result.match(codeBlockPattern) || []).length;
-    const allTripleBackticks = (result.match(/```/g) || []).length;
-
-    // If we have an odd number of ``` sequences, we're inside an incomplete code block
-    // In this case, don't complete inline code
-    const insideIncompleteCodeBlock = allTripleBackticks % 2 === 1;
-
-    if (!insideIncompleteCodeBlock) {
-      // Count the number of single backticks that are NOT part of triple backticks
-      let singleBacktickCount = 0;
-      for (let i = 0; i < result.length; i++) {
-        if (result[i] === '`') {
-          // Check if this backtick is part of a triple backtick sequence
-          const isTripleStart = result.substring(i, i + 3) === '```';
-          const isTripleMiddle =
-            i > 0 && result.substring(i - 1, i + 2) === '```';
-          const isTripleEnd = i > 1 && result.substring(i - 2, i + 1) === '```';
-
-          if (!(isTripleStart || isTripleMiddle || isTripleEnd)) {
-            singleBacktickCount++;
-          }
-        }
-      }
-
-      // If odd number of single backticks, we have an incomplete inline code - complete it
-      if (singleBacktickCount % 2 === 1) {
-        result = `${result}\``;
-      }
-    }
-  }
+  // Handle incomplete inline code blocks
+  result = handleIncompleteInlineCode(result);
 
   // Handle incomplete strikethrough formatting (~~)
-  const strikethroughPattern = /(~~)([^~]*?)$/;
-  const strikethroughMatch = result.match(strikethroughPattern);
-  if (strikethroughMatch) {
-    // Count the number of ~~ in the entire string
-    const tildePairs = (result.match(/~~/g) || []).length;
-    // If odd number of ~~, we have an incomplete strikethrough - complete it
-    if (tildePairs % 2 === 1) {
-      result = `${result}~~`;
-    }
-  }
+  result = handleIncompleteFormattingPairs(
+    result,
+    STRIKETHROUGH_PATTERN,
+    /~~/g,
+    '~~',
+  );
 
   return result;
 }
@@ -195,9 +220,10 @@ const components: Options['components'] = {
       {children}
     </span>
   ),
-  a: ({ node, children, className, ...props }) => (
+  a: ({ node, children, className, href, ...props }) => (
     <a
       className={cn('font-medium text-primary underline', className)}
+      href={href || '#'}
       rel="noreferrer"
       target="_blank"
       {...props}
@@ -267,7 +293,14 @@ const components: Options['components'] = {
         code={(children.props as { children: string }).children}
         language={language}
       >
-        <CodeBlockCopyButton onCopy={() => {}} onError={() => {}} />
+        <CodeBlockCopyButton
+          onCopy={() => {
+            // Copy success feedback handled by the button component
+          }}
+          onError={(_error) => {
+            // Error handling performed by the button component
+          }}
+        />
       </CodeBlock>
     );
   },

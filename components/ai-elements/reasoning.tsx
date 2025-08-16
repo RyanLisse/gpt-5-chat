@@ -13,6 +13,10 @@ import { cn } from '@/lib/utils';
 import { TextShimmerLoader } from '../ui/loader';
 import { Response } from './response';
 
+// Constants
+const AUTO_CLOSE_DELAY_MS = 1000;
+const MILLISECONDS_TO_SECONDS = 1000;
+
 type ReasoningContextValue = {
   isStreaming: boolean;
   isOpen: boolean;
@@ -69,7 +73,9 @@ export const Reasoning = memo(
           setStartTime(Date.now());
         }
       } else if (startTime !== null) {
-        setDuration(Math.round((Date.now() - startTime) / 1000));
+        setDuration(
+          Math.round((Date.now() - startTime) / MILLISECONDS_TO_SECONDS),
+        );
         setStartTime(null);
       }
     }, [isStreaming, startTime, setDuration]);
@@ -83,13 +89,13 @@ export const Reasoning = memo(
         const timer = setTimeout(() => {
           setIsOpen(false);
           setHasAutoClosedRef(true);
-        }, 1000);
+        }, AUTO_CLOSE_DELAY_MS);
         return () => clearTimeout(timer);
       }
     }, [isStreaming, isOpen, defaultOpen, setIsOpen, hasAutoClosedRef]);
 
-    const handleOpenChange = (open: boolean) => {
-      setIsOpen(open);
+    const handleOpenChange = (openState: boolean) => {
+      setIsOpen(openState);
     };
 
     return (
@@ -122,7 +128,7 @@ export const ReasoningTrigger = memo(
     children,
     ...props
   }: ReasoningTriggerProps) => {
-    const { isStreaming, isOpen, duration } = useReasoning();
+    const { isStreaming, isOpen } = useReasoning();
 
     return (
       <CollapsibleTrigger

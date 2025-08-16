@@ -513,12 +513,12 @@ export function useSaveMessageMutation() {
     },
     onSuccess: (_data, { message, chatId }, { previousMessages }) => {
       if (isAuthenticated) {
-        // Update credits
-        if (message.role === 'assistant') {
-          queryClient.invalidateQueries({
-            queryKey: trpc.credits.getAvailableCredits.queryKey(),
-          });
-        }
+        // Credits functionality was removed - no invalidation needed
+        // if (message.role === 'assistant') {
+        //   queryClient.invalidateQueries({
+        //     queryKey: trpc.credits.getAvailableCredits.queryKey(),
+        //   });
+        // }
       } else {
         // Check if this this the fist message in the cache
         const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
@@ -763,7 +763,6 @@ export function useGetChatById(chatId: string) {
         queryKey: trpc.chat.getChatById.queryKey({ chatId }),
         queryFn: async (): Promise<UIChat> => {
           const chat = await loadAnonymousChatById(chatId);
-          // TODO: Change for trpc error
           if (!chat) {
             throw new Error('Chat not found');
           }
@@ -786,34 +785,4 @@ export function useGetChatById(chatId: string) {
   return useQuery(getChatByIdQueryOptions);
 }
 
-export function useGetCredits() {
-  const { data: session } = useSession();
-  const isAuthenticated = Boolean(session?.user);
-  const trpc = useTRPC();
-
-  const queryOptions = useMemo(() => {
-    if (isAuthenticated) {
-      return trpc.credits.getAvailableCredits.queryOptions();
-    } else {
-      return {
-        queryKey: trpc.credits.getAvailableCredits.queryKey(),
-        queryFn: async () => {
-          const anonymousSession = getAnonymousSession();
-          return {
-            totalCredits: anonymousSession?.remainingCredits ?? 0,
-            availableCredits: anonymousSession?.remainingCredits ?? 0,
-            reservedCredits: 0,
-          };
-        },
-      };
-    }
-  }, [isAuthenticated, trpc.credits.getAvailableCredits]);
-
-  const { data: creditsData, isLoading: isLoadingCredits } =
-    useQuery(queryOptions);
-
-  return {
-    credits: creditsData?.totalCredits,
-    isLoadingCredits,
-  };
-}
+// Credits removed

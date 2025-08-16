@@ -3,7 +3,7 @@
 import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 
 export const DocumentSkeleton = ({
-  artifactKind,
+  artifactKind: _artifactKind,
 }: {
   artifactKind: ArtifactKind;
 }) => {

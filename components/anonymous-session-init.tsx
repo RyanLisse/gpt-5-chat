@@ -16,7 +16,6 @@ function isValidAnonymousSession(obj: any): obj is AnonymousSession {
     obj &&
     typeof obj === 'object' &&
     typeof obj.id === 'string' &&
-    typeof obj.remainingCredits === 'number' &&
     (obj.createdAt instanceof Date || typeof obj.createdAt === 'string')
   );
 }

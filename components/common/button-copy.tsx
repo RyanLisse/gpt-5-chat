@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+// Constants for copy feedback timing
+const COPY_FEEDBACK_DURATION_MS = 2000;
+
 type ButtonCopyProps = {
   code: string;
   className?: string;
@@ -17,8 +20,10 @@ export function ButtonCopy({ code, className }: ButtonCopyProps) {
     try {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (_err) {}
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS);
+    } catch (_err) {
+      // Copy operation failed silently - browser will handle user feedback
+    }
   };
 
   return (

@@ -36,7 +36,9 @@ type SearchBody = {
 // Helper functions moved to @/lib/vectorstore/search-utils to avoid Next.js route export conflicts
 
 // Validation helper functions
-function validateVectorstoreId(vectorstoreId?: string): 
+function validateVectorstoreId(
+  vectorstoreId?: string,
+):
   | { isValid: false; error: string }
   | { isValid: true; vectorstoreId: string } {
   if (
@@ -53,9 +55,9 @@ function validateVectorstoreId(vectorstoreId?: string):
   return { isValid: true, vectorstoreId };
 }
 
-function validateQuery(query?: string): 
-  | { isValid: false; error: string }
-  | { isValid: true; query: string } {
+function validateQuery(
+  query?: string,
+): { isValid: false; error: string } | { isValid: true; query: string } {
   if (
     !query ||
     typeof query !== 'string' ||

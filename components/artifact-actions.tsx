@@ -18,6 +18,53 @@ type ArtifactActionsProps = {
   isReadonly: boolean;
 };
 
+// Helper functions to reduce complexity
+function isActionDisabled(
+  action: any,
+  actionContext: ArtifactActionContext,
+  isLoading: boolean,
+  artifact: UIArtifact,
+): boolean {
+  if (isLoading || artifact.status === 'streaming') {
+    return true;
+  }
+
+  if (action.isDisabled) {
+    return action.isDisabled(actionContext);
+  }
+
+  return false;
+}
+
+function shouldShowAction(action: any, isReadonly: boolean): boolean {
+  // Hide editing actions when readonly, keep view/copy actions
+  if (isReadonly) {
+    return (
+      action.description === 'View changes' ||
+      action.description === 'View Previous version' ||
+      action.description === 'View Next version' ||
+      action.description === 'Copy to clipboard'
+    );
+  }
+  return true;
+}
+
+async function handleActionClick(
+  action: any,
+  actionContext: ArtifactActionContext,
+  setIsLoading: (loading: boolean) => void,
+): Promise<void> {
+  setIsLoading(true);
+
+  try {
+    await Promise.resolve(action.onClick(actionContext));
+  } catch (_error) {
+    toast.error('Failed to execute action');
+  } finally {
+    setIsLoading(false);
+  }
+}
+
 function PureArtifactActions({
   artifact,
   handleVersionChange,
@@ -49,89 +96,62 @@ function PureArtifactActions({
     isReadonly,
   };
 
+  const filteredActions = artifactDefinition.actions.filter((action) =>
+    shouldShowAction(action, isReadonly),
+  );
+
   return (
     <div className="flex flex-row gap-1">
-      {artifactDefinition.actions
-        .filter((action) => {
-          // Hide editing actions when readonly, keep view/copy actions
-          if (isReadonly) {
-            return (
-              action.description === 'View changes' ||
-              action.description === 'View Previous version' ||
-              action.description === 'View Next version' ||
-              action.description === 'Copy to clipboard'
-            );
-          }
-          return true;
-        })
-        .map((action) => (
-          <Tooltip key={action.description}>
-            <TooltipTrigger asChild>
-              {action.description === 'View changes' ? (
-                <div>
-                  <Toggle
-                    className={cn('h-fit', {
-                      'p-2': !action.label,
-                      'px-2 py-1.5': action.label,
-                    })}
-                    disabled={
-                      isLoading || artifact.status === 'streaming'
-                        ? true
-                        : action.isDisabled
-                          ? action.isDisabled(actionContext)
-                          : false
-                    }
-                    onClick={async () => {
-                      setIsLoading(true);
-
-                      try {
-                        await Promise.resolve(action.onClick(actionContext));
-                      } catch (_error) {
-                        toast.error('Failed to execute action');
-                      } finally {
-                        setIsLoading(false);
-                      }
-                    }}
-                    pressed={mode === 'diff'}
-                  >
-                    {action.icon}
-                    {action.label}
-                  </Toggle>
-                </div>
-              ) : (
-                <Button
-                  className={cn('h-fit dark:hover:bg-zinc-700', {
+      {filteredActions.map((action) => (
+        <Tooltip key={action.description}>
+          <TooltipTrigger asChild>
+            {action.description === 'View changes' ? (
+              <div>
+                <Toggle
+                  className={cn('h-fit', {
                     'p-2': !action.label,
                     'px-2 py-1.5': action.label,
                   })}
-                  disabled={
-                    isLoading || artifact.status === 'streaming'
-                      ? true
-                      : action.isDisabled
-                        ? action.isDisabled(actionContext)
-                        : false
+                  disabled={isActionDisabled(
+                    action,
+                    actionContext,
+                    isLoading,
+                    artifact,
+                  )}
+                  onClick={() =>
+                    handleActionClick(action, actionContext, setIsLoading)
                   }
-                  onClick={async () => {
-                    setIsLoading(true);
-
-                    try {
-                      await Promise.resolve(action.onClick(actionContext));
-                    } catch (_error) {
-                      toast.error('Failed to execute action');
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
-                  variant="outline"
+                  pressed={mode === 'diff'}
                 >
                   {action.icon}
                   {action.label}
-                </Button>
-              )}
-            </TooltipTrigger>
-            <TooltipContent>{action.description}</TooltipContent>
-          </Tooltip>
-        ))}
+                </Toggle>
+              </div>
+            ) : (
+              <Button
+                className={cn('h-fit dark:hover:bg-zinc-700', {
+                  'p-2': !action.label,
+                  'px-2 py-1.5': action.label,
+                })}
+                disabled={isActionDisabled(
+                  action,
+                  actionContext,
+                  isLoading,
+                  artifact,
+                )}
+                onClick={() =>
+                  handleActionClick(action, actionContext, setIsLoading)
+                }
+                variant="outline"
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            )}
+          </TooltipTrigger>
+          <TooltipContent>{action.description}</TooltipContent>
+        </Tooltip>
+      ))}
     </div>
   );
 }

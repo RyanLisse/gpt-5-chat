@@ -34,7 +34,7 @@ export function useScrollToBottom<T extends HTMLElement>(): [
         let shouldScroll = false;
 
         if (currentMessageCount > 0) {
-          const lastMessage = messages[messages.length - 1];
+          const lastMessage = messages[messages.length - 1] as Element | undefined;
           const lastMessageContent = lastMessage?.textContent || '';
 
           // Determine if we should scroll based on:

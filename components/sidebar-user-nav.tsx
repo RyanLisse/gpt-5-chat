@@ -1,5 +1,4 @@
 'use client';
-import { Coins } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -17,11 +16,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useGetCredits } from '@/hooks/chat-sync-hooks';
+// Credits removed
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
-  const { credits } = useGetCredits();
 
   return (
     <SidebarMenu>
@@ -43,13 +41,7 @@ export function SidebarUserNav({ user }: { user: User }) {
               <span className="font-medium">{user.email}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
-              <div className="flex items-center text-muted-foreground">
-                <Coins className="mr-1 h-4 w-4" />
-                <span>Credits: {credits ?? 'Loading...'}</span>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+
             <DropdownMenuItem
               className="cursor-pointer"
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
