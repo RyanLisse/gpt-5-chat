@@ -43,7 +43,7 @@ export function PartRenderer({
       <MessageReasoning
         isLoading={isLoading && isLastGroup}
         key={key}
-        reasoning={group.parts.map((p) => p.text)}
+        reasoning={group.parts.map((p) => p.text || '')}
       />
     );
   }
@@ -55,7 +55,7 @@ export function PartRenderer({
   if (type === 'text') {
     return (
       <div className="flex w-full flex-col gap-4" key={key}>
-        <Response>{part.text}</Response>
+        <Response>{part.text || ''}</Response>
       </div>
     );
   }

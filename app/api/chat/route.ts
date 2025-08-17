@@ -435,7 +435,7 @@ async function createAIResponse(
   );
 
   const selectedOrDefaultModel = (selectedModelId ??
-    'openai/gpt-5-mini') as ModelId;
+    'openai/gpt-4o-mini') as ModelId;
   const { inputs, textInput } = buildMultimodalInputs(contextForLLM);
 
   const client = createResponsesClient({
@@ -977,18 +977,31 @@ function createErrorResponse(error: unknown): Response {
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    // Simplified guest-friendly implementation
+    // Handle both standard AI SDK format and custom message format
     const body = await request.json();
-    const { message } = body;
-
-    // Basic validation
-    if (!message?.parts?.[0]?.text) {
-      return new Response('Invalid message format', { status: 400 });
+    
+    let userText: string;
+    let selectedModel: string;
+    
+    // Check for standard AI SDK format (messages array)
+    if (body.messages && Array.isArray(body.messages)) {
+      const lastMessage = body.messages[body.messages.length - 1];
+      if (lastMessage?.role === 'user' && typeof lastMessage.content === 'string') {
+        userText = lastMessage.content;
+        selectedModel = body.model || 'openai/gpt-4o-mini';
+      } else {
+        return new Response('Invalid message format: no user message found', { status: 400 });
+      }
     }
-
-    const userText = message.parts[0].text;
-    const selectedModel =
-      message.metadata?.selectedModel || 'openai/gpt-4o-mini';
+    // Check for custom format (message.parts)
+    else if (body.message?.parts?.[0]?.text) {
+      userText = body.message.parts[0].text;
+      selectedModel = body.message.metadata?.selectedModel || 'openai/gpt-4o-mini';
+    }
+    // Invalid format
+    else {
+      return new Response('Invalid message format: expected messages array or message.parts', { status: 400 });
+    }
 
     // Check rate limiting for guest users (simplified for now)
     // In production, this should use Redis or a proper rate limiting service
