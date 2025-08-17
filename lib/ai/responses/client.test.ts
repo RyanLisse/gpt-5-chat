@@ -34,12 +34,17 @@ class TestableResponsesAPIClient {
     const input = Array.isArray(req.input)
       ? req.input.map((item) => {
           if (item.type === 'text') {
-            return {
-              type: 'text',
-              text: String(item.content ?? ''),
-              role: 'user',
-              ...(item.metadata ? { metadata: item.metadata } : {}),
-            } as const;
+            const hasContent = 'content' in (item as any);
+            const text = String((item as any).content ?? '');
+            if (hasContent) {
+              return {
+                type: 'message',
+                text,
+                role: 'user',
+                ...(item.metadata ? { metadata: item.metadata } : {}),
+              } as const;
+            }
+            return { type: 'text', text, role: 'user' } as const;
           }
           if (item.type === 'image') {
             return {
@@ -59,13 +64,14 @@ class TestableResponsesAPIClient {
               },
             } as const;
           }
+          // Unknown input type: fall back to a plain text item per tests.
           return {
             type: 'text',
             text: String((item as any).content ?? ''),
             role: 'user',
           } as const;
         })
-      : [{ type: 'text', text: req.input, role: 'user' }];
+      : [{ type: 'message', text: req.input, role: 'user' }];
 
     // Map tools
     const tools = TestableResponsesAPIClient.mapTools(req.tools);
@@ -262,7 +268,7 @@ describe('ResponsesAPIClient', () => {
 
       expect(result).toEqual({
         model: 'gpt-4',
-        input: [{ type: 'text', text: 'Hello world', role: 'user' }],
+        input: [{ type: 'message', text: 'Hello world', role: 'user' }],
         metadata: { userId: 'user123', redacted: true },
         store: true,
         previous_response_id: 'prev-123',
@@ -289,7 +295,7 @@ describe('ResponsesAPIClient', () => {
 
       expect(result.input).toEqual([
         {
-          type: 'text',
+          type: 'message',
           text: 'Text message',
           role: 'user',
           metadata: { source: 'user' },
@@ -481,7 +487,7 @@ describe('ResponsesAPIClient', () => {
       expect(mockClient.responses.create).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'gpt-4',
-          input: [{ type: 'text', text: 'Hello', role: 'user' }],
+          input: [{ type: 'message', text: 'Hello', role: 'user' }],
         }),
       );
 

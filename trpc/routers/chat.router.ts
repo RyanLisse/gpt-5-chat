@@ -58,7 +58,7 @@ export const chatRouter = createTRPCRouter({
     return chats.map(dbChatToUIChat);
   }),
 
-  getChatById: protectedProcedure
+  getChatById: publicProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),
@@ -67,7 +67,7 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const chat = await getChatById({ id: input.chatId });
 
-      if (!chat || chat.userId !== ctx.user.id) {
+      if (!chat || chat.userId !== ctx.viewerId) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Chat not found',
@@ -77,7 +77,7 @@ export const chatRouter = createTRPCRouter({
       return dbChatToUIChat(chat);
     }),
 
-  getChatMessages: protectedProcedure
+  getChatMessages: publicProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),
@@ -86,7 +86,7 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Verify the chat belongs to the user
       const chat = await getChatById({ id: input.chatId });
-      if (!chat || chat.userId !== ctx.user.id) {
+      if (!chat || chat.userId !== ctx.viewerId) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Chat not found',

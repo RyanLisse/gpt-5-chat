@@ -77,14 +77,14 @@ async function connectWithRetry(): Promise<postgres.Sql> {
     connectionState = 'connected';
     retryCount = 0;
     return testClient;
-  } catch (_error) {
+  } catch (error) {
     retryCount++;
 
     if (retryCount >= MAX_RETRIES) {
-      connectionState = 'degraded';
-
-      // Return a mock client for graceful degradation
-      return createMockClient();
+      connectionState = 'failed';
+      throw new Error(
+        `Failed to connect to database after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
 
     // Exponential backoff retry
@@ -95,82 +95,7 @@ async function connectWithRetry(): Promise<postgres.Sql> {
   }
 }
 
-function createMockClient(): postgres.Sql {
-  // Create a proper mock structure that matches postgres.Sql interface
-  const mockClient = {
-    // Required options structure for Drizzle compatibility
-    options: {
-      parsers: {} as Record<number, (value: any) => unknown>,
-      serializers: {} as Record<number, (value: any) => unknown>,
-    },
-
-    // Mock method implementations
-    unsafe: () => Promise.resolve([]),
-    begin: () => Promise.resolve(null),
-    file: () => Promise.resolve([]),
-    end: () => Promise.resolve(),
-
-    // Additional properties that may be accessed
-    parameters: {},
-    types: {},
-    typed: () => ({}),
-    PostgresError: Error,
-    CLOSE: {},
-    END: {},
-
-    // Array method for postgres arrays
-    array: () => ({}),
-    json: () => ({}),
-
-    // Listen/notify methods
-    listen: () => ({}),
-    notify: () => Promise.resolve(),
-
-    // Subscribe method
-    subscribe: () => Promise.resolve({}),
-
-    // Large object support
-    largeObject: () => Promise.resolve({}),
-
-    // Reserve method
-    reserve: () => Promise.resolve({}),
-  };
-
-  const mockHandler = {
-    get: (target: any, prop: string) => {
-      // Return existing properties from the mock structure
-      if (prop in target) {
-        return target[prop];
-      }
-
-      // Handle template literal calls (the main postgres query interface)
-      if (typeof prop === 'string' && !prop.startsWith('_')) {
-        return (..._args: any[]) => {
-          // Return mock responses for common operations
-          if (
-            prop === 'select' ||
-            prop === 'insert' ||
-            prop === 'update' ||
-            prop === 'delete'
-          ) {
-            return Promise.resolve([]);
-          }
-
-          return Promise.resolve(null);
-        };
-      }
-
-      return target[prop];
-    },
-
-    // Handle template literal calls (when used as tagged template)
-    apply: (_target: any, _thisArg: any, _argumentsList: any[]) => {
-      return Promise.resolve([]);
-    },
-  };
-
-  return new Proxy(mockClient, mockHandler) as postgres.Sql;
-}
+// Mock client removed - using real database only
 
 // Initialize connection promise for lazy loading
 let clientPromise: Promise<postgres.Sql> | null = null;
@@ -180,37 +105,58 @@ function _initializeClient(): Promise<postgres.Sql> {
     return clientPromise;
   }
 
-  if (process.env.POSTGRES_URL) {
-    clientPromise = connectWithRetry();
-  } else {
-    connectionState = 'failed';
-    clientPromise = Promise.resolve(createMockClient());
+  if (!process.env.POSTGRES_URL) {
+    throw new Error(
+      'POSTGRES_URL environment variable is required. Please set it in .env.local',
+    );
   }
+
+  clientPromise = connectWithRetry();
 
   return clientPromise;
 }
 
-// Initialize client synchronously for immediate use
-client = process.env.POSTGRES_URL
-  ? postgres(process.env.POSTGRES_URL, {
-      max: 30,
-      idle_timeout: 10,
-      connect_timeout: 3,
-      connection: {
-        application_name: 'gpt-5-chat',
-        statement_timeout: 5000,
-        idle_in_transaction_session_timeout: 5000,
-      },
-      prepare: true,
-      ssl: process.env.POSTGRES_URL.includes('sslmode=require')
-        ? ('require' as const)
-        : false,
-      types: { bigint: postgres.BigInt },
-      onnotice: () => {},
-      onparameter: () => {},
-      transform: postgres.camel,
-    })
-  : createMockClient();
+// Initialize client with real database connection - NO MOCKS
+function createClient(): postgres.Sql {
+  if (!process.env.POSTGRES_URL) {
+    throw new Error(
+      'POSTGRES_URL environment variable is required. Please set it in .env.local',
+    );
+  }
+
+  return postgres(process.env.POSTGRES_URL, {
+    max: 30,
+    idle_timeout: 10,
+    connect_timeout: 10, // Increased timeout for reliability
+    connection: {
+      application_name: 'gpt-5-chat',
+      statement_timeout: 10000, // Increased to 10 seconds
+      idle_in_transaction_session_timeout: 10000,
+    },
+    prepare: true,
+    ssl: process.env.POSTGRES_URL.includes('sslmode=require')
+      ? ('require' as const)
+      : false,
+    types: { bigint: postgres.BigInt },
+    onnotice: () => {},
+    onparameter: () => {},
+    transform: postgres.camel,
+  });
+}
+
+// Initialize client - defer error if no POSTGRES_URL for testing
+try {
+  client = createClient();
+} catch (_error) {
+  // For testing purposes, create a mock client that throws when used
+  client = new Proxy({} as postgres.Sql, {
+    get() {
+      throw new Error(
+        'POSTGRES_URL environment variable is required. Please set it in .env.local',
+      );
+    },
+  });
+}
 
 // Health check function for monitoring
 export async function checkDatabaseHealth(): Promise<{
@@ -249,7 +195,22 @@ export async function closeDatabaseConnection(): Promise<void> {
   } catch (_error) {}
 }
 
-export const db = drizzle(client);
+// Export db with fallback for testing
+let dbInstance: ReturnType<typeof drizzle>;
+try {
+  dbInstance = drizzle(client);
+} catch (_error) {
+  // For testing purposes, create a mock db that throws when used
+  dbInstance = new Proxy({} as ReturnType<typeof drizzle>, {
+    get() {
+      throw new Error(
+        'POSTGRES_URL environment variable is required. Please set it in .env.local',
+      );
+    },
+  });
+}
+
+export const db = dbInstance;
 
 // Connection state getter for monitoring
 export function getDatabaseConnectionState() {

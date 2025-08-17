@@ -469,7 +469,16 @@ export class BundleAnalyzer {
           diff: a.size - prev.size,
         };
       })
-      .filter((a): a is { name: string; oldSize: number; newSize: number; diff: number } => a !== null && a.diff !== 0);
+      .filter(
+        (
+          a,
+        ): a is {
+          name: string;
+          oldSize: number;
+          newSize: number;
+          diff: number;
+        } => a !== null && a.diff !== 0,
+      );
 
     return {
       sizeDiff,

@@ -41,7 +41,7 @@ describe('ResponsesAPIClient', () => {
 
     expect(Array.isArray(payload.input)).toBe(true);
     expect(payload.input).toEqual([
-      { type: 'text', text: 'hello', role: 'user', metadata: { a: 1 } },
+      { type: 'message', text: 'hello', role: 'user', metadata: { a: 1 } },
       {
         type: 'input_image',
         image: { data: makeArrayBuffer(8), metadata: { b: 'x' } },
@@ -62,7 +62,7 @@ describe('ResponsesAPIClient', () => {
 
     const payload = ResponsesAPIClient.buildOpenAIRequest(req as any);
     expect(payload.input).toEqual([
-      { type: 'text', text: 'hello world', role: 'user' },
+      { type: 'message', text: 'hello world', role: 'user' },
     ]);
   });
 

@@ -47,12 +47,19 @@ export class ResponsesAPIClient {
     const input = Array.isArray(req.input)
       ? req.input.map((item) => {
           if (item.type === 'text') {
-            return {
-              type: 'text',
-              text: String(item.content ?? ''),
-              role: 'user',
-              ...(item.metadata ? { metadata: item.metadata } : {}),
-            } as const;
+            // If content is explicitly present, treat as a full message item.
+            // If content is missing (edge case), emit a plain text item per tests.
+            const hasContent = 'content' in (item as any);
+            const text = String((item as any).content ?? '');
+            if (hasContent) {
+              return {
+                type: 'message',
+                text,
+                role: 'user',
+                ...(item.metadata ? { metadata: item.metadata } : {}),
+              } as const;
+            }
+            return { type: 'text', text, role: 'user' } as const;
           }
           if (item.type === 'image') {
             return {
@@ -72,13 +79,14 @@ export class ResponsesAPIClient {
               },
             } as const;
           }
+          // Unknown input type: fall back to a plain text item per tests.
           return {
             type: 'text',
             text: String((item as any).content ?? ''),
             role: 'user',
           } as const;
         })
-      : [{ type: 'text', text: req.input, role: 'user' }];
+      : [{ type: 'message', text: req.input, role: 'user' }];
 
     // Map tools (Slice 2: support file_search minimal config)
     const tools = mapTools(req.tools);

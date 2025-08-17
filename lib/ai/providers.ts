@@ -16,6 +16,14 @@ const _telemetryConfig = {
 
 export const getLanguageModel = (modelId: ModelId) => {
   const model = getModelDefinition(modelId);
+  const { model: modelIdShort } = getModelAndProvider(modelId);
+
+  // Use direct provider instead of gateway for debugging
+  if (model.owned_by === 'openai') {
+    return openai(modelIdShort);
+  }
+
+  // Fallback to gateway for other providers
   const languageProvider = gateway(model.id);
 
   // Wrap with reasoning middleware if the model supports reasoning

@@ -17,10 +17,18 @@ export default defineConfig({
       'e2e/**',
       'lib/ai/text-splitter.test.ts',
       'tests/performance/**', // Exclude performance tests for faster CI
+      'tests/**/*.perf.test.ts', // Exclude .perf.test.ts files specifically
+      'tests/**/*.bench.test.ts', // Exclude .bench.test.ts files specifically
+      'tests/**/*.load.test.ts', // Exclude .load.test.ts files specifically
     ],
     include: [
-      '**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
-      'tests/**/!(*.e2e|*.perf|*.performance).test.ts', // Include unit/integration tests from tests dir
+      'lib/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'components/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'app/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'hooks/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'providers/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'trpc/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'tests/**/!(*.e2e|*.perf|*.performance|*.bench|*.load).test.ts', // Include unit/integration tests from tests dir
     ],
 
     // Performance optimizations for fast execution

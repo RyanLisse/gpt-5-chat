@@ -37,8 +37,6 @@ function PureMultimodalInput({
 
   const {
     editorRef,
-    selectedTool,
-    setSelectedTool,
     attachments,
     setAttachments,
     selectedModelId,
@@ -69,7 +67,7 @@ function PureMultimodalInput({
     chatId,
     attachments,
     selectedModelId,
-    selectedTool,
+    selectedTool: null,
     isEditMode,
     parentMessageId,
     getInputValue,
@@ -135,8 +133,6 @@ function PureMultimodalInput({
         onStop={stop}
         onSubmit={submitForm}
         selectedModelId={selectedModelId}
-        selectedTool={selectedTool}
-        setSelectedTool={setSelectedTool as any}
         status={status}
         uploadQueue={uploadQueue}
       />

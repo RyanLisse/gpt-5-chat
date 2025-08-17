@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+// Import InMemoryPersistenceProvider directly without mocking dependencies
+// It doesn't require database mocking since it's an in-memory implementation
 import { InMemoryPersistenceProvider } from './persistence';
 import type { ConversationState, IPersistenceProvider } from './types';
 

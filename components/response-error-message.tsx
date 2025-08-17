@@ -1,5 +1,4 @@
 import { RefreshCcwIcon } from 'lucide-react';
-import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
 import { Button } from './ui/button';
 
 type ErrorMessageProps = {
@@ -7,8 +6,6 @@ type ErrorMessageProps = {
 };
 
 export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
-  const setMessages = useSetMessages();
-
   return (
     <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-xs md:max-w-2xl">
       <div className="flex items-center gap-2">
@@ -27,11 +24,9 @@ export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
       <Button
         className=" "
         onClick={async () => {
-          // Remove last message from assistant if exists
-          const messagesWithoutLastAssistant = chatStore
-            .getState()
-            .messages.slice(0, -1);
-          setMessages(messagesWithoutLastAssistant);
+          // Do not mutate messages manually; let the chat SDK handle regeneration
+          // Removing the last assistant message before regenerate causes
+          // AbstractChat.regenerate to fail with "message undefined not found".
           regenerate();
         }}
         variant="outline"

@@ -11,7 +11,10 @@ export function Favicon({
   url: string;
   className?: string;
   alt?: string;
-} & Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src' | 'width' | 'height'>) {
+} & Omit<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  'src' | 'width' | 'height'
+>) {
   return (
     <Image
       className={cn('h-4 w-4', className)}

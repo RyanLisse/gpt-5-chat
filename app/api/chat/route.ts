@@ -47,6 +47,7 @@ const HTTP_STATUS = {
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   RATE_LIMITED: 429,
+  INTERNAL_SERVER_ERROR: 500,
 } as const;
 
 // Create shared Redis clients for resumable stream and cleanup
@@ -404,7 +405,12 @@ async function prepareMessageContext(
         userMessage.metadata.parentMessageId,
       );
 
-  const messages = [...messageThreadToParent, userMessage].slice(
+  // Ensure messageThreadToParent is always an array
+  const safeMessageThread = Array.isArray(messageThreadToParent)
+    ? messageThreadToParent
+    : [];
+
+  const messages = [...safeMessageThread, userMessage].slice(
     -MAX_RECENT_MESSAGES,
   );
 
@@ -871,178 +877,45 @@ const RANDOM_ID_LENGTH = 9;
 const BASE_36 = 36;
 const MAX_TOKENS = 1000;
 const DEFAULT_TEMPERATURE = 0.7;
-const DEFAULT_MODEL = 'gpt-4o-mini';
 
-function validateOpenAIConfiguration(): string {
-  const openaiApiKey = process.env.OPENAI_API_KEY;
-  if (!openaiApiKey) {
-    throw new Error('OpenAI API key not configured');
-  }
-  return openaiApiKey;
-}
+// Unused functions removed - they were only used by the duplicate POST handler
 
-function buildOpenAIRequest(userText: string, selectedModel: string) {
-  return {
-    model: selectedModel.replace('openai/', '') || DEFAULT_MODEL,
-    messages: [{ role: 'user', content: userText }],
-    max_tokens: MAX_TOKENS,
-    temperature: DEFAULT_TEMPERATURE,
-    stream: false,
-  };
-}
-
-function generateResponseId(): string {
-  return `response-${Date.now()}-${Math.random()
-    .toString(BASE_36)
-    .substring(RANDOM_ID_START, RANDOM_ID_START + RANDOM_ID_LENGTH)}`;
-}
-
-async function fetchOpenAIResponse(
-  apiKey: string,
-  requestBody: any,
-): Promise<string> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  return data.choices[0]?.message?.content || 'No response generated';
-}
-
-function writeResponseToStream(
-  writer: any,
-  aiResponse: string,
-  responseId: string,
-) {
-  writer.write({
-    type: 'text-delta',
-    delta: aiResponse,
-    id: 'text-1',
-  });
-
-  writer.write({
-    type: 'data-responseId',
-    id: `responseId-${responseId}`,
-    data: { responseId },
-  });
-
-  writer.write({
-    type: 'data-responses',
-    id: `responses-${responseId}`,
-    data: { responseId },
-  });
-}
-
-function writeErrorToStream(writer: any) {
-  writer.write({
-    type: 'text-delta',
-    delta: 'Sorry, I encountered an error while processing your request.',
-    id: 'error-1',
-  });
-}
-
-async function callOpenAIAndWriteResponse(
-  writer: any,
-  userText: string,
-  selectedModel: string,
-) {
-  try {
-    const apiKey = validateOpenAIConfiguration();
-    const requestBody = buildOpenAIRequest(userText, selectedModel);
-    const aiResponse = await fetchOpenAIResponse(apiKey, requestBody);
-    const responseId = generateResponseId();
-
-    writeResponseToStream(writer, aiResponse, responseId);
-  } catch {
-    writeErrorToStream(writer);
-  }
-}
-
-function createErrorResponse(error: unknown): Response {
-  const message = error instanceof Error ? error.message : 'Unknown error';
-  return new Response(`An error occurred: ${message}`, {
-    status: HTTP_STATUS.BAD_REQUEST,
-  });
-}
-
+// Main POST handler for chat API
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    // Handle both standard AI SDK format and custom message format
-    const body = await request.json();
-    
-    let userText: string;
-    let selectedModel: string;
-    
-    // Check for standard AI SDK format (messages array)
-    if (body.messages && Array.isArray(body.messages)) {
-      const lastMessage = body.messages[body.messages.length - 1];
-      if (lastMessage?.role === 'user' && typeof lastMessage.content === 'string') {
-        userText = lastMessage.content;
-        selectedModel = body.model || 'openai/gpt-4o-mini';
-      } else {
-        return new Response('Invalid message format: no user message found', { status: 400 });
-      }
-    }
-    // Check for custom format (message.parts)
-    else if (body.message?.parts?.[0]?.text) {
-      userText = body.message.parts[0].text;
-      selectedModel = body.message.metadata?.selectedModel || 'openai/gpt-4o-mini';
-    }
-    // Invalid format
-    else {
-      return new Response('Invalid message format: expected messages array or message.parts', { status: 400 });
+    const result = await _processRequest(request);
+
+    if (!result.success) {
+      return (
+        result.error ||
+        new Response('Request processing failed', {
+          status: HTTP_STATUS.BAD_REQUEST,
+        })
+      );
     }
 
-    // Check rate limiting for guest users (simplified for now)
-    // In production, this should use Redis or a proper rate limiting service
-    const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
-    const rateLimitResult = {
-      success: true,
-      headers: {
-        'X-RateLimit-Limit': '100',
-        'X-RateLimit-Remaining': '99',
-        'X-RateLimit-Reset': String(Date.now() + RATE_LIMIT_WINDOW_MS),
-      },
-    };
+    if (!result.data) {
+      return new Response('Invalid request data', {
+        status: HTTP_STATUS.BAD_REQUEST,
+      });
+    }
 
-    // Use AI SDK v5 with direct OpenAI API call
-    const { createUIMessageStream, createUIMessageStreamResponse } =
-      await import('ai');
+    const modelDefinition = getModelDefinition(result.data.selectedModelId);
 
-    const stream = createUIMessageStream({
-      execute: async ({ writer }) => {
-        await callOpenAIAndWriteResponse(writer, userText, selectedModel);
-      },
+    return await _processAIAndFinalize({
+      chatId: result.data.chatId,
+      userMessage: result.data.userMessage,
+      anonymousPreviousMessages: result.data.anonymousPreviousMessages,
+      isAnonymous: result.data.isAnonymous,
+      userId: result.data.userId,
+      selectedModelId: result.data.selectedModelId,
+      modelDefinition,
     });
-
-    const response = createUIMessageStreamResponse({ stream });
-
-    // Add rate limit headers
-    if (rateLimitResult.headers) {
-      const newHeaders = new Headers(response.headers);
-      Object.entries(rateLimitResult.headers).forEach(([key, value]) => {
-        newHeaders.set(key, value);
-      });
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: newHeaders,
-      });
-    }
-
-    return response;
   } catch (error) {
-    return createErrorResponse(error);
+    console.error('Chat API error:', error);
+    return new Response('Internal server error', {
+      status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    });
   }
 }
 

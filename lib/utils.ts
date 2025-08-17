@@ -23,8 +23,28 @@ export async function fetchWithErrorHandlers(
     const response = await fetch(input, init);
 
     if (!response.ok) {
-      const { code, cause } = await response.json();
-      throw new ChatSDKError(code as ErrorCode, cause);
+      // Check if this is a streaming response (for chat API)
+      const contentType = response.headers.get('content-type');
+      if (
+        contentType?.includes('text/event-stream') ||
+        contentType?.includes('text/plain')
+      ) {
+        // For streaming responses, don't try to parse as JSON
+        // Let the AI SDK handle the streaming response
+        return response;
+      }
+
+      // For non-streaming responses, parse as JSON for error details
+      try {
+        const { code, cause } = await response.json();
+        throw new ChatSDKError(code as ErrorCode, cause);
+      } catch {
+        // If JSON parsing fails, throw a generic error
+        throw new ChatSDKError(
+          'bad_request:chat',
+          `HTTP ${response.status}: ${response.statusText}`,
+        );
+      }
     }
 
     return response;

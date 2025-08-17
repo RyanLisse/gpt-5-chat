@@ -6,7 +6,6 @@ import { useWindowSize } from 'usehooks-ts';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { Attachment, ChatMessage } from '@/lib/ai/types';
 import { AttachmentList } from '../attachment-list';
-import { ResponsiveTools } from '../chat-tools';
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from '../icons';
 import { ModelSelectorLazy as ModelSelector } from '../lazy/model-selector-lazy';
 import { Button } from '../ui/button';
@@ -23,7 +22,6 @@ type ChatInputAreaProps = {
   attachments: Attachment[];
   uploadQueue: string[];
   selectedModelId: ModelId;
-  selectedTool: string | null;
   status: UseChatHelpers<ChatMessage>['status'];
   isEmpty: boolean;
   fileInputRef: React.RefObject<HTMLInputElement>;
@@ -31,7 +29,6 @@ type ChatInputAreaProps = {
   getInitialInput: () => string;
   handleInputChange: (value: string) => void;
   handleModelChange: (modelId: ModelId) => void;
-  setSelectedTool: (tool: string | null) => void;
   onImageClick: (imageUrl: string, imageName?: string) => void;
   onRemoveAttachment: (attachment: Attachment) => void;
   onPaste: (event: React.ClipboardEvent) => void;
@@ -46,7 +43,6 @@ export function ChatInputArea({
   attachments,
   uploadQueue,
   selectedModelId,
-  selectedTool,
   status,
   isEmpty,
   fileInputRef,
@@ -54,7 +50,6 @@ export function ChatInputArea({
   getInitialInput,
   handleInputChange,
   handleModelChange,
-  setSelectedTool,
   onImageClick,
   onRemoveAttachment,
   onPaste,
@@ -152,11 +147,6 @@ export function ChatInputArea({
               className="h-fit min-w-0 max-w-none flex-1 shrink truncate @[400px]:px-3 px-2 @[400px]:py-1.5 py-1 @[400px]:text-sm text-xs"
               onModelChange={handleModelChange}
               selectedModelId={selectedModelId}
-            />
-            <ResponsiveTools
-              selectedModelId={selectedModelId}
-              setTools={setSelectedTool as any}
-              tools={selectedTool as any}
             />
           </div>
           <div className="flex gap-2">

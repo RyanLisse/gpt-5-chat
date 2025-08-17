@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ChatMessage } from '@/lib/ai/types';
 import type { Vote } from '@/lib/db/schema';
 import {
+  useChatError,
   useChatId,
   useChatStatus,
   useMessageIds,
@@ -32,6 +33,7 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
 }: PureMessagesInternalProps) {
   const chatId = useChatId();
   const status = useChatStatus();
+  const error = useChatError();
   const messageIds = useMessageIds();
 
   if (!chatId) {
@@ -63,7 +65,9 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
         <ThinkingMessage />
       )}
 
-      {status === 'error' && <ResponseErrorMessage regenerate={regenerate} />}
+      {status === 'error' && error && (
+        <ResponseErrorMessage regenerate={regenerate} />
+      )}
 
       <div className="min-h-[24px] min-w-[24px] shrink-0" />
     </>
@@ -84,7 +88,6 @@ function PureMessages({
   sendMessage,
   regenerate,
   isReadonly,
-  isVisible,
 }: MessagesProps) {
   const { scrollRef, contentRef, scrollToBottom, isNearBottom } =
     useStickToBottom();

@@ -43,9 +43,9 @@ function PureDocumentToolResult({
   return (
     <button
       className="flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border bg-background px-3 py-2"
-      disabled={isReadonly}
+      disabled={_isReadonly}
       onClick={
-        isReadonly
+        _isReadonly
           ? undefined
           : (event) => {
               const rect = event.currentTarget.getBoundingClientRect();
@@ -98,16 +98,16 @@ type DocumentToolCallProps = {
 function PureDocumentToolCall({
   type,
   args,
-  isReadonly,
+  isReadonly: _isReadonly,
 }: DocumentToolCallProps) {
   const { setArtifact } = useArtifact();
 
   return (
     <button
       className="cursor pointer flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2"
-      disabled={isReadonly}
+      disabled={_isReadonly}
       onClick={
-        isReadonly
+        _isReadonly
           ? undefined
           : (event) => {
               const rect = event.currentTarget.getBoundingClientRect();

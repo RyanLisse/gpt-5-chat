@@ -17,9 +17,9 @@ export interface AnonymousMessage extends DBMessage {}
 export const ANONYMOUS_LIMITS = {
   AVAILABLE_MODELS: [
     'google/gemini-2.0-flash',
-    'openai/gpt-5-mini',
-    'openai/gpt-5-nano',
     'openai/gpt-4o-mini',
+    'openai/gpt-4o',
+    'openai/gpt-3.5-turbo',
   ] as const satisfies ModelId[],
   AVAILABLE_TOOLS: ['createDocument', 'updateDocument'] satisfies ToolName[],
   SESSION_DURATION: 2_147_483_647, // Max session time

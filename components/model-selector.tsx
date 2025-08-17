@@ -317,7 +317,10 @@ export function PureModelSelector({
                         <div className="shrink-0">
                           {getProviderIcon(provider)}
                         </div>
-                        <span className="truncate font-medium text-sm">
+                        <span
+                          className="truncate font-medium text-sm"
+                          title={modelDefinition.name}
+                        >
                           {modelDefinition.name}
                         </span>
                       </div>
@@ -417,7 +420,7 @@ export function PureModelSelector({
         <Button
           aria-expanded={open}
           className={cn(
-            'min-w-0 max-w-64 gap-0 md:h-[34px] md:px-2',
+            'min-w-0 max-w-[320px] gap-0 md:h-[34px] md:px-2',
             className,
           )}
           data-testid="model-selector"
@@ -428,7 +431,12 @@ export function PureModelSelector({
             {selectedProviderIcon && (
               <div className="shrink-0">{selectedProviderIcon}</div>
             )}
-            <p className="min-w-0 truncate">{selectedChatModel?.name}</p>
+            <p
+              className="min-w-0 truncate"
+              title={selectedChatModel?.name || undefined}
+            >
+              {selectedChatModel?.name}
+            </p>
           </div>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

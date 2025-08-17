@@ -116,6 +116,9 @@ describe('fetchWithErrorHandlers', () => {
   it('should throw ChatSDKError for HTTP error responses', async () => {
     const errorResponse = {
       ok: false,
+      headers: {
+        get: vi.fn().mockReturnValue('application/json'),
+      },
       json: vi.fn().mockResolvedValue({
         code: 'validation:invalid-input',
         cause: 'Invalid request parameters',

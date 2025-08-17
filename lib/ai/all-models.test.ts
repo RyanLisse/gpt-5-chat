@@ -336,20 +336,20 @@ describe('all-models', () => {
   describe('constants', () => {
     it('should have consistent default model constants', () => {
       // Test that constants are defined and follow expected pattern
-      expect(DEFAULT_CHAT_MODEL).toBe('openai/gpt-5-mini');
-      expect(DEFAULT_PDF_MODEL).toBe('openai/gpt-5-mini');
-      expect(DEFAULT_TITLE_MODEL).toBe('openai/gpt-5-nano');
-      expect(DEFAULT_ARTIFACT_MODEL).toBe('openai/gpt-5-nano');
-      expect(DEFAULT_ARTIFACT_SUGGESTION_MODEL).toBe('openai/gpt-5-mini');
+      expect(DEFAULT_CHAT_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_PDF_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_TITLE_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_ARTIFACT_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_ARTIFACT_SUGGESTION_MODEL).toBe('openai/gpt-4o-mini');
       expect(DEFAULT_IMAGE_MODEL).toBe('openai/gpt-image-1');
       expect(DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL).toBe('openai/gpt-4o-mini');
-      expect(DEFAULT_SUGGESTIONS_MODEL).toBe('openai/gpt-5-mini');
-      expect(DEFAULT_POLISH_TEXT_MODEL).toBe('openai/gpt-5-mini');
-      expect(DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL).toBe('openai/gpt-5-mini');
+      expect(DEFAULT_SUGGESTIONS_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_POLISH_TEXT_MODEL).toBe('openai/gpt-4o-mini');
+      expect(DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL).toBe('openai/gpt-4o-mini');
       expect(DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL).toBe(
-        'openai/gpt-5-mini',
+        'openai/gpt-4o-mini',
       );
-      expect(DEFAULT_CODE_EDITS_MODEL).toBe('openai/gpt-5-mini');
+      expect(DEFAULT_CODE_EDITS_MODEL).toBe('openai/gpt-4o-mini');
     });
   });
 

@@ -1,174 +1,7 @@
 'use client';
 
-import {
-  type InitialConfigType,
-  LexicalComposer,
-} from '@lexical/react/LexicalComposer';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
-import {
-  $createParagraphNode,
-  $createTextNode,
-  $getRoot,
-  COMMAND_PRIORITY_HIGH,
-  type EditorState,
-  KEY_ENTER_COMMAND,
-  type LexicalEditor,
-} from 'lexical';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-
-// Custom error boundary for Lexical-specific errors
-class LexicalEditorErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError?: (error: Error) => void },
-  { hasError: boolean; retryCount: number }
-> {
-  private retryTimer: NodeJS.Timeout | null = null;
-
-  constructor(props: {
-    children: React.ReactNode;
-    onError?: (error: Error) => void;
-  }) {
-    super(props);
-    this.state = { hasError: false, retryCount: 0 };
-  }
-
-  static getDerivedStateFromError(_error: Error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
-    this.props.onError?.(error);
-
-    // Auto-retry once after a short delay for transient errors
-    if (this.state.retryCount === 0) {
-      this.retryTimer = setTimeout(() => {
-        this.setState({ hasError: false, retryCount: 1 });
-      }, 1000);
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.retryTimer) {
-      clearTimeout(this.retryTimer);
-    }
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex min-h-[80px] items-center justify-center rounded-md border p-3 text-muted-foreground">
-          <span>
-            {this.state.retryCount === 0
-              ? 'Loading editor...'
-              : 'Editor temporarily unavailable. Please refresh the page.'}
-          </span>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-// Plugin to handle Enter key submissions
-function EnterKeySubmitPlugin({
-  onEnterSubmit,
-}: {
-  onEnterSubmit?: (event: KeyboardEvent) => boolean;
-}) {
-  const [editor] = useLexicalComposerContext();
-
-  React.useEffect(() => {
-    if (!editor) {
-      return;
-    }
-
-    try {
-      return editor.registerCommand(
-        KEY_ENTER_COMMAND,
-        (event: KeyboardEvent) => {
-          // Call the custom handler if provided
-          if (onEnterSubmit) {
-            const handled = onEnterSubmit(event);
-            if (handled) {
-              // Prevent the default Enter behavior immediately
-              event.preventDefault();
-              // Prevent default Enter behavior (adding newline)
-              return true;
-            }
-          }
-          // Allow default behavior for non-submit cases (Shift+Enter, etc.)
-          return false;
-        },
-        COMMAND_PRIORITY_HIGH,
-      );
-    } catch (_error) {
-      return;
-    }
-  }, [editor, onEnterSubmit]);
-
-  return null;
-}
-
-// Plugin to get editor instance for imperative ref
-function EditorRefPlugin({
-  setEditor,
-}: {
-  setEditor: (editor: LexicalEditor | null) => void;
-}) {
-  const [editor] = useLexicalComposerContext();
-
-  React.useEffect(() => {
-    if (editor) {
-      try {
-        // Test that the editor is properly initialized before setting it
-        const state = editor.getEditorState();
-        if (state) {
-          // Additional check to ensure editor is fully ready
-          const testRead = () => {
-            try {
-              editor.getEditorState().read(() => {
-                // Simple read test
-              });
-              setEditor(editor);
-            } catch (_error) {
-              // Retry with exponential backoff
-              const timeout = setTimeout(testRead, 200);
-              return () => clearTimeout(timeout);
-            }
-          };
-          testRead();
-        } else {
-          // If state isn't ready, try again after a short delay
-          const timeout = setTimeout(() => {
-            try {
-              const retryState = editor.getEditorState();
-              if (retryState) {
-                setEditor(editor);
-              } else {
-                setEditor(null);
-              }
-            } catch {
-              setEditor(null);
-            }
-          }, 100);
-          return () => clearTimeout(timeout);
-        }
-      } catch (_error) {
-        setEditor(null);
-      }
-    } else {
-      setEditor(null);
-    }
-  }, [editor, setEditor]);
-
-  return null;
-}
 
 type LexicalChatInputRef = {
   focus: () => void;
@@ -189,16 +22,6 @@ type LexicalChatInputProps = {
   'data-testid'?: string;
 };
 
-const theme = {
-  root: 'lexical-root',
-  ltr: 'ltr',
-  rtl: 'rtl',
-  placeholder: 'editor-placeholder',
-  paragraph: 'editor-paragraph',
-};
-
-function onError(_error: Error) {}
-
 export const LexicalChatInput = React.forwardRef<
   LexicalChatInputRef,
   LexicalChatInputProps
@@ -217,168 +40,78 @@ export const LexicalChatInput = React.forwardRef<
     },
     ref,
   ) => {
-    // ALL HOOKS MUST BE DECLARED FIRST (Rules of Hooks)
-    const [editor, setEditor] = React.useState<LexicalEditor | null>(null);
-    const [isMounted, setIsMounted] = React.useState(false);
-
-    // Add mounting guard to prevent SSR/hydration issues
-    React.useEffect(() => {
-      setIsMounted(true);
-      return () => setIsMounted(false);
-    }, []);
+    // Simple state management for textarea
+    const [value, setValue] = React.useState(initialValue);
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     const handleChange = React.useCallback(
-      (editorState: EditorState) => {
-        if (onInputChange) {
-          try {
-            editorState.read(() => {
-              const root = $getRoot();
-              const textContent = root.getTextContent();
-              onInputChange(textContent);
-            });
-          } catch (_error) {}
-        }
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newValue = e.target.value;
+        setValue(newValue);
+        onInputChange?.(newValue);
       },
       [onInputChange],
     );
 
+    const handleKeyDown = React.useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        onKeyDown?.(e as any);
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          onEnterSubmit?.(e.nativeEvent);
+        }
+      },
+      [onKeyDown, onEnterSubmit],
+    );
+
+    // Expose imperative methods via ref
     React.useImperativeHandle(
       ref,
       () => ({
         focus: () => {
-          if (editor) {
-            try {
-              editor.focus();
-            } catch (_error) {}
-          }
+          textareaRef.current?.focus();
         },
         clear: () => {
-          if (editor) {
-            try {
-              editor.update(() => {
-                const root = $getRoot();
-                root.clear();
-              });
-            } catch (_error) {}
-          }
+          setValue('');
+          onInputChange?.('');
         },
         getValue: () => {
-          if (editor) {
-            try {
-              return editor.getEditorState().read(() => {
-                const root = $getRoot();
-                return root.getTextContent();
-              });
-            } catch (_error) {
-              return '';
-            }
-          }
-          return '';
+          return value;
         },
       }),
-      [editor],
+      [value, onInputChange],
     );
 
-    // Handle value changes from parent
+    // Update value when initialValue changes
     React.useEffect(() => {
-      if (editor && initialValue !== undefined) {
-        try {
-          editor.update(() => {
-            const root = $getRoot();
-            const currentText = root.getTextContent();
+      setValue(initialValue);
+    }, [initialValue]);
 
-            if (currentText !== initialValue) {
-              root.clear();
-              const paragraph = $createParagraphNode();
-              if (initialValue) {
-                const textNode = $createTextNode(initialValue);
-                paragraph.append(textNode);
-              }
-              root.append(paragraph);
-            }
-          });
-        } catch (_error) {}
-      }
-    }, [editor, initialValue]);
-
-    const PlaceholderComponent = React.useCallback(
-      () => (
-        <div className="lexical-placeholder pointer-events-none absolute pt-2 pl-3 text-muted-foreground">
-          {placeholder}
-        </div>
-      ),
-      [placeholder],
-    );
-
-    // Configuration object (non-hook)
-    const initialConfig: InitialConfigType = {
-      namespace: 'LexicalChatInput',
-      theme,
-      onError,
-      nodes: [],
-    };
-
-    // Early returns AFTER all hooks are declared
-    // Don't render the editor until we're mounted on the client
-    if (!isMounted) {
-      return (
-        <div
+    return (
+      <div className="lexical-editor-container">
+        <textarea
+          ref={textareaRef}
           className={cn(
             'focus:outline-hidden focus-visible:outline-hidden',
-            '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-hidden',
-            'lexical-content-editable',
-            'editor-input',
+            'min-h-[20px] outline-hidden resize-none',
+            'editor-input w-full bg-transparent',
             className,
           )}
           data-testid={testId}
+          onKeyDown={handleKeyDown}
+          onPaste={onPaste as any}
+          onChange={handleChange}
+          value={value}
+          spellCheck={true}
+          placeholder={placeholder}
           style={{
-            minHeight: '20px',
-            padding: '8px 12px',
-            color: '#9ca3af',
+            WebkitBoxShadow: 'none',
+            MozBoxShadow: 'none',
+            boxShadow: 'none',
           }}
-        >
-          {placeholder}
-        </div>
-      );
-    }
-
-    return (
-      <LexicalEditorErrorBoundary onError={onError}>
-        <LexicalComposer initialConfig={initialConfig}>
-          <div className="lexical-editor-container">
-            <PlainTextPlugin
-              contentEditable={
-                <ContentEditable
-                  className={cn(
-                    'focus:outline-hidden focus-visible:outline-hidden',
-                    '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-hidden',
-                    'lexical-content-editable',
-                    'editor-input',
-                    className,
-                  )}
-                  data-testid={testId}
-                  onKeyDown={onKeyDown}
-                  onPaste={onPaste}
-                  spellCheck={true}
-                  style={{
-                    WebkitBoxShadow: 'none',
-                    MozBoxShadow: 'none',
-                    boxShadow: 'none',
-                  }}
-                  // aria-placeholder={placeholder}
-                />
-              }
-              ErrorBoundary={LexicalErrorBoundary}
-              placeholder={<PlaceholderComponent />}
-            />
-            <OnChangePlugin onChange={handleChange} />
-            <HistoryPlugin />
-            {/* {autoFocus && <AutoFocusPlugin />} */}
-            <EditorRefPlugin setEditor={setEditor} />
-            <EnterKeySubmitPlugin onEnterSubmit={onEnterSubmit} />
-          </div>
-        </LexicalComposer>
-      </LexicalEditorErrorBoundary>
+          rows={1}
+        />
+      </div>
     );
   },
 );
