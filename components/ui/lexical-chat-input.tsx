@@ -290,8 +290,8 @@ export const LexicalChatInput = React.forwardRef<
       return (
         <div
           className={cn(
-            'focus:outline-none focus-visible:outline-none',
-            '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-none',
+            'focus:outline-hidden focus-visible:outline-hidden',
+            '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-hidden',
             'lexical-content-editable',
             'editor-input',
             className,
@@ -316,8 +316,8 @@ export const LexicalChatInput = React.forwardRef<
               contentEditable={
                 <ContentEditable
                   className={cn(
-                    'focus:outline-none focus-visible:outline-none',
-                    '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-none',
+                    'focus:outline-hidden focus-visible:outline-hidden',
+                    '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-hidden',
                     'lexical-content-editable',
                     'editor-input',
                     className,

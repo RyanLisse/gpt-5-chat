@@ -17,7 +17,7 @@ import type { Attachment, UiToolName } from '@/lib/ai/types';
 import { useDefaultModel, useModelChange } from './default-model-provider';
 
 type ChatInputContextType = {
-  editorRef: React.RefObject<LexicalChatInputRef>;
+  editorRef: React.RefObject<LexicalChatInputRef | null>;
   selectedTool: UiToolName | null;
   setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
   attachments: Attachment[];

@@ -13,11 +13,7 @@ const ToolActionKind = React.forwardRef<
   }
 >(({ icon, name, className, ...props }, ref) => {
   return (
-    <div
-      className={cn('flex flex-shrink-0 gap-1', className)}
-      ref={ref}
-      {...props}
-    >
+    <div className={cn('flex shrink-0 gap-1', className)} ref={ref} {...props}>
       {icon}
       <span className="text-foreground/80 text-xs">{name}</span>
     </div>

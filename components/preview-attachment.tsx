@@ -25,7 +25,7 @@ export const PreviewAttachment = ({
     >
       {onRemove && !isUploading && (
         <Button
-          className="-top-2 -right-2 absolute z-10 size-5 rounded-full border border-border bg-muted/90 p-0 text-muted-foreground shadow-sm hover:bg-muted"
+          className="-top-2 -right-2 absolute z-10 size-5 rounded-full border border-border bg-muted/90 p-0 text-muted-foreground shadow-xs hover:bg-muted"
           onClick={onRemove}
           size="sm"
           variant="ghost"

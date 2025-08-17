@@ -171,7 +171,7 @@ export function DotsLoader({
       {[...new Array(3)].map((_, i) => (
         <div
           className={cn(
-            'animate-[bounce-dots_1.4s_ease-in-out_infinite] rounded-full bg-primary',
+            'animate-bounce-dots rounded-full bg-primary',
             dotSizes[size],
           )}
           key={i}
@@ -265,7 +265,7 @@ export function WaveLoader({
       {[...new Array(5)].map((_, i) => (
         <div
           className={cn(
-            'animate-[wave_1s_ease-in-out_infinite] rounded-full bg-primary',
+            'animate-wave rounded-full bg-primary',
             barWidths[size],
           )}
           key={i}
@@ -413,7 +413,7 @@ export function TextShimmerLoader({
       className={cn(
         'bg-[linear-gradient(to_right,hsl(var(--muted-foreground))_40%,hsl(var(--foreground))_60%,hsl(var(--muted-foreground))_80%)]',
         // TODO: Change for bg-size-[200%_auto] in Tailwind 4
-        'bg-[200%_auto] bg-clip-text font-medium text-transparent',
+        'bg-size-[200%_auto] bg-clip-text font-medium text-transparent',
         'animate-[shimmer_4s_infinite_linear]',
         textSizes[size],
         className,

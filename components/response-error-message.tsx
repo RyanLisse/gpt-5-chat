@@ -10,7 +10,7 @@ export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
   const setMessages = useSetMessages();
 
   return (
-    <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-sm md:max-w-2xl">
+    <div className="mx-auto flex w-full flex-col items-center gap-4 rounded-lg px-6 py-8 shadow-xs md:max-w-2xl">
       <div className="flex items-center gap-2">
         <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
           <path

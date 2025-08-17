@@ -84,7 +84,7 @@ export function CollapsibleSection({
     : undefined;
 
   return (
-    <div className="group overflow-hidden rounded-lg border border-neutral-200 transition-all duration-200 hover:shadow-sm dark:border-neutral-800">
+    <div className="group overflow-hidden rounded-lg border border-neutral-200 transition-all duration-200 hover:shadow-xs dark:border-neutral-800">
       <CollapsibleSectionHeader
         IconComponent={IconComponent}
         isExpanded={isExpanded}

@@ -96,7 +96,7 @@ function PureMessages({
     <ScrollArea
       className="flex w-full flex-1 flex-col"
       ref={scrollRef}
-      viewPortClassName=" [&>div]:!block"
+      viewPortClassName=" [&>div]:block!"
     >
       <div
         className="container mx-auto flex h-full min-w-0 flex-col gap-6 px-2 pt-4 sm:max-w-2xl sm:px-4 md:max-w-3xl"

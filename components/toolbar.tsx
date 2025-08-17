@@ -95,7 +95,7 @@ const Tool = ({
         <motion.div
           animate={{ opacity: 1, transition: { delay: 0.1 } }}
           className={cx('rounded-full p-3', {
-            '!text-primary-foreground bg-primary': selectedTool === description,
+            'bg-primary text-primary-foreground!': selectedTool === description,
           })}
           exit={{
             scale: 0.9,
@@ -327,7 +327,7 @@ const PureToolbar = ({
   artifactKind: ArtifactKind;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -341,7 +341,6 @@ const PureToolbar = ({
     ) => {
       return sendMessage(message, {
         ...options,
-        // TODO: Data should come from default data
         body: {
           data: {
             reason: false,
@@ -354,7 +353,7 @@ const PureToolbar = ({
     [sendMessage, selectedModelId],
   );
 
-  useOnClickOutside(toolbarRef, () => {
+  useOnClickOutside(toolbarRef as React.RefObject<HTMLElement>, () => {
     setIsToolbarVisible(false);
     setSelectedTool(null);
   });

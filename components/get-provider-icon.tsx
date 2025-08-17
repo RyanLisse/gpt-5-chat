@@ -17,40 +17,27 @@ import {
 } from '@lobehub/icons';
 import type { ProviderId } from '@/providers/models-generated';
 
+const PROVIDER_ICON_MAP = {
+  openai: OpenAI,
+  anthropic: Anthropic,
+  xai: XAI,
+  google: Gemini,
+  meta: Meta,
+  mistral: Mistral,
+  alibaba: Alibaba,
+  amazon: Aws,
+  cohere: Cohere,
+  deepseek: DeepSeek,
+  perplexity: Perplexity,
+  vercel: Vercel,
+  inception: OpenAI, // Using OpenAI as fallback
+  moonshotai: Moonshot,
+  morph: OpenAI, // Using OpenAI as fallback
+  zai: ZAI,
+} as const;
+
 export function getProviderIcon(provider: ProviderId, size = 16) {
   const iconProps = { size };
-  switch (provider) {
-    case 'openai':
-      return <OpenAI {...iconProps} />;
-    case 'anthropic':
-      return <Anthropic {...iconProps} />;
-    case 'xai':
-      return <XAI {...iconProps} />;
-    case 'google':
-      return <Gemini {...iconProps} />;
-    case 'meta':
-      return <Meta {...iconProps} />;
-    case 'mistral':
-      return <Mistral {...iconProps} />;
-    case 'alibaba':
-      return <Alibaba {...iconProps} />;
-    case 'amazon':
-      return <Aws {...iconProps} />;
-    case 'cohere':
-      return <Cohere {...iconProps} />;
-    case 'deepseek':
-      return <DeepSeek {...iconProps} />;
-    case 'perplexity':
-      return <Perplexity {...iconProps} />;
-    case 'vercel':
-      return <Vercel {...iconProps} />;
-    case 'inception':
-      return <OpenAI {...iconProps} />; // Using OpenAI as fallback
-    case 'moonshotai':
-      return <Moonshot {...iconProps} />;
-    case 'morph':
-      return <OpenAI {...iconProps} />; // Using OpenAI as fallback
-    case 'zai':
-      return <ZAI {...iconProps} />;
-  }
+  const IconComponent = PROVIDER_ICON_MAP[provider] || OpenAI;
+  return <IconComponent {...iconProps} />;
 }

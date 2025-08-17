@@ -13,7 +13,7 @@ const ChatInputContainer = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     className={cn(
-      'group relative flex h-full max-w-full flex-1 cursor-text flex-col rounded-3xl border bg-muted px-3 py-1 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)] transition-colors dark:border-none dark:shadow-none',
+      'group relative flex h-full max-w-full flex-1 cursor-text flex-col rounded-3xl border bg-muted px-3 py-1 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),0_2px_5px_0px_rgba(0,0,0,0.06)] transition-colors dark:border-none dark:shadow-none',
       className,
     )}
     ref={ref}

@@ -18,7 +18,7 @@ type RetrieveResult = {
 export function Retrieve({ result }: { result?: RetrieveResult }) {
   if (!result) {
     return (
-      <div className="my-4 rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 p-4 dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-900/90">
+      <div className="my-4 rounded-xl border border-neutral-200 bg-linear-to-b from-white to-neutral-50 p-4 dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-900/90">
         <div className="flex items-center gap-4">
           <div className="relative h-10 w-10">
             <div className="absolute inset-0 animate-pulse rounded-full bg-primary/10" />
@@ -41,7 +41,7 @@ export function Retrieve({ result }: { result?: RetrieveResult }) {
     return (
       <div className="my-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500 dark:bg-red-950/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50">
             <Globe className="h-4 w-4 text-red-600 dark:text-red-300" />
           </div>
           <div>
@@ -62,7 +62,7 @@ export function Retrieve({ result }: { result?: RetrieveResult }) {
     return (
       <div className="my-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500 dark:bg-amber-950/50">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
             <Globe className="h-4 w-4 text-amber-600 dark:text-amber-300" />
           </div>
           <div className="font-medium text-amber-700 text-sm dark:text-amber-300">
@@ -75,11 +75,11 @@ export function Retrieve({ result }: { result?: RetrieveResult }) {
 
   // Existing rendering for successful retrieval:
   return (
-    <div className="my-4 overflow-hidden rounded-xl border border-neutral-200 bg-gradient-to-b from-white to-neutral-50 dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-900/90">
+    <div className="my-4 overflow-hidden rounded-xl border border-neutral-200 bg-linear-to-b from-white to-neutral-50 dark:border-neutral-800 dark:from-neutral-900 dark:to-neutral-900/90">
       <div className="p-4">
         <div className="flex items-start gap-4">
-          <div className="relative h-10 w-10 flex-shrink-0">
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/10 to-transparent" />
+          <div className="relative h-10 w-10 shrink-0">
+            <div className="absolute inset-0 rounded-lg bg-linear-to-br from-primary/10 to-transparent" />
             <img
               alt=""
               className="absolute inset-0 m-auto h-5 w-5"

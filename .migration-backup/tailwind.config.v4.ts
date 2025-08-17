@@ -219,7 +219,7 @@ const config: Config = {
   },
   plugins: [
     // Note: Plugins need v4 compatible versions
-    // Install these separately: 
+    // Install these separately:
     // bun add @tailwindcss/typography@next
     // bun add @tailwindcss/container-queries@next
     // For tailwindcss-animate, check if v4 compatible version exists

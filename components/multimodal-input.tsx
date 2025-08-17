@@ -600,7 +600,7 @@ function PureAttachmentsButton({
     <Popover onOpenChange={setShowLoginPopover} open={showLoginPopover}>
       <PopoverTrigger asChild>
         <Button
-          className="h-fit p-1.5 hover:bg-zinc-200 dark:border-zinc-700 hover:dark:bg-zinc-900"
+          className="h-fit p-1.5 hover:bg-zinc-200 dark:border-zinc-700 dark:hover:bg-zinc-900"
           data-testid="attachments-button"
           disabled={status !== 'ready'}
           onClick={handleClick}

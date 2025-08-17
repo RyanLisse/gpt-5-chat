@@ -69,9 +69,7 @@ export function LoginCtaBanner({
         >
           <div className="flex flex-1 items-center gap-2">
             {!compact && (
-              <LogIn
-                className={cn('h-4 w-4 flex-shrink-0', textStyles[variant])}
-              />
+              <LogIn className={cn('h-4 w-4 shrink-0', textStyles[variant])} />
             )}
             <span className={cn('text-sm', textStyles[variant])}>
               {message}{' '}

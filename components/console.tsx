@@ -103,7 +103,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
             <div>Console</div>
           </div>
           <Button
-            className="size-fit p-1 hover:bg-zinc-200 hover:dark:bg-zinc-700"
+            className="size-fit p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700"
             onClick={() => setConsoleOutputs([])}
             size="icon"
             variant="ghost"
@@ -154,7 +154,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
                       <picture key={`${consoleOutput.id}-${index}`}>
                         <img
                           alt="output"
-                          className="w-full max-w-screen-toast-mobile rounded-md"
+                          className="w-full max-w-(--breakpoint-toast-mobile) rounded-md"
                           src={content.value}
                         />
                       </picture>

@@ -271,7 +271,7 @@ const ArtifactMainContent = memo(function ArtifactMainContent({
 }) {
   return (
     <>
-      <ScrollArea className="!max-w-full h-full">
+      <ScrollArea className="h-full max-w-full!">
         <div className="flex flex-col items-center bg-background/80">
           <artifactDefinition.content
             content={

@@ -54,6 +54,24 @@ type DashboardData = {
   pages: PageData[];
 };
 
+const RATING_STYLES = {
+  good: 'text-green-600 bg-green-100',
+  'needs-improvement': 'text-yellow-600 bg-yellow-100',
+  poor: 'text-red-600 bg-red-100',
+} as const;
+
+const TREND_ICONS = {
+  improving: <TrendingUp className="h-4 w-4 text-green-600" />,
+  degrading: <TrendingDown className="h-4 w-4 text-red-600" />,
+  stable: <Minus className="h-4 w-4 text-gray-600" />,
+} as const;
+
+const PROGRESS_VALUES = {
+  good: 100,
+  'needs-improvement': 60,
+  poor: 30,
+} as const;
+
 const MetricCard = ({
   name,
   label,
@@ -65,42 +83,9 @@ const MetricCard = ({
   data: MetricData;
   icon: React.ComponentType<{ className?: string }>;
 }) => {
-  const getRatingColor = (rating: string) => {
-    switch (rating) {
-      case 'good':
-        return 'text-green-600 bg-green-100';
-      case 'needs-improvement':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'poor':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'improving':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'degrading':
-        return <TrendingDown className="h-4 w-4 text-red-600" />;
-      default:
-        return <Minus className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getProgressValue = (rating: string) => {
-    switch (rating) {
-      case 'good':
-        return 100;
-      case 'needs-improvement':
-        return 60;
-      case 'poor':
-        return 30;
-      default:
-        return 0;
-    }
-  };
+  const ratingColor = RATING_STYLES[data.rating] || 'text-gray-600 bg-gray-100';
+  const trendIcon = TREND_ICONS[data.trend] || TREND_ICONS.stable;
+  const progressValue = PROGRESS_VALUES[data.rating] || 0;
 
   return (
     <Card>
@@ -114,14 +99,14 @@ const MetricCard = ({
             {formatMetricValue(name, data.value)}
           </div>
           <div className="flex items-center space-x-1">
-            {getTrendIcon(data.trend)}
-            <Badge className={getRatingColor(data.rating)}>
+            {trendIcon}
+            <Badge className={ratingColor}>
               {data.rating.replace('-', ' ')}
             </Badge>
           </div>
         </div>
         <div className="mt-2">
-          <Progress className="h-2" value={getProgressValue(data.rating)} />
+          <Progress className="h-2" value={progressValue} />
         </div>
         <p className="mt-2 text-muted-foreground text-xs">
           {data.samples} samples collected

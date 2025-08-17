@@ -45,7 +45,7 @@ const SourcesList = ({
           target="_blank"
         >
           <div className="flex items-start gap-3">
-            <div className="mt-1 flex-shrink-0">
+            <div className="mt-1 shrink-0">
               <Favicon url={getFaviconUrl(source as any)} />
             </div>
             <div className="flex flex-col gap-1">

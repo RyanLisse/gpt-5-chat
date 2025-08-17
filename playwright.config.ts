@@ -91,6 +91,13 @@ export default defineConfig({
         storageState: 'playwright/.auth/session.json',
       },
     },
+    {
+      name: 'e2e-basic',
+      testMatch: /e2e-test.spec.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
 
     // {
     //   name: 'firefox',

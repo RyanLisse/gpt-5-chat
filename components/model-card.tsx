@@ -98,7 +98,7 @@ export function ModelCard({
       className={cn(
         'group flex cursor-pointer flex-col items-start rounded-lg border p-4 transition-all hover:shadow-md',
         isSelected
-          ? 'border-primary bg-primary/5 shadow-sm'
+          ? 'border-primary bg-primary/5 shadow-xs'
           : 'border-border hover:border-primary/50',
         isDisabled && 'cursor-not-allowed opacity-50 hover:shadow-none',
         className,

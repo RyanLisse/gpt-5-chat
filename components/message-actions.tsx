@@ -149,7 +149,7 @@ export function PureMessageActions({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className="!pointer-events-auto h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  className="pointer-events-auto! h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   data-testid="message-upvote"
                   disabled={vote?.isUpvoted || !isAuthenticated}
                   onClick={() => {
@@ -178,7 +178,7 @@ export function PureMessageActions({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className="!pointer-events-auto h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  className="pointer-events-auto! h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   data-testid="message-downvote"
                   disabled={(vote && !vote.isUpvoted) || !session?.user}
                   onClick={() => {

@@ -157,7 +157,7 @@ const PureHitboxLayer = ({
   setArtifact,
   messageId,
 }: {
-  hitboxRef: React.RefObject<HTMLDivElement>;
+  hitboxRef: React.RefObject<HTMLDivElement | null>;
   result: any;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
@@ -199,7 +199,7 @@ const PureHitboxLayer = ({
       role="presentation"
     >
       <div className="flex w-full items-center justify-end p-4">
-        <div className="absolute top-[13px] right-[9px] rounded-md p-2 hover:bg-zinc-100 hover:dark:bg-zinc-700">
+        <div className="absolute top-[13px] right-[9px] rounded-md p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700">
           <FullscreenIcon />
         </div>
       </div>

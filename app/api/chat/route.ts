@@ -740,7 +740,14 @@ export async function POST(request: NextRequest) {
     if (!data) {
       return new Response('Invalid request payload', { status: 400 });
     }
-    const { chatId, userMessage, selectedModelId, modelDefinition, userId, isAnonymous } = data;
+    const {
+      chatId,
+      userMessage,
+      selectedModelId,
+      modelDefinition,
+      userId,
+      isAnonymous,
+    } = data;
 
     // 2) Per-IP rate limit for guests
     const userProcessing = await handleUserProcessing({

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiPerformanceMiddleware } from '@/lib/performance/server-monitoring';
+import { handleApiError, createSuccessResponse } from '@/lib/utils/api-error-handling';
 
 const webVitalSchema = z.object({
   name: z.enum(['CLS', 'FID', 'FCP', 'LCP', 'TTFB', 'INP']),
@@ -28,25 +29,13 @@ export async function POST(request: NextRequest) {
     // Store in database if you have web vitals table
     // await storeWebVitalsData(validatedData);
 
-    const response = NextResponse.json({ success: true });
-    perfTracker.end(200);
-    return response;
+    return createSuccessResponse({ success: true }, perfTracker);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const response = NextResponse.json(
-        { error: 'Invalid data format', details: error.errors },
-        { status: 400 },
-      );
-      perfTracker.end(400);
-      return response;
-    }
-
-    const response = NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
-    );
-    perfTracker.end(500);
-    return response;
+    return handleApiError({
+      error,
+      perfTracker,
+      fallbackMessage: 'Internal server error',
+    });
   }
 }
 

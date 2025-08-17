@@ -1,11 +1,11 @@
 import { type RefObject, useEffect, useRef } from 'react';
 
 export function useScrollToBottom<T extends HTMLElement>(): [
-  RefObject<T>,
-  RefObject<T>,
+  RefObject<T | null>,
+  RefObject<T | null>,
 ] {
-  const containerRef = useRef<T>(null);
-  const endRef = useRef<T>(null);
+  const containerRef = useRef<T | null>(null);
+  const endRef = useRef<T | null>(null);
   const oneTimeScrollRef = useRef(false);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export function useScrollToBottom<T extends HTMLElement>(): [
         let shouldScroll = false;
 
         if (currentMessageCount > 0) {
-          const lastMessage = messages.at(-1) as Element | undefined;
+          const lastMessage = messages[messages.length - 1];
           const lastMessageContent = lastMessage?.textContent || '';
 
           // Determine if we should scroll based on:

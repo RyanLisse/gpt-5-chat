@@ -324,7 +324,7 @@ export function PureModelSelector({
         >
           <CommandEmpty>No model found.</CommandEmpty>
           <CommandGroup>
-            <ScrollArea className="[&>[data-radix-scroll-area-viewport]]:max-h-[350px]">
+            <ScrollArea className="*:data-radix-scroll-area-viewport:max-h-[350px]">
               <TooltipProvider delayDuration={300}>
                 {filteredModels.map((chatModel) => {
                   const { id } = chatModel;
@@ -363,7 +363,7 @@ export function PureModelSelector({
                             value={searchValue}
                           >
                             <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                              <div className="flex-shrink-0">
+                              <div className="shrink-0">
                                 {getProviderIcon(provider)}
                               </div>
                               <span className="truncate font-medium text-sm">
@@ -372,7 +372,7 @@ export function PureModelSelector({
                             </div>
                             <div className="flex items-center gap-1.5">
                               {featureIcons.length > 0 && (
-                                <div className="flex flex-shrink-0 items-center gap-1">
+                                <div className="flex shrink-0 items-center gap-1">
                                   {featureIcons}
                                 </div>
                               )}
@@ -428,7 +428,7 @@ export function PureModelSelector({
         >
           <div className="flex items-center gap-2">
             {selectedProviderIcon && (
-              <div className="flex-shrink-0">{selectedProviderIcon}</div>
+              <div className="shrink-0">{selectedProviderIcon}</div>
             )}
             <p className="truncate">{selectedChatModel?.name}</p>
           </div>

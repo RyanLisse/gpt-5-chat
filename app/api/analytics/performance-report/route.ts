@@ -4,6 +4,7 @@ import { budgetMonitor } from '@/lib/performance/budgets';
 import { bundleAnalyzer } from '@/lib/performance/bundle-analysis';
 import { reportGenerator } from '@/lib/performance/reports';
 import { createApiPerformanceMiddleware } from '@/lib/performance/server-monitoring';
+import { handleApiError, createSuccessResponse } from '@/lib/utils/api-error-handling';
 
 const reportRequestSchema = z.object({
   timeWindow: z.number().optional().default(3_600_000), // 1 hour default
@@ -68,25 +69,13 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
-    const response = NextResponse.json(report);
-    perfTracker.end(200);
-    return response;
+    return createSuccessResponse(report, perfTracker);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const response = NextResponse.json(
-        { error: 'Invalid parameters', details: error.errors },
-        { status: 400 },
-      );
-      perfTracker.end(400);
-      return response;
-    }
-
-    const response = NextResponse.json(
-      { error: 'Failed to generate performance report' },
-      { status: 500 },
-    );
-    perfTracker.end(500);
-    return response;
+    return handleApiError({
+      error,
+      perfTracker,
+      fallbackMessage: 'Failed to generate performance report',
+    });
   }
 }
 

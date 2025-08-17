@@ -2,16 +2,18 @@
 
 import { memo, useMemo } from 'react';
 import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
 import { Response } from './ai-elements/response';
-import { DocumentToolCall, DocumentToolResult } from './document';
-import { DocumentPreview } from './document-preview';
-import { GeneratedImage } from './generated-image';
 import { MessageReasoning } from './message-reasoning';
-import { ReadDocument } from './read-document';
-import { Retrieve } from './retrieve';
-import { StockChartMessage } from './stock-chart-message';
-import { Weather } from './weather';
+
+// Individual tool components
+import { WeatherToolPart } from './message-parts/weather-tool-part';
+import { DocumentToolPart } from './message-parts/document-tool-part';
+import { RetrieveToolPart } from './message-parts/retrieve-tool-part';
+import { ReadDocumentToolPart } from './message-parts/read-document-tool-part';
+import { StockChartToolPart } from './message-parts/stock-chart-tool-part';
+import { GeneratedImageToolPart } from './message-parts/generated-image-tool-part';
+import { useMessagePartGroups } from './message-parts/use-message-part-groups';
+import { useLastArtifact } from './message-parts/use-last-artifact';
 
 type MessagePartsProps = {
   message: ChatMessage;
