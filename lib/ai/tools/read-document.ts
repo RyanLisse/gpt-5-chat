@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import type { Session } from 'next-auth';
 import { z } from 'zod';
-import { getDocumentById } from '@/lib/db/queries';
+import { getDocumentById } from '@/lib/db/queries-with-cache';
 import type { StreamWriter } from '../types';
 
 type ReadDocumentProps = {

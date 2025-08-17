@@ -24,7 +24,10 @@ function setCookie(name: string, value: string, maxAge: number): void {
     return;
   }
 
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  const secure =
+    typeof window !== 'undefined' && window.location?.protocol === 'https:'
+      ? '; Secure'
+      : '';
   const encodedValue = encodeURIComponent(value);
   document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`;
 }

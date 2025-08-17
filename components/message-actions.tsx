@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { memo } from 'react';
 import { toast } from 'sonner';
-import { useCopyToClipboard } from 'usehooks-ts';
 import type { ChatMessage } from '@/lib/ai/types';
 import type { Vote } from '@/lib/db/schema';
+import { useCopy } from '@/lib/hooks/use-copy';
 import { chatStore } from '@/lib/stores/chat-store';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { useTRPC } from '@/trpc/react';
@@ -40,7 +40,10 @@ export function PureMessageActions({
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [_, copyToClipboard] = useCopyToClipboard();
+  const { copy } = useCopy({
+    onSuccess: () => toast.success('Copied to clipboard!'),
+    onError: () => toast.error('Failed to copy to clipboard'),
+  });
   const { data: session } = useSession();
   const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
 
@@ -71,7 +74,7 @@ export function PureMessageActions({
           <TooltipTrigger asChild>
             <Button
               className="h-7 w-7 p-0 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              onClick={async () => {
+              onClick={() => {
                 const message = chatStore
                   .getState()
                   .messages.find((m) => m.id === messageId);
@@ -90,8 +93,7 @@ export function PureMessageActions({
                   return;
                 }
 
-                await copyToClipboard(textFromParts);
-                toast.success('Copied to clipboard!');
+                copy(textFromParts);
               }}
               size="sm"
               variant="ghost"

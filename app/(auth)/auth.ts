@@ -2,7 +2,7 @@ import NextAuth, { type Session, type User } from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
-import { createUser, getUserByEmail } from '@/lib/db/queries';
+import { createUser, getUserByEmail } from '@/lib/db/queries-with-cache';
 
 import { authConfig } from './auth.config';
 

@@ -1,6 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { getChatById, getVotesByChatId, voteMessage } from '@/lib/db/queries';
+import {
+  getChatById,
+  getVotesByChatId,
+  voteMessage,
+} from '@/lib/db/queries-with-cache';
 import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 
 export const voteRouter = createTRPCRouter({

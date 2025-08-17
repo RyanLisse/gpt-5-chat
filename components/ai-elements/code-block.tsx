@@ -1,14 +1,13 @@
 'use client';
 
-import { CheckIcon, CopyIcon } from 'lucide-react';
-import type { ComponentProps, HTMLAttributes, ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {
   oneDark,
   oneLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Button } from '@/components/ui/button';
+import { CopyButton, type CopyButtonProps } from '@/components/ui/copy-button';
 import { cn } from '@/lib/utils';
 
 type CodeBlockContextType = {
@@ -99,50 +98,32 @@ export const CodeBlock = ({
   </CodeBlockContext.Provider>
 );
 
-export type CodeBlockCopyButtonProps = ComponentProps<typeof Button> & {
+export type CodeBlockCopyButtonProps = Omit<CopyButtonProps, 'text'> & {
+  /**
+   * @deprecated Use onSuccess instead
+   */
   onCopy?: () => void;
-  onError?: (error: Error) => void;
-  timeout?: number;
 };
 
 export const CodeBlockCopyButton = ({
   onCopy,
-  onError,
-  timeout = 2000,
-  children,
+  onSuccess,
   className,
   ...props
 }: CodeBlockCopyButtonProps) => {
-  const [isCopied, setIsCopied] = useState(false);
   const { code } = useContext(CodeBlockContext);
 
-  const copyToClipboard = async () => {
-    if (typeof window === 'undefined' || !navigator.clipboard.writeText) {
-      onError?.(new Error('Clipboard API not available'));
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(code);
-      setIsCopied(true);
-      onCopy?.();
-      setTimeout(() => setIsCopied(false), timeout);
-    } catch (error) {
-      onError?.(error as Error);
-    }
-  };
-
-  const Icon = isCopied ? CheckIcon : CopyIcon;
+  // Handle deprecated onCopy prop
+  const handleSuccess = onSuccess || onCopy;
 
   return (
-    <Button
+    <CopyButton
       className={cn('shrink-0', className)}
-      onClick={copyToClipboard}
+      onSuccess={handleSuccess}
       size="icon"
+      text={code}
       variant="ghost"
       {...props}
-    >
-      {children ?? <Icon size={14} />}
-    </Button>
+    />
   );
 };

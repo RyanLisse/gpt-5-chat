@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { deleteFilesByUrls, listFiles } from '@/lib/blob';
-import { getAllAttachmentUrls } from '@/lib/db/queries';
+import { getAllAttachmentUrls } from '@/lib/db/queries-with-cache';
 
 const RETENTION_HOURS = 4;
 const MINUTES_PER_HOUR = 60;

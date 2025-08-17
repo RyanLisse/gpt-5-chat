@@ -22,7 +22,7 @@ import {
   updateChatIsPinnedById,
   updateChatTitleById,
   updateChatVisiblityById,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-with-cache';
 import type { DBMessage } from '@/lib/db/schema';
 import {
   dbChatToUIChat,
@@ -114,6 +114,7 @@ export const chatRouter = createTRPCRouter({
       const _res = await updateChatTitleById({
         chatId: input.chatId,
         title: input.title,
+        userId: ctx.user.id,
       });
     }),
 
@@ -144,6 +145,7 @@ export const chatRouter = createTRPCRouter({
       await deleteMessagesByChatIdAfterMessageId({
         chatId: message.chatId,
         messageId: input.messageId,
+        userId: ctx.user.id,
       });
     }),
 
@@ -168,6 +170,7 @@ export const chatRouter = createTRPCRouter({
       await updateChatVisiblityById({
         chatId: input.chatId,
         visibility: input.visibility,
+        userId: ctx.user.id,
       });
 
       return { success: true };
@@ -194,6 +197,7 @@ export const chatRouter = createTRPCRouter({
       await updateChatIsPinnedById({
         chatId: input.chatId,
         isPinned: input.isPinned,
+        userId: ctx.user.id,
       });
 
       return { success: true };
@@ -214,7 +218,7 @@ export const chatRouter = createTRPCRouter({
         });
       }
 
-      await deleteChatById({ id: input.chatId });
+      await deleteChatById({ id: input.chatId, userId: ctx.user.id });
       return { success: true };
     }),
 

@@ -1,5 +1,4 @@
 import { toast } from 'sonner';
-import { CodeEditor } from '@/components/code-editor';
 import {
   Console,
   type ConsoleOutput,
@@ -14,6 +13,7 @@ import {
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
+import { CodeEditorLazy as CodeEditor } from '@/components/lazy/code-editor-lazy';
 import { DEFAULT_CODE_EDITS_MODEL } from '@/lib/ai/all-models';
 import { chatStore } from '@/lib/stores/chat-store';
 import { generateUUID, getLanguageFromFileName } from '@/lib/utils';

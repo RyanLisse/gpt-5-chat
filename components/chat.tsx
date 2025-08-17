@@ -3,7 +3,7 @@ import { useChat } from '@ai-sdk/react';
 import { useQuery } from '@tanstack/react-query';
 import { DefaultChatTransport } from 'ai';
 import { useSession } from 'next-auth/react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { ChatHeader } from '@/components/chat-header';
 import { CloneChatButton } from '@/components/clone-chat-button';
@@ -15,10 +15,10 @@ import type { ChatMessage } from '@/lib/ai/types';
 import { chatState, chatStore, ZustandChat } from '@/lib/stores/chat-store';
 import { cn, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { useTRPC } from '@/trpc/react';
-import { Artifact } from './artifact';
 import { useDataStream } from './data-stream-provider';
+import { ArtifactLazy as Artifact } from './lazy/artifact-lazy';
+import { MultimodalInputLazy as MultimodalInput } from './lazy/multimodal-input-lazy';
 import { Messages } from './messages';
-import { MultimodalInput } from './multimodal-input';
 
 function useRecreateChat(id: string, initialMessages: ChatMessage[]) {
   useEffect(() => {
@@ -50,49 +50,63 @@ export function Chat({
   const isAuthenticated = Boolean(session?.user);
   const isLoading = id !== chatStore.getState().id;
 
+  const onFinish = useCallback(
+    ({ message }: { message: ChatMessage }) => {
+      saveChatMessage({
+        message,
+        chatId: id,
+      });
+    },
+    [saveChatMessage, id],
+  );
+
+  const onData = useCallback(
+    (dataPart: any) => {
+      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+    },
+    [setDataStream],
+  );
+
+  const onError = useCallback((error: Error) => {
+    const cause = error.cause;
+    if (cause && typeof cause === 'string') {
+      toast.error(error.message ?? 'An error occured, please try again!', {
+        description: cause,
+      });
+    } else {
+      toast.error(error.message ?? 'An error occured, please try again!');
+    }
+  }, []);
+
+  const prepareSendMessagesRequest = useCallback(
+    ({ messages, id, body }: any) => {
+      return {
+        body: {
+          id,
+          message: messages.at(-1),
+          prevMessages: isAuthenticated ? [] : messages.slice(0, -1),
+          ...body,
+        },
+      };
+    },
+    [isAuthenticated],
+  );
+
   const chat = useMemo(() => {
     return new ZustandChat<ChatMessage>({
       state: chatState,
-
       id,
-      // messages: initialMessages,
-      // sendExtraMessageFields: true,
       generateId: generateUUID,
-      onFinish: ({ message }) => {
-        saveChatMessage({
-          message,
-          chatId: id,
-        });
-      },
+      onFinish,
       transport: new DefaultChatTransport({
         api: '/api/chat',
         fetch: fetchWithErrorHandlers,
-        prepareSendMessagesRequest({ messages, id, body }) {
-          return {
-            body: {
-              id,
-              message: messages.at(-1),
-              prevMessages: isAuthenticated ? [] : messages.slice(0, -1),
-              ...body,
-            },
-          };
-        },
+        prepareSendMessagesRequest,
       }),
-      onData: (dataPart) => {
-        setDataStream((ds) => (ds ? [...ds, dataPart] : []));
-      },
-      onError: (error) => {
-        const cause = error.cause;
-        if (cause && typeof cause === 'string') {
-          toast.error(error.message ?? 'An error occured, please try again!', {
-            description: cause,
-          });
-        } else {
-          toast.error(error.message ?? 'An error occured, please try again!');
-        }
-      },
+      onData,
+      onError,
     });
-  }, [id, saveChatMessage, setDataStream, isAuthenticated]);
+  }, [id, onFinish, prepareSendMessagesRequest, onData, onError]);
 
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({

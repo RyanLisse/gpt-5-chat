@@ -1,6 +1,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { usePathname } from 'next/navigation';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { UIChat } from '@/lib/types/uiChat';
 import { SidebarChatItem } from './sidebar-chat-item';
 
@@ -21,7 +21,7 @@ type GroupedChatsListProps = {
   setOpenMobile: (open: boolean) => void;
 };
 
-export function GroupedChatsList({
+function PureGroupedChatsList({
   chats,
   onDelete,
   onRename,
@@ -204,3 +204,27 @@ export function GroupedChatsList({
     </>
   );
 }
+
+export const GroupedChatsList = memo(
+  PureGroupedChatsList,
+  (prevProps, nextProps) => {
+    // Compare chats array
+    if (prevProps.chats !== nextProps.chats) {
+      return false;
+    }
+    // Compare callback functions
+    if (prevProps.onDelete !== nextProps.onDelete) {
+      return false;
+    }
+    if (prevProps.onRename !== nextProps.onRename) {
+      return false;
+    }
+    if (prevProps.onPin !== nextProps.onPin) {
+      return false;
+    }
+    if (prevProps.setOpenMobile !== nextProps.setOpenMobile) {
+      return false;
+    }
+    return true;
+  },
+);

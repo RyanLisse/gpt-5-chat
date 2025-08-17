@@ -19,7 +19,7 @@ import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
 import { ArtifactLayout } from './artifact-layout';
 import { ArtifactMessages } from './artifact-messages';
-import { MultimodalInput } from './multimodal-input';
+import { MultimodalInputLazy as MultimodalInput } from './lazy/multimodal-input-lazy';
 import { Toolbar } from './toolbar';
 import { ScrollArea } from './ui/scroll-area';
 import { VersionFooter } from './version-footer';
@@ -71,8 +71,42 @@ function useArtifactState(
   };
 }
 
+// Custom hook for artifact initialization
+function useArtifactInitialization(
+  artifact: UIArtifact,
+  artifactDefinition: any,
+  setMetadata: any,
+  trpc: any,
+  queryClient: any,
+  isAuthenticated: boolean,
+) {
+  useEffect(() => {
+    if (
+      artifact.documentId !== 'init' &&
+      artifact.status !== 'streaming' &&
+      artifactDefinition.initialize
+    ) {
+      artifactDefinition.initialize({
+        documentId: artifact.documentId,
+        setMetadata,
+        trpc,
+        queryClient,
+        isAuthenticated,
+      });
+    }
+  }, [
+    artifact.documentId,
+    artifactDefinition,
+    setMetadata,
+    trpc,
+    queryClient,
+    isAuthenticated,
+    artifact.status,
+  ]);
+}
+
 // Chat panel component
-function ArtifactChatPanel({
+const ArtifactChatPanel = memo(function ArtifactChatPanel({
   chatId,
   artifact,
   isReadonly,
@@ -117,10 +151,10 @@ function ArtifactChatPanel({
       )}
     </div>
   );
-}
+});
 
 // Artifact header component
-function ArtifactHeader({
+const ArtifactHeader = memo(function ArtifactHeader({
   artifact,
   document,
   isContentDirty,
@@ -193,10 +227,10 @@ function ArtifactHeader({
       />
     </div>
   );
-}
+});
 
 // Main content area component
-function ArtifactMainContent({
+const ArtifactMainContent = memo(function ArtifactMainContent({
   artifact,
   artifactDefinition,
   isCurrentVersion,
@@ -286,7 +320,7 @@ function ArtifactMainContent({
       </AnimatePresence>
     </>
   );
-}
+});
 
 export type UIArtifact = {
   title: string;
@@ -304,17 +338,7 @@ export type UIArtifact = {
   };
 };
 
-function PureArtifact({
-  chatId,
-  sendMessage,
-  regenerate,
-  status,
-  stop,
-  messages: _messages,
-  votes,
-  isReadonly,
-  isAuthenticated,
-}: {
+type PureArtifactProps = {
   chatId: string;
   messages: ChatMessage[];
   votes: Vote[] | undefined;
@@ -324,109 +348,99 @@ function PureArtifact({
   stop: UseChatHelpers<ChatMessage>['stop'];
   isReadonly: boolean;
   isAuthenticated: boolean;
-}) {
-  const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
+};
 
-  const artifactState = useArtifactState(artifact, setArtifact, isReadonly);
-  const {
-    documents,
-    document,
-    currentVersionIndex,
-    isContentDirty,
-    isDocumentsFetching,
-    saveContent,
-    getDocumentContentById,
-    isCurrentVersion,
-    mode,
-    isToolbarVisible,
-    setIsToolbarVisible,
-    artifactDefinition,
-    handleVersionChange,
-    queryClient,
-    trpc,
-  } = artifactState;
-
-  useEffect(() => {
-    if (
-      artifact.documentId !== 'init' &&
-      artifact.status !== 'streaming' &&
-      artifactDefinition.initialize
-    ) {
-      artifactDefinition.initialize({
-        documentId: artifact.documentId,
-        setMetadata,
-        trpc,
-        queryClient,
-        isAuthenticated,
-      });
-    }
-  }, [
-    artifact.documentId,
-    artifactDefinition,
-    setMetadata,
-    trpc,
-    queryClient,
-    isAuthenticated,
-    artifact.status,
-  ]);
-
-  const chatPanel = (
+// Utility function to create chat panel
+function createChatPanel(artifact: UIArtifact, props: PureArtifactProps) {
+  return (
     <ArtifactChatPanel
       artifact={artifact}
-      chatId={chatId}
-      isReadonly={isReadonly}
-      regenerate={regenerate}
-      sendMessage={sendMessage}
-      status={status}
-      stop={stop}
-      votes={votes}
+      chatId={props.chatId}
+      isReadonly={props.isReadonly}
+      regenerate={props.regenerate}
+      sendMessage={props.sendMessage}
+      status={props.status}
+      stop={props.stop}
+      votes={props.votes}
     />
   );
+}
 
-  const mainContent = (
+// Utility function to create main content
+function createMainContent(
+  artifact: UIArtifact,
+  artifactState: any,
+  metadata: any,
+  setMetadata: any,
+  props: PureArtifactProps,
+) {
+  return (
     <>
       <ArtifactHeader
         artifact={artifact}
-        currentVersionIndex={currentVersionIndex}
-        document={document}
-        handleVersionChange={handleVersionChange}
-        isContentDirty={isContentDirty}
-        isCurrentVersion={isCurrentVersion}
-        isReadonly={isReadonly}
+        currentVersionIndex={artifactState.currentVersionIndex}
+        document={artifactState.document}
+        handleVersionChange={artifactState.handleVersionChange}
+        isContentDirty={artifactState.isContentDirty}
+        isCurrentVersion={artifactState.isCurrentVersion}
+        isReadonly={props.isReadonly}
         metadata={metadata}
-        mode={mode}
+        mode={artifactState.mode}
         setMetadata={setMetadata}
       />
-
       <ArtifactMainContent
         artifact={artifact}
-        artifactDefinition={artifactDefinition}
-        currentVersionIndex={currentVersionIndex}
-        documents={documents}
-        getDocumentContentById={getDocumentContentById}
-        handleVersionChange={handleVersionChange}
-        isCurrentVersion={isCurrentVersion}
-        isDocumentsFetching={isDocumentsFetching}
-        isReadonly={isReadonly}
-        isToolbarVisible={isToolbarVisible}
+        artifactDefinition={artifactState.artifactDefinition}
+        currentVersionIndex={artifactState.currentVersionIndex}
+        documents={artifactState.documents}
+        getDocumentContentById={artifactState.getDocumentContentById}
+        handleVersionChange={artifactState.handleVersionChange}
+        isCurrentVersion={artifactState.isCurrentVersion}
+        isDocumentsFetching={artifactState.isDocumentsFetching}
+        isReadonly={props.isReadonly}
+        isToolbarVisible={artifactState.isToolbarVisible}
         metadata={metadata}
-        mode={mode}
-        saveContent={saveContent}
-        sendMessage={sendMessage}
-        setIsToolbarVisible={setIsToolbarVisible}
+        mode={artifactState.mode}
+        saveContent={artifactState.saveContent}
+        sendMessage={props.sendMessage}
+        setIsToolbarVisible={artifactState.setIsToolbarVisible}
         setMetadata={setMetadata}
-        status={status}
-        stop={stop}
+        status={props.status}
+        stop={props.stop}
       />
     </>
+  );
+}
+
+function PureArtifact(props: PureArtifactProps) {
+  const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
+  const artifactState = useArtifactState(
+    artifact,
+    setArtifact,
+    props.isReadonly,
+  );
+
+  useArtifactInitialization(
+    artifact,
+    artifactState.artifactDefinition,
+    setMetadata,
+    artifactState.trpc,
+    artifactState.queryClient,
+    props.isAuthenticated,
   );
 
   return (
     <ArtifactLayout
       artifact={artifact}
-      chatPanel={chatPanel}
-      isCurrentVersion={isCurrentVersion}
-      mainContent={mainContent}
+      chatPanel={createChatPanel(artifact, props)}
+      isCurrentVersion={artifactState.isCurrentVersion}
+      mainContent={createMainContent(
+        artifact,
+        artifactState,
+        metadata,
+        setMetadata,
+        props,
+      )}
     />
   );
 }

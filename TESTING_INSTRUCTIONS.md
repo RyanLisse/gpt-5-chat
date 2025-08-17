@@ -124,9 +124,6 @@ Or
 **Example:** https://www.sparka.ai/share/bcc91bb0-d255-4d2b-ac9a-d6a839f6248e
 
 
-![URL processing](demo/image-16.png)
-
-
 ## 8. Message Editing Plus
 
 ### Edit Message

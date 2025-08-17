@@ -1,4 +1,4 @@
-import { getAllMessagesByChatId } from '@/lib/db/queries';
+import { getAllMessagesByChatId } from '@/lib/db/queries-with-cache';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
 import { buildThreadFromLeaf } from '@/lib/thread-utils';
 

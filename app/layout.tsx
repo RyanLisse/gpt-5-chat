@@ -4,6 +4,7 @@ import Script from 'next/script';
 
 import './globals.css';
 import { Toaster } from 'sonner';
+import { WebVitalsTracker } from '@/components/analytics/web-vitals-tracker';
 import { ThemeColorMeta } from '@/components/theme-color';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TRPCReactProvider } from '@/trpc/react';
@@ -71,6 +72,7 @@ export default function RootLayout({
           disableTransitionOnChange
           enableSystem
         >
+          <WebVitalsTracker debug={process.env.NODE_ENV !== 'production'} />
           <Toaster position="top-center" />
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>

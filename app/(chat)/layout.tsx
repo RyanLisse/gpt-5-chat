@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
-import { SessionProvider } from 'next-auth/react';
 import { AppSidebar } from '@/components/app-sidebar';
 import { KeyboardShortcuts } from '@/components/keyboard-shortcuts';
+import { SessionProviderWrapper } from '@/components/session-provider-wrapper';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import type { ModelId } from '@/lib/ai/model-id';
@@ -22,7 +22,7 @@ export default async function ChatLayout({
   const defaultModel = cookieModel ?? DEFAULT_CHAT_MODEL;
 
   return (
-    <SessionProvider session={session}>
+    <SessionProviderWrapper session={session}>
       <ChatProviders user={session?.user}>
         <SidebarProvider defaultOpen={!isCollapsed}>
           <AppSidebar />
@@ -35,6 +35,6 @@ export default async function ChatLayout({
           </SidebarInset>
         </SidebarProvider>
       </ChatProviders>
-    </SessionProvider>
+    </SessionProviderWrapper>
   );
 }

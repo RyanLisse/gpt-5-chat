@@ -3,7 +3,7 @@ import type { Session } from 'next-auth';
 import { z } from 'zod';
 import type { ModelId } from '@/lib/ai/model-id';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
-import { getDocumentById } from '@/lib/db/queries';
+import { getDocumentById } from '@/lib/db/queries-with-cache';
 import type { StreamWriter } from '../types';
 
 type UpdateDocumentProps = {

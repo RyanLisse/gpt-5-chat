@@ -25,7 +25,7 @@ import { AttachmentList } from './attachment-list';
 import { ResponsiveTools } from './chat-tools';
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { ImageModal } from './image-modal';
-import { ModelSelector } from './model-selector';
+import { ModelSelectorLazy as ModelSelector } from './lazy/model-selector-lazy';
 import { SuggestedActions } from './suggested-actions';
 import { Button } from './ui/button';
 import {

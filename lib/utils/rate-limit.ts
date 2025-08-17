@@ -1,4 +1,3 @@
-import 'server-only';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 
 type RateLimitResult = {

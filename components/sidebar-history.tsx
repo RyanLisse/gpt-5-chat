@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -15,7 +15,7 @@ import {
 import { DeleteDialog } from './delete-dialog';
 import { GroupedChatsList } from './grouped-chats-list';
 
-export function SidebarHistory() {
+function PureSidebarHistory() {
   const { setOpenMobile } = useSidebar();
 
   const { mutate: renameChatMutation } = useRenameChat();
@@ -39,6 +39,11 @@ export function SidebarHistory() {
     },
     [pinChatMutation],
   );
+
+  const handleDelete = useCallback((chatId: string) => {
+    setDeleteId(chatId);
+    setShowDeleteDialog(true);
+  }, []);
 
   if (!isLoading && chats?.length === 0) {
     return (
@@ -89,10 +94,7 @@ export function SidebarHistory() {
             {chats && (
               <GroupedChatsList
                 chats={chats}
-                onDelete={(chatId) => {
-                  setDeleteId(chatId);
-                  setShowDeleteDialog(true);
-                }}
+                onDelete={handleDelete}
                 onPin={pinChat}
                 onRename={renameChat}
                 setOpenMobile={setOpenMobile}
@@ -109,3 +111,5 @@ export function SidebarHistory() {
     </>
   );
 }
+
+export const SidebarHistory = memo(PureSidebarHistory);

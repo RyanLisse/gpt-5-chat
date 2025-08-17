@@ -108,9 +108,23 @@ function EditorRefPlugin({
     if (editor) {
       try {
         // Test that the editor is properly initialized before setting it
-        editor.getEditorState();
-        setEditor(editor);
-      } catch (_error) {
+        // Use a more gentle check that doesn't throw if state isn't ready
+        const state = editor.getEditorState();
+        if (state) {
+          setEditor(editor);
+        } else {
+          // If state isn't ready, try again after a short delay
+          const timeout = setTimeout(() => {
+            try {
+              editor.getEditorState();
+              setEditor(editor);
+            } catch {
+              setEditor(null);
+            }
+          }, 100);
+          return () => clearTimeout(timeout);
+        }
+      } catch {
         setEditor(null);
       }
     } else {
@@ -169,6 +183,7 @@ export const LexicalChatInput = React.forwardRef<
     },
     ref,
   ) => {
+    // ALL HOOKS MUST BE DECLARED FIRST (Rules of Hooks)
     const [editor, setEditor] = React.useState<LexicalEditor | null>(null);
     const [isMounted, setIsMounted] = React.useState(false);
 
@@ -177,13 +192,6 @@ export const LexicalChatInput = React.forwardRef<
       setIsMounted(true);
       return () => setIsMounted(false);
     }, []);
-
-    const initialConfig: InitialConfigType = {
-      namespace: 'LexicalChatInput',
-      theme,
-      onError,
-      nodes: [],
-    };
 
     const handleChange = React.useCallback(
       (editorState: EditorState) => {
@@ -268,16 +276,34 @@ export const LexicalChatInput = React.forwardRef<
       [placeholder],
     );
 
-    // Prevent SSR/hydration issues by only rendering after mount
+    // Configuration object (non-hook)
+    const initialConfig: InitialConfigType = {
+      namespace: 'LexicalChatInput',
+      theme,
+      onError,
+      nodes: [],
+    };
+
+    // Early returns AFTER all hooks are declared
+    // Don't render the editor until we're mounted on the client
     if (!isMounted) {
       return (
         <div
           className={cn(
-            'flex min-h-[80px] items-center justify-start rounded-md border p-3 text-muted-foreground',
+            'focus:outline-none focus-visible:outline-none',
+            '[&>.lexical-root]:min-h-[20px] [&>.lexical-root]:outline-none',
+            'lexical-content-editable',
+            'editor-input',
             className,
           )}
+          data-testid={testId}
+          style={{
+            minHeight: '20px',
+            padding: '8px 12px',
+            color: '#9ca3af',
+          }}
         >
-          <span className="pt-2 pl-3">{placeholder}</span>
+          {placeholder}
         </div>
       );
     }

@@ -1,0 +1,98 @@
+// Custom SVG icons that don't have suitable Lucide React equivalents
+// These are optimized and minimal compared to the original 49KB file
+
+type IconProps = {
+  size?: number;
+  className?: string;
+};
+
+export const VercelIcon = ({ size = 17, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path d="M8 1L16 15H0L8 1Z" fill="currentColor" />
+  </svg>
+);
+
+export const BoxIcon = ({ size = 16, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      d="M8 0.154663L8.34601 0.334591L14.596 3.58459L15 3.79466V4.25V11.75V12.2053L14.596 12.4154L8.34601 15.6654L8 15.8453L7.65399 15.6654L1.40399 12.4154L1 12.2053V11.75V4.25V3.79466L1.40399 3.58459L7.65399 0.334591L8 0.154663ZM2.5 11.2947V5.44058L7.25 7.81559V13.7647L2.5 11.2947ZM8.75 13.7647L13.5 11.2947V5.44056L8.75 7.81556V13.7647ZM8 1.84534L12.5766 4.22519L7.99998 6.51352L3.42335 4.2252L8 1.84534Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const DeltaIcon = ({ size = 16, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      d="M2.67705 15H1L1.75 13.5L6.16147 4.67705L6.15836 4.67082L6.16667 4.66667L7.16147 2.67705L8 1L8.83853 2.67705L14.25 13.5L15 15H13.3229H2.67705ZM7 6.3541L10.5729 13.5H3.42705L7 6.3541Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const PythonIcon = ({ size = 16, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      d="M7.90474 0.00013087C7.24499 0.00316291 6.61494 0.0588153 6.06057 0.15584C4.42745 0.441207 4.13094 1.0385 4.13094 2.14002V3.59479H7.9902V4.07971H4.13094H2.68259C1.56099 4.07971 0.578874 4.7465 0.271682 6.01496C-0.0826597 7.4689 -0.0983767 8.37619 0.271682 9.89434C0.546012 11.0244 1.20115 11.8296 2.32276 11.8296H3.64966V10.0856C3.64966 8.82574 4.75179 7.71441 6.06057 7.71441H9.91533C10.9884 7.71441 11.845 6.84056 11.845 5.77472V2.14002C11.845 1.10556 10.9626 0.328487 9.91533 0.15584C9.25237 0.046687 8.56448 -0.00290121 7.90474 0.00013087ZM5.81768 1.17017C6.21631 1.17017 6.54185 1.49742 6.54185 1.89978C6.54185 2.30072 6.21631 2.62494 5.81768 2.62494C5.41761 2.62494 5.09351 2.30072 5.09351 1.89978C5.09351 1.49742 5.41761 1.17017 5.81768 1.17017Z"
+      fill="currentColor"
+    />
+    <path
+      d="M12.3262 4.07971V5.77472C12.3262 7.08883 11.1997 8.19488 9.91525 8.19488H6.06049C5.0046 8.19488 4.13086 9.0887 4.13086 10.1346V13.7693C4.13086 14.8037 5.04033 15.4122 6.06049 15.709C7.28211 16.0642 8.45359 16.1285 9.91525 15.709C10.8868 15.4307 11.8449 14.8708 11.8449 13.7693V12.3145H7.99012V11.8296H11.8449H13.7745C14.8961 11.8296 15.3141 11.0558 15.7041 9.89434C16.1071 8.69865 16.0899 7.5488 15.7041 6.01495C15.4269 4.91058 14.8975 4.07971 13.7745 4.07971H12.3262ZM10.1581 13.2843C10.5582 13.2843 10.8823 13.6086 10.8823 14.0095C10.8823 14.4119 10.5582 14.7391 10.1581 14.7391C9.7595 14.7391 9.43397 14.4119 9.43397 14.0095C9.43397 13.6086 9.7595 13.2843 10.1581 13.2843Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const TerminalWindowIcon = ({ size = 16, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      d="M1.5 2.5H14.5V12.5C14.5 13.0523 14.0523 13.5 13.5 13.5H2.5C1.94772 13.5 1.5 13.0523 1.5 12.5V2.5ZM0 1H1.5H14.5H16V2.5V12.5C16 13.8807 14.8807 15 13.5 15H2.5C1.11929 15 0 13.8807 0 12.5V2.5V1ZM4 11.1339L4.44194 10.6919L6.51516 8.61872C6.85687 8.27701 6.85687 7.72299 6.51517 7.38128L4.44194 5.30806L4 4.86612L3.11612 5.75L3.55806 6.19194L5.36612 8L3.55806 9.80806L3.11612 10.25L4 11.1339ZM8 9.75494H8.6225H11.75H12.3725V10.9999H11.75H8.6225H8V9.75494Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const LogsIcon = ({ size = 16, className }: IconProps) => (
+  <svg
+    className={className}
+    height={size}
+    style={{ color: 'currentcolor' }}
+    viewBox="0 0 16 16"
+    width={size}
+  >
+    <path
+      d="M9 2H9.75H14.25H15V3.5H14.25H9.75H9V2ZM9 12.5H9.75H14.25H15V14H14.25H9.75H9V12.5ZM9.75 7.25H9V8.75H9.75H14.25H15V7.25H14.25H9.75ZM1 12.5H1.75H2.25H3V14H2.25H1.75H1V12.5ZM1.75 2H1V3.5H1.75H2.25H3V2H2.25H1.75ZM1 7.25H1.75H2.25H3V8.75H2.25H1.75H1V7.25ZM5.75 12.5H5V14H5.75H6.25H7V12.5H6.25H5.75ZM5 2H5.75H6.25H7V3.5H6.25H5.75H5V2ZM5.75 7.25H5V8.75H5.75H6.25H7V7.25H6.25H5.75Z"
+      fill="currentColor"
+    />
+  </svg>
+);

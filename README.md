@@ -103,6 +103,14 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
 
+## ⚙️ Runtime compatibility
+
+- This project uses modern array helpers like `Array.prototype.at` and `Array.prototype.findLast`.
+- If targeting older runtimes/browsers that lack these APIs, add polyfills (e.g. `core-js`) or replace with equivalent logic.
+  - Example replacements:
+    - `arr.at(-1)` → `arr[arr.length - 1]`
+    - `arr.findLast(pred)` → iterate from the end and return the first match
+
 ## 🙏 Acknowledgements
 
 Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects:

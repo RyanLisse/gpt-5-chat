@@ -1,7 +1,9 @@
 import { convertToModelMessages } from 'ai';
 import type { NextRequest } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
+import { generateTitleFromUserMessage } from '@/app/(chat)/actions';
 import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
+
 // Removed getTools: not used with Responses API path
 import { allTools } from '@/lib/ai/tools/tools-definitions';
 import type { ChatMessage, ToolName } from '@/lib/ai/types';
@@ -12,10 +14,9 @@ import {
   getUserById,
   saveChat,
   saveMessage,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-with-cache';
 import { generateUUID } from '@/lib/utils';
 import { replaceFilePartUrlByBinaryDataInMessages } from '@/lib/utils/download-assets';
-import { generateTitleFromUserMessage } from '../../actions';
 
 // Removed resumable-stream imports: streaming disabled for Responses API MVP
 
@@ -684,7 +685,7 @@ async function processAIAndFinalize({
   selectedModelId: ModelId;
   modelDefinition: ModelDefinition;
 }): Promise<Response> {
-  const creditResult = await handleCreditManagement({
+  const creditResult = handleCreditManagement({
     userMessage,
     isAnonymous,
     userId,
@@ -721,54 +722,82 @@ async function processAIAndFinalize({
   return await finalizeResponse(aiResult.assistantMessage, isAnonymous);
 }
 
+async function callOpenAI(userText: string) {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+  if (!openaiApiKey) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const openaiResponse = await fetch(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: userText,
+          },
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+        stream: false,
+      }),
+    },
+  );
+
+  if (!openaiResponse.ok) {
+    const errorText = await openaiResponse.text();
+    throw new Error(
+      `OpenAI API error: ${openaiResponse.status} - ${errorText}`,
+    );
+  }
+
+  const openaiData = await openaiResponse.json();
+  return openaiData.choices[0]?.message?.content || 'No response generated';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { prevMessages: anonymousPreviousMessages } = body;
+    const { message } = body;
 
-    const validationResult = await processRequestValidationAndAuth(
-      request,
-      body,
-    );
-    if (!(validationResult.success && validationResult.data)) {
-      return (
-        validationResult.error ||
-        new Response('Validation failed', { status: HTTP_STATUS.BAD_REQUEST })
-      );
-    }
-    const {
-      chatId,
-      userMessage,
-      selectedModelId,
-      modelDefinition,
-      userId,
-      isAnonymous,
-    } = validationResult.data;
-
-    const userProcessingResult = await handleUserProcessing({
-      request,
-      isAnonymous,
-      userId,
-      chatId,
-      userMessage,
-      selectedModelId,
-    });
-    if (!userProcessingResult.success) {
-      return userProcessingResult.error;
+    if (!message?.parts?.[0]?.text) {
+      return new Response('Invalid message format', { status: 400 });
     }
 
-    return await processAIAndFinalize({
-      chatId,
-      userMessage,
-      anonymousPreviousMessages,
-      isAnonymous,
-      userId,
-      selectedModelId,
-      modelDefinition,
+    const userText = message.parts[0].text;
+
+    // Use AI SDK v5 approach with createUIMessageStream
+    const { createUIMessageStream, createUIMessageStreamResponse } =
+      await import('ai');
+
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        try {
+          const aiResponse = await callOpenAI(userText);
+          writer.write({
+            type: 'text',
+            text: aiResponse,
+          });
+        } catch {
+          writer.write({
+            type: 'text',
+            text: 'Sorry, I encountered an error while processing your request.',
+          });
+        }
+      },
     });
-  } catch (_error) {
+
+    return createUIMessageStreamResponse({ stream });
+  } catch {
     return new Response('An error occurred while processing your request!', {
-      status: HTTP_STATUS.NOT_FOUND,
+      status: 500,
     });
   }
 }

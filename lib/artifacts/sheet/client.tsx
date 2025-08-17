@@ -8,7 +8,7 @@ import {
   SparklesIcon,
   UndoIcon,
 } from '@/components/icons';
-import { SpreadsheetEditor } from '@/components/sheet-editor';
+import { SheetEditorLazy as SpreadsheetEditor } from '@/components/lazy/sheet-editor-lazy';
 import {
   DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL,
   DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL,

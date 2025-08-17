@@ -3,14 +3,14 @@ import { Artifact } from '@/components/create-artifact';
 import { DiffView } from '@/components/diffview';
 import { DocumentSkeleton } from '@/components/document-skeleton';
 import {
-  ClockRewind,
+  ClockRewindIcon,
   CopyIcon,
   MessageIcon,
   PenIcon,
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
-import { Editor } from '@/components/text-editor';
+import { TextEditorLazy as Editor } from '@/components/lazy/text-editor-lazy';
 import {
   DEFAULT_POLISH_TEXT_MODEL,
   DEFAULT_SUGGESTIONS_MODEL,
@@ -119,7 +119,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   },
   actions: [
     {
-      icon: <ClockRewind size={18} />,
+      icon: <ClockRewindIcon size={18} />,
       description: 'View changes',
       onClick: ({ handleVersionChange }) => {
         handleVersionChange('toggle');

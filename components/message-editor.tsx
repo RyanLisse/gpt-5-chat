@@ -15,7 +15,7 @@ import {
   getTextContentFromMessage,
 } from '@/lib/utils';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
-import { MultimodalInput } from './multimodal-input';
+import { MultimodalInputLazy as MultimodalInput } from './lazy/multimodal-input-lazy';
 
 export type MessageEditorProps = {
   chatId: string;

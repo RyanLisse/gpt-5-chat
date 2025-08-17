@@ -7,7 +7,7 @@ import {
   getPublicDocumentsById,
   getSuggestionsByDocumentId,
   saveDocument,
-} from '@/lib/db/queries';
+} from '@/lib/db/queries-with-cache';
 import {
   createTRPCRouter,
   protectedProcedure,
