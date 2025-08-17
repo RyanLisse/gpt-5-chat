@@ -96,6 +96,7 @@ async function handleAuthentication(session: any): Promise<AuthResult> {
 
 type RateLimitResult = {
   success: boolean;
+  headers?: Record<string, string>;
   error?: Response;
 };
 
@@ -138,7 +139,7 @@ async function handleAnonymousRateLimit(
     };
   }
 
-  return { success: true };
+  return { success: true, headers: rateLimitResult.headers };
 }
 
 type ValidationResult = {
@@ -578,6 +579,7 @@ async function processAnonymousUser(
   selectedModelId: ModelId,
 ): Promise<{
   success: boolean;
+  headers?: Record<string, string>;
   error?: Response;
 }> {
   const rateLimitResult = await handleAnonymousRateLimit(
@@ -589,7 +591,7 @@ async function processAnonymousUser(
     return { success: false, error: rateLimitResult.error };
   }
 
-  return { success: true };
+  return { success: true, headers: rateLimitResult.headers };
 }
 
 async function processRequestValidationAndAuth(
@@ -644,6 +646,7 @@ type UserProcessingOptions = {
 
 async function handleUserProcessing(options: UserProcessingOptions): Promise<{
   success: boolean;
+  headers?: Record<string, string>;
   error?: Response;
 }> {
   const { request, isAnonymous, userId, chatId, userMessage, selectedModelId } =
@@ -722,83 +725,65 @@ async function processAIAndFinalize({
   return await finalizeResponse(aiResult.assistantMessage, isAnonymous);
 }
 
-async function callOpenAI(userText: string) {
-  const openaiApiKey = process.env.OPENAI_API_KEY;
-  if (!openaiApiKey) {
-    throw new Error('OpenAI API key not configured');
-  }
-
-  const openaiResponse = await fetch(
-    'https://api.openai.com/v1/chat/completions',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: userText,
-          },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-        stream: false,
-      }),
-    },
-  );
-
-  if (!openaiResponse.ok) {
-    const errorText = await openaiResponse.text();
-    throw new Error(
-      `OpenAI API error: ${openaiResponse.status} - ${errorText}`,
-    );
-  }
-
-  const openaiData = await openaiResponse.json();
-  return openaiData.choices[0]?.message?.content || 'No response generated';
-}
+// Removed unused callOpenAI helper; Responses API path handles model calls
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { message } = body;
 
-    if (!message?.parts?.[0]?.text) {
-      return new Response('Invalid message format', { status: 400 });
+    // 1) Validate request and resolve auth (guest allowed)
+    const validation = await processRequestValidationAndAuth(request, body);
+    if (!validation.success) {
+      return validation.error as Response;
+    }
+    const data = validation.data;
+    if (!data) {
+      return new Response('Invalid request payload', { status: 400 });
+    }
+    const { chatId, userMessage, selectedModelId, modelDefinition, userId, isAnonymous } = data;
+
+    // 2) Per-IP rate limit for guests
+    const userProcessing = await handleUserProcessing({
+      request,
+      isAnonymous,
+      userId,
+      chatId,
+      userMessage,
+      selectedModelId,
+    });
+    if (!userProcessing.success) {
+      return userProcessing.error as Response;
     }
 
-    const userText = message.parts[0].text;
+    // 3) AI processing and finalize response
+    const anonymousPreviousMessages: ChatMessage[] = Array.isArray(
+      body?.previousMessages || [],
+    )
+      ? (body.previousMessages as ChatMessage[])
+      : [];
 
-    // Use AI SDK v5 approach with createUIMessageStream
-    const { createUIMessageStream, createUIMessageStreamResponse } =
-      await import('ai');
-
-    const stream = createUIMessageStream({
-      execute: async ({ writer }) => {
-        try {
-          const aiResponse = await callOpenAI(userText);
-          writer.write({
-            type: 'text',
-            text: aiResponse,
-          });
-        } catch {
-          writer.write({
-            type: 'text',
-            text: 'Sorry, I encountered an error while processing your request.',
-          });
-        }
-      },
+    const response = await processAIAndFinalize({
+      chatId,
+      userMessage,
+      anonymousPreviousMessages,
+      isAnonymous,
+      userId,
+      selectedModelId,
+      modelDefinition,
     });
 
-    return createUIMessageStreamResponse({ stream });
-  } catch {
-    return new Response('An error occurred while processing your request!', {
-      status: 500,
-    });
+    // 4) Attach rate limit headers when available
+    const headers = new Headers(response.headers);
+    if (userProcessing.headers) {
+      for (const [k, v] of Object.entries(userProcessing.headers)) {
+        headers.set(k, v);
+      }
+    }
+
+    return new Response(response.body, { status: response.status, headers });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    return new Response(`An error occurred: ${message}`, { status: 500 });
   }
 }
 
