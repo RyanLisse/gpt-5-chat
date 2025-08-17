@@ -50,8 +50,7 @@
       "correctness": {
         "noUnusedImports": "warn",
         "useJsxKeyInIterable": "off",
-        "useExhaustiveDependencies": "off",
-        "noSolidDestructuredProps": "off"
+        "useExhaustiveDependencies": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
@@ -113,6 +112,5 @@
         }
       }
     }
-  ],
-  "extends": ["ultracite"]
+  ]
 }

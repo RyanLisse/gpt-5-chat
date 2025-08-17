@@ -1,17 +1,8 @@
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { usePathname } from 'next/navigation';
 import { memo, useMemo } from 'react';
 import type { UIChat } from '@/lib/types/uiChat';
-import { SidebarChatItem } from './sidebar-chat-item';
-
-type GroupedChats = {
-  pinned: UIChat[];
-  today: UIChat[];
-  yesterday: UIChat[];
-  lastWeek: UIChat[];
-  lastMonth: UIChat[];
-  older: UIChat[];
-};
+import { groupChatsByDate } from '@/lib/utils/chat-grouping';
+import { ChatGroupSection } from './chat-group-section';
 
 type GroupedChatsListProps = {
   chats: UIChat[];
@@ -39,44 +30,13 @@ function PureGroupedChatsList({
   }, [pathname]);
 
   const groupedChats = useMemo(() => {
-    const now = new Date();
-    const oneWeekAgo = subWeeks(now, 1);
-    const oneMonthAgo = subMonths(now, 1);
+    const groups = groupChatsByDate(chats, {
+      dateField: 'updatedAt',
+      includePinned: true,
+    });
 
-    // Separate pinned and non-pinned chats
-    const pinnedChats = chats.filter((chat) => chat.isPinned);
-    const nonPinnedChats = chats.filter((chat) => !chat.isPinned);
-
-    const groups = nonPinnedChats.reduce(
-      (groups, chat) => {
-        const chatDate = new Date(chat.updatedAt);
-
-        if (isToday(chatDate)) {
-          groups.today.push(chat);
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat);
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat);
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat);
-        } else {
-          groups.older.push(chat);
-        }
-
-        return groups;
-      },
-      {
-        pinned: [],
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-        older: [],
-      } as GroupedChats,
-    );
-
-    // Add pinned chats (sorted by most recently updated first)
-    groups.pinned = pinnedChats.sort(
+    // Sort pinned chats by most recently updated first
+    groups.pinned.sort(
       (a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
@@ -84,123 +44,71 @@ function PureGroupedChatsList({
     return groups;
   }, [chats]);
 
+  const isActive = (id: string) => id === chatId;
+
   return (
     <>
-      {groupedChats.pinned.length > 0 && (
-        <>
-          <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
-            Pinned
-          </div>
-          {groupedChats.pinned.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.pinned}
+        className=""
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Pinned"
+      />
 
-      {groupedChats.today.length > 0 && (
-        <>
-          <div
-            className={`px-2 py-1 text-sidebar-foreground/50 text-xs ${groupedChats.pinned.length > 0 ? 'mt-6' : ''}`}
-          >
-            Today
-          </div>
-          {groupedChats.today.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.today}
+        className={groupedChats.pinned.length > 0 ? 'mt-6' : ''}
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Today"
+      />
 
-      {groupedChats.yesterday.length > 0 && (
-        <>
-          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
-            Yesterday
-          </div>
-          {groupedChats.yesterday.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.yesterday}
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Yesterday"
+      />
 
-      {groupedChats.lastWeek.length > 0 && (
-        <>
-          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
-            Last 7 days
-          </div>
-          {groupedChats.lastWeek.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.lastWeek}
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Last 7 days"
+      />
 
-      {groupedChats.lastMonth.length > 0 && (
-        <>
-          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
-            Last 30 days
-          </div>
-          {groupedChats.lastMonth.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.lastMonth}
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Last 30 days"
+      />
 
-      {groupedChats.older.length > 0 && (
-        <>
-          <div className="mt-6 px-2 py-1 text-sidebar-foreground/50 text-xs">
-            Older
-          </div>
-          {groupedChats.older.map((chat) => (
-            <SidebarChatItem
-              chat={chat}
-              isActive={chat.id === chatId}
-              key={chat.id}
-              onDelete={onDelete}
-              onPin={onPin}
-              onRename={onRename}
-              setOpenMobile={setOpenMobile}
-            />
-          ))}
-        </>
-      )}
+      <ChatGroupSection
+        chats={groupedChats.older}
+        isActive={isActive}
+        onDelete={onDelete}
+        onPin={onPin}
+        onRename={onRename}
+        setOpenMobile={setOpenMobile}
+        title="Older"
+      />
     </>
   );
 }

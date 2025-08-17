@@ -25,14 +25,16 @@ import { cn } from '@/lib/utils';
 // Custom error boundary for Lexical-specific errors
 class LexicalEditorErrorBoundary extends React.Component<
   { children: React.ReactNode; onError?: (error: Error) => void },
-  { hasError: boolean }
+  { hasError: boolean; retryCount: number }
 > {
+  private retryTimer: NodeJS.Timeout | null = null;
+
   constructor(props: {
     children: React.ReactNode;
     onError?: (error: Error) => void;
   }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retryCount: 0 };
   }
 
   static getDerivedStateFromError(_error: Error) {
@@ -41,13 +43,30 @@ class LexicalEditorErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, _errorInfo: React.ErrorInfo) {
     this.props.onError?.(error);
+
+    // Auto-retry once after a short delay for transient errors
+    if (this.state.retryCount === 0) {
+      this.retryTimer = setTimeout(() => {
+        this.setState({ hasError: false, retryCount: 1 });
+      }, 1000);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+    }
   }
 
   render() {
     if (this.state.hasError) {
       return (
         <div className="flex min-h-[80px] items-center justify-center rounded-md border p-3 text-muted-foreground">
-          <span>Editor temporarily unavailable. Please refresh the page.</span>
+          <span>
+            {this.state.retryCount === 0
+              ? 'Loading editor...'
+              : 'Editor temporarily unavailable. Please refresh the page.'}
+          </span>
         </div>
       );
     }
@@ -108,23 +127,39 @@ function EditorRefPlugin({
     if (editor) {
       try {
         // Test that the editor is properly initialized before setting it
-        // Use a more gentle check that doesn't throw if state isn't ready
         const state = editor.getEditorState();
         if (state) {
-          setEditor(editor);
+          // Additional check to ensure editor is fully ready
+          const testRead = () => {
+            try {
+              editor.getEditorState().read(() => {
+                // Simple read test
+              });
+              setEditor(editor);
+            } catch (_error) {
+              // Retry with exponential backoff
+              const timeout = setTimeout(testRead, 200);
+              return () => clearTimeout(timeout);
+            }
+          };
+          testRead();
         } else {
           // If state isn't ready, try again after a short delay
           const timeout = setTimeout(() => {
             try {
-              editor.getEditorState();
-              setEditor(editor);
+              const retryState = editor.getEditorState();
+              if (retryState) {
+                setEditor(editor);
+              } else {
+                setEditor(null);
+              }
             } catch {
               setEditor(null);
             }
           }, 100);
           return () => clearTimeout(timeout);
         }
-      } catch {
+      } catch (_error) {
         setEditor(null);
       }
     } else {
@@ -176,10 +211,9 @@ export const LexicalChatInput = React.forwardRef<
       onPaste,
       onEnterSubmit,
       placeholder = 'Type a message...',
-      autoFocus = false,
+      autoFocus: _autoFocus = false,
       className,
       'data-testid': testId,
-      ...props
     },
     ref,
   ) => {

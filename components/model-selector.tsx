@@ -147,6 +147,24 @@ export function PureModelSelector({
   const [featureFilters, setFeatureFilters] =
     useState<FeatureFilter>(initialFilters);
 
+  // Feature filtering logic extracted into helper
+  const checkFeatureMatch = useCallback(
+    (features: any, key: string): boolean => {
+      const featureChecks = {
+        reasoning: () => features.reasoning,
+        functionCalling: () => features.functionCalling,
+        imageInput: () => features.input.image,
+        pdfInput: () => features.input.pdf,
+        audioInput: () => features.input.audio,
+        imageOutput: () => features.output.image,
+        audioOutput: () => features.output.audio,
+      };
+
+      return (featureChecks as any)[key]?.() ?? true;
+    },
+    [],
+  );
+
   // Memoize expensive computations
   const filteredModels = useMemo(() => {
     const hasActiveFilters = Object.values(featureFilters).some(Boolean);
@@ -163,33 +181,12 @@ export function PureModelSelector({
         return false;
       }
 
-      // Check each active filter
+      // Check each active filter using helper function
       return Object.entries(featureFilters).every(([key, isActive]) => {
-        if (!isActive) {
-          return true;
-        }
-
-        switch (key) {
-          case 'reasoning':
-            return features.reasoning;
-          case 'functionCalling':
-            return features.functionCalling;
-          case 'imageInput':
-            return features.input.image;
-          case 'pdfInput':
-            return features.input.pdf;
-          case 'audioInput':
-            return features.input.audio;
-          case 'imageOutput':
-            return features.output.image;
-          case 'audioOutput':
-            return features.output.audio;
-          default:
-            return true;
-        }
+        return !isActive || checkFeatureMatch(features, key);
       });
     });
-  }, [featureFilters]);
+  }, [featureFilters, checkFeatureMatch]);
 
   // Memoize model availability checks
   const modelAvailability = useMemo(() => {
@@ -230,6 +227,133 @@ export function PureModelSelector({
     setFeatureFilters(initialFilters);
   }, []);
 
+  // Extract filter UI into helper function to reduce complexity
+  const renderFilterContent = useCallback(
+    () => (
+      <div className="p-4">
+        <div className="mb-3 flex h-7 items-center justify-between">
+          <div className="font-medium text-sm">Filter by Tools</div>
+          {activeFilterCount > 0 && (
+            <Button
+              className="h-6 text-xs"
+              onClick={clearFilters}
+              size="sm"
+              variant="ghost"
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          {enabledFeatures.map((feature) => {
+            const IconComponent = feature.icon;
+            return (
+              <div className="flex items-center space-x-2" key={feature.key}>
+                <Checkbox
+                  checked={featureFilters[feature.key]}
+                  id={feature.key}
+                  onCheckedChange={(checked) =>
+                    setFeatureFilters((prev) => ({
+                      ...prev,
+                      [feature.key]: Boolean(checked),
+                    }))
+                  }
+                />
+                <Label
+                  className="flex items-center gap-1.5 text-sm"
+                  htmlFor={feature.key}
+                >
+                  <IconComponent className="h-3.5 w-3.5" />
+                  {feature.name}
+                </Label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ),
+    [activeFilterCount, clearFilters, featureFilters],
+  );
+
+  // Extract model list rendering to reduce complexity
+  const renderModelList = useCallback(
+    () => (
+      <ScrollArea className="*:data-radix-scroll-area-viewport:max-h-[350px]">
+        <TooltipProvider delayDuration={300}>
+          {filteredModels.map((chatModel) => {
+            const { id } = chatModel;
+            const modelDefinition = getModelDefinitionCached(id);
+            const disabled = modelAvailability.isModelDisabled(id);
+            const provider = modelDefinition.owned_by as ProviderId;
+            const isSelected = id === optimisticModelId;
+            const featureIcons = getFeatureIcons(modelDefinition);
+            const searchValue =
+              `${modelDefinition.name} ${modelDefinition.owned_by}`.toLowerCase();
+
+            return (
+              <Tooltip key={id}>
+                <TooltipTrigger asChild>
+                  <div>
+                    <CommandItem
+                      className={cn(
+                        'flex h-9 cursor-pointer items-center justify-between px-3 py-1.5 transition-all',
+                        isSelected &&
+                          'border-l-2 border-l-primary bg-primary/10',
+                        disabled && 'cursor-not-allowed opacity-50',
+                      )}
+                      onSelect={(_event) => {
+                        if (disabled) {
+                          return;
+                        }
+                        startTransition(() => {
+                          setOptimisticModelId(id);
+                          onModelChange?.(id);
+                          setOpen(false);
+                        });
+                      }}
+                      value={searchValue}
+                    >
+                      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                        <div className="shrink-0">
+                          {getProviderIcon(provider)}
+                        </div>
+                        <span className="truncate font-medium text-sm">
+                          {modelDefinition.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {featureIcons.length > 0 && (
+                          <div className="flex shrink-0 items-center gap-1">
+                            {featureIcons}
+                          </div>
+                        )}
+                      </div>
+                    </CommandItem>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  align="start"
+                  className="p-0"
+                  side="right"
+                  sideOffset={8}
+                >
+                  <ModelCard
+                    className="w-[280px] border shadow-lg"
+                    disabledReason={undefined}
+                    isDisabled={false}
+                    isSelected={isSelected}
+                    model={modelDefinition}
+                  />
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
+      </ScrollArea>
+    ),
+    [filteredModels, modelAvailability, optimisticModelId, onModelChange],
+  );
+
   // Only render the expensive popover content when it's open
   const popoverContent = useMemo(() => {
     if (!open) {
@@ -266,140 +390,16 @@ export function PureModelSelector({
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="p-0">
-              <div className="p-4">
-                <div className="mb-3 flex h-7 items-center justify-between">
-                  <div className="font-medium text-sm">Filter by Tools</div>
-                  {activeFilterCount > 0 && (
-                    <Button
-                      className="h-6 text-xs"
-                      onClick={clearFilters}
-                      size="sm"
-                      variant="ghost"
-                    >
-                      Clear filters
-                    </Button>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-2">
-                  {enabledFeatures.map((feature) => {
-                    const IconComponent = feature.icon;
-
-                    return (
-                      <div
-                        className="flex items-center space-x-2"
-                        key={feature.key}
-                      >
-                        <Checkbox
-                          checked={featureFilters[feature.key]}
-                          id={feature.key}
-                          onCheckedChange={(checked) =>
-                            setFeatureFilters((prev) => ({
-                              ...prev,
-                              [feature.key]: Boolean(checked),
-                            }))
-                          }
-                        />
-                        <Label
-                          className="flex items-center gap-1.5 text-sm"
-                          htmlFor={feature.key}
-                        >
-                          <IconComponent className="h-3.5 w-3.5" />
-                          {feature.name}
-                        </Label>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {renderFilterContent()}
             </PopoverContent>
           </Popover>
         </div>
-        {/* All models available for anonymous users now */}
         <CommandList
           className="max-h-[400px]"
-          onMouseDown={(event) => {
-            event.stopPropagation();
-          }}
+          onMouseDown={(event) => event.stopPropagation()}
         >
           <CommandEmpty>No model found.</CommandEmpty>
-          <CommandGroup>
-            <ScrollArea className="*:data-radix-scroll-area-viewport:max-h-[350px]">
-              <TooltipProvider delayDuration={300}>
-                {filteredModels.map((chatModel) => {
-                  const { id } = chatModel;
-                  const modelDefinition = getModelDefinitionCached(id);
-                  const disabled = modelAvailability.isModelDisabled(id);
-                  const provider = modelDefinition.owned_by as ProviderId;
-                  const isSelected = id === optimisticModelId;
-                  const featureIcons = getFeatureIcons(modelDefinition);
-
-                  // Create searchable value combining model name and provider
-                  const searchValue =
-                    `${modelDefinition.name} ${modelDefinition.owned_by}`.toLowerCase();
-
-                  return (
-                    <Tooltip key={id}>
-                      <TooltipTrigger asChild>
-                        <div>
-                          <CommandItem
-                            className={cn(
-                              'flex h-9 cursor-pointer items-center justify-between px-3 py-1.5 transition-all',
-                              isSelected &&
-                                'border-l-2 border-l-primary bg-primary/10',
-                              disabled && 'cursor-not-allowed opacity-50',
-                            )}
-                            onSelect={(_event) => {
-                              if (disabled) {
-                                return; // Prevent selection of disabled models
-                              }
-
-                              startTransition(() => {
-                                setOptimisticModelId(id);
-                                onModelChange?.(id);
-                                setOpen(false);
-                              });
-                            }}
-                            value={searchValue}
-                          >
-                            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                              <div className="shrink-0">
-                                {getProviderIcon(provider)}
-                              </div>
-                              <span className="truncate font-medium text-sm">
-                                {modelDefinition.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {featureIcons.length > 0 && (
-                                <div className="flex shrink-0 items-center gap-1">
-                                  {featureIcons}
-                                </div>
-                              )}
-                            </div>
-                          </CommandItem>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent
-                        align="start"
-                        className="p-0"
-                        side="right"
-                        sideOffset={8}
-                      >
-                        <ModelCard
-                          className="w-[280px] border shadow-lg"
-                          disabledReason={undefined}
-                          isDisabled={false}
-                          isSelected={isSelected}
-                          model={modelDefinition}
-                        />
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </TooltipProvider>
-            </ScrollArea>
-          </CommandGroup>
+          <CommandGroup>{renderModelList()}</CommandGroup>
         </CommandList>
       </Command>
     );
@@ -407,13 +407,8 @@ export function PureModelSelector({
     open,
     filterOpen,
     activeFilterCount,
-    featureFilters,
-    filteredModels,
-    modelAvailability,
-    optimisticModelId,
-    setOptimisticModelId,
-    onModelChange,
-    clearFilters,
+    renderFilterContent,
+    renderModelList,
   ]);
 
   return (
@@ -421,16 +416,19 @@ export function PureModelSelector({
       <PopoverTrigger asChild>
         <Button
           aria-expanded={open}
-          className={cn('w-fit gap-0 md:h-[34px] md:px-2', className)}
+          className={cn(
+            'min-w-0 max-w-64 gap-0 md:h-[34px] md:px-2',
+            className,
+          )}
           data-testid="model-selector"
           role="combobox"
           variant="ghost"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             {selectedProviderIcon && (
               <div className="shrink-0">{selectedProviderIcon}</div>
             )}
-            <p className="truncate">{selectedChatModel?.name}</p>
+            <p className="min-w-0 truncate">{selectedChatModel?.name}</p>
           </div>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

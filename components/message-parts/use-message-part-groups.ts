@@ -18,7 +18,8 @@ export const useMessagePartGroups = (parts: ChatMessage['parts']) => {
   return useMemo(() => {
     const result: MessagePartGroup[] = [];
 
-    for (let i = 0; i < parts.length; i++) {
+    let i = 0;
+    while (i < parts.length) {
       const part = parts[i];
       if (part.type === 'reasoning') {
         const reasoningParts: ReasoningPart[] = [];
@@ -28,9 +29,9 @@ export const useMessagePartGroups = (parts: ChatMessage['parts']) => {
         }
         const endIndex = i - 1;
         result.push({ kind: 'reasoning', parts: reasoningParts, endIndex });
-        i = endIndex;
       } else {
         result.push({ kind: 'single', part, index: i });
+        i++;
       }
     }
 

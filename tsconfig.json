@@ -19,8 +19,11 @@
         "name": "next"
       }
     ],
+    "types": ["vitest", "vitest/globals"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "vitest": ["./node_modules/vitest"],
+      "vitest/*": ["./node_modules/vitest/*"]
     },
     "baseUrl": ".",
     "strictNullChecks": true,
@@ -34,7 +37,8 @@
     ".next",
     "dist",
     "build",
-    "node_modules/@types/react-syntax-highlighter/node_modules"
+    "node_modules/@types/react-syntax-highlighter/node_modules",
+    "vitest.d.ts"
   ],
   "ts-node": {
     "compilerOptions": {

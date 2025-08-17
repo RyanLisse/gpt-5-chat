@@ -72,6 +72,24 @@ const PROGRESS_VALUES = {
   poor: 30,
 } as const;
 
+// Helper function to get CSS class based on performance rating
+const getPerformanceColorClass = (
+  metric: WebVitalMetric,
+  value: number,
+): string => {
+  const rating = getPerformanceRating(metric, value);
+  switch (rating) {
+    case 'good':
+      return 'text-green-600';
+    case 'needs-improvement':
+      return 'text-yellow-600';
+    case 'poor':
+      return 'text-red-600';
+    default:
+      return 'text-gray-600';
+  }
+};
+
 const MetricCard = ({
   name,
   label,
@@ -201,42 +219,21 @@ const PagePerformanceTable = ({ pages }: { pages: PageData[] }) => {
                   </td>
                   <td className="p-2 text-right">
                     <span
-                      className={
-                        getPerformanceRating('LCP', page.avgLCP) === 'good'
-                          ? 'text-green-600'
-                          : getPerformanceRating('LCP', page.avgLCP) ===
-                              'needs-improvement'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                      }
+                      className={getPerformanceColorClass('LCP', page.avgLCP)}
                     >
                       {formatMetricValue('LCP', page.avgLCP)}
                     </span>
                   </td>
                   <td className="p-2 text-right">
                     <span
-                      className={
-                        getPerformanceRating('INP', page.avgINP) === 'good'
-                          ? 'text-green-600'
-                          : getPerformanceRating('INP', page.avgINP) ===
-                              'needs-improvement'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                      }
+                      className={getPerformanceColorClass('INP', page.avgINP)}
                     >
                       {formatMetricValue('INP', page.avgINP)}
                     </span>
                   </td>
                   <td className="p-2 text-right">
                     <span
-                      className={
-                        getPerformanceRating('CLS', page.avgCLS) === 'good'
-                          ? 'text-green-600'
-                          : getPerformanceRating('CLS', page.avgCLS) ===
-                              'needs-improvement'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                      }
+                      className={getPerformanceColorClass('CLS', page.avgCLS)}
                     >
                       {formatMetricValue('CLS', page.avgCLS)}
                     </span>
@@ -251,9 +248,9 @@ const PagePerformanceTable = ({ pages }: { pages: PageData[] }) => {
   );
 };
 
-export function PerformanceDashboard() {
+// Hook for managing performance data
+function usePerformanceData(timeRange: string) {
   const [data, setData] = useState<DashboardData | null>(null);
-  const [timeRange, setTimeRange] = useState('24h');
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
@@ -265,6 +262,7 @@ export function PerformanceDashboard() {
       const result = await response.json();
       setData(result);
     } catch (_error) {
+      // Silently handle fetch errors, dashboard remains empty on failure
     } finally {
       setLoading(false);
     }
@@ -274,70 +272,173 @@ export function PerformanceDashboard() {
     fetchData();
   }, [timeRange]);
 
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <RefreshCw className="h-8 w-8 animate-spin" />
+  return { data, loading, fetchData };
+}
+
+// Loading state component
+function LoadingSpinner() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <RefreshCw className="h-8 w-8 animate-spin" />
+    </div>
+  );
+}
+
+// Empty state component
+function EmptyState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="py-8 text-center">
+      <p>No performance data available</p>
+      <Button className="mt-4" onClick={onRetry}>
+        Retry
+      </Button>
+    </div>
+  );
+}
+
+// Time range selector component
+function TimeRangeSelector({
+  timeRange,
+  setTimeRange,
+  onRefresh,
+}: {
+  timeRange: string;
+  setTimeRange: (range: string) => void;
+  onRefresh: () => void;
+}) {
+  const timeRanges = ['1h', '24h', '7d', '30d'];
+
+  return (
+    <div className="flex items-center space-x-2">
+      {timeRanges.map((range) => (
+        <Button
+          key={range}
+          onClick={() => setTimeRange(range)}
+          size="sm"
+          variant={timeRange === range ? 'default' : 'outline'}
+        >
+          {range}
+        </Button>
+      ))}
+      <Button onClick={onRefresh} size="sm" variant="outline">
+        <RefreshCw className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// Dashboard header component
+function DashboardHeader({
+  timeRange,
+  setTimeRange,
+  onRefresh,
+}: {
+  timeRange: string;
+  setTimeRange: (range: string) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="font-bold text-3xl tracking-tight">
+          Performance Dashboard
+        </h2>
+        <p className="text-muted-foreground">
+          Core Web Vitals and performance metrics for the last {timeRange}
+        </p>
       </div>
-    );
+      <TimeRangeSelector
+        onRefresh={onRefresh}
+        setTimeRange={setTimeRange}
+        timeRange={timeRange}
+      />
+    </div>
+  );
+}
+
+// Main metrics grid component
+function MetricsGrid({ metrics }: { metrics: any }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <MetricCard
+        data={metrics.LCP}
+        icon={Clock}
+        label="Largest Contentful Paint"
+        name="LCP"
+      />
+      <MetricCard
+        data={metrics.INP}
+        icon={Zap}
+        label="Interaction to Next Paint"
+        name="INP"
+      />
+      <MetricCard
+        data={metrics.CLS}
+        icon={Activity}
+        label="Cumulative Layout Shift"
+        name="CLS"
+      />
+    </div>
+  );
+}
+
+// Core vitals grid component
+function CoreVitalsGrid({ metrics }: { metrics: any }) {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <MetricCard
+        data={metrics.LCP}
+        icon={Clock}
+        label="Largest Contentful Paint"
+        name="LCP"
+      />
+      <MetricCard
+        data={metrics.INP}
+        icon={Zap}
+        label="Interaction to Next Paint"
+        name="INP"
+      />
+      <MetricCard
+        data={metrics.CLS}
+        icon={Activity}
+        label="Cumulative Layout Shift"
+        name="CLS"
+      />
+      <MetricCard
+        data={metrics.FCP}
+        icon={Clock}
+        label="First Contentful Paint"
+        name="FCP"
+      />
+      <MetricCard
+        data={metrics.TTFB}
+        icon={Activity}
+        label="Time to First Byte"
+        name="TTFB"
+      />
+    </div>
+  );
+}
+
+export function PerformanceDashboard() {
+  const [timeRange, setTimeRange] = useState('24h');
+  const { data, loading, fetchData } = usePerformanceData(timeRange);
+
+  if (loading) {
+    return <LoadingSpinner />;
   }
 
   if (!data) {
-    return (
-      <div className="py-8 text-center">
-        <p>No performance data available</p>
-        <Button className="mt-4" onClick={fetchData}>
-          Retry
-        </Button>
-      </div>
-    );
+    return <EmptyState onRetry={fetchData} />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-bold text-3xl tracking-tight">
-            Performance Dashboard
-          </h2>
-          <p className="text-muted-foreground">
-            Core Web Vitals and performance metrics for the last {timeRange}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setTimeRange('1h')}
-            size="sm"
-            variant={timeRange === '1h' ? 'default' : 'outline'}
-          >
-            1h
-          </Button>
-          <Button
-            onClick={() => setTimeRange('24h')}
-            size="sm"
-            variant={timeRange === '24h' ? 'default' : 'outline'}
-          >
-            24h
-          </Button>
-          <Button
-            onClick={() => setTimeRange('7d')}
-            size="sm"
-            variant={timeRange === '7d' ? 'default' : 'outline'}
-          >
-            7d
-          </Button>
-          <Button
-            onClick={() => setTimeRange('30d')}
-            size="sm"
-            variant={timeRange === '30d' ? 'default' : 'outline'}
-          >
-            30d
-          </Button>
-          <Button onClick={fetchData} size="sm" variant="outline">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <DashboardHeader
+        onRefresh={fetchData}
+        setTimeRange={setTimeRange}
+        timeRange={timeRange}
+      />
 
       <AlertsSection metrics={data.metrics} />
 
@@ -349,68 +450,12 @@ export function PerformanceDashboard() {
         </TabsList>
 
         <TabsContent className="space-y-4" value="overview">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <MetricCard
-              data={data.metrics.LCP}
-              icon={Clock}
-              label="Largest Contentful Paint"
-              name="LCP"
-            />
-            <MetricCard
-              data={data.metrics.INP}
-              icon={Zap}
-              label="Interaction to Next Paint"
-              name="INP"
-            />
-            <MetricCard
-              data={data.metrics.CLS}
-              icon={Activity}
-              label="Cumulative Layout Shift"
-              name="CLS"
-            />
-          </div>
+          <MetricsGrid metrics={data.metrics} />
           <PagePerformanceTable pages={data.pages} />
         </TabsContent>
 
         <TabsContent className="space-y-4" value="core-vitals">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <MetricCard
-              data={data.metrics.LCP}
-              icon={Clock}
-              label="Largest Contentful Paint"
-              name="LCP"
-            />
-            <MetricCard
-              data={data.metrics.INP}
-              icon={Zap}
-              label="Interaction to Next Paint"
-              name="INP"
-            />
-            <MetricCard
-              data={data.metrics.INP}
-              icon={Zap}
-              label="Interaction to Next Paint"
-              name="INP"
-            />
-            <MetricCard
-              data={data.metrics.CLS}
-              icon={Activity}
-              label="Cumulative Layout Shift"
-              name="CLS"
-            />
-            <MetricCard
-              data={data.metrics.FCP}
-              icon={Clock}
-              label="First Contentful Paint"
-              name="FCP"
-            />
-            <MetricCard
-              data={data.metrics.TTFB}
-              icon={Activity}
-              label="Time to First Byte"
-              name="TTFB"
-            />
-          </div>
+          <CoreVitalsGrid metrics={data.metrics} />
         </TabsContent>
 
         <TabsContent className="space-y-4" value="pages">

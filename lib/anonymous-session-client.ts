@@ -29,6 +29,7 @@ function setCookie(name: string, value: string, maxAge: number): void {
       ? '; Secure'
       : '';
   const encodedValue = encodeURIComponent(value);
+  /* biome-ignore lint/suspicious/noDocumentCookie: Browser-only cookie setting for anonymous session persistence */
   document.cookie = `${name}=${encodedValue}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}`;
 }
 
@@ -37,6 +38,7 @@ function deleteCookie(name: string): void {
     return;
   }
 
+  /* biome-ignore lint/suspicious/noDocumentCookie: Browser-only cookie deletion for anonymous session cleanup */
   document.cookie = `${name}=; Path=/; Max-Age=0`;
 }
 

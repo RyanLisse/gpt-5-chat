@@ -21,7 +21,14 @@ export class ConversationStateManager {
   }
 
   async createConversation(userId: string): Promise<ConversationState> {
-    const id = `conv_${Math.random().toString(36).slice(2)}`;
+    // Use crypto.randomUUID() if available, fallback to Math.random() with safety check
+    const randomPart =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID().slice(0, 8)
+        : typeof Math?.random === 'function'
+          ? Math.random().toString(36).slice(2)
+          : Date.now().toString(36);
+    const id = `conv_${randomPart}`;
     const now = new Date().toISOString();
 
     const state: ConversationState = {
@@ -107,7 +114,7 @@ export class ConversationStateManager {
       ...currentState,
       previousResponseId: response.id,
       contextMetadata: {
-        ...currentState.contextMetadata!,
+        ...currentState.contextMetadata,
         turnCount: (currentState.contextMetadata?.turnCount || 0) + 1,
         lastActivity: new Date().toISOString(),
         totalTokens:

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
@@ -19,12 +20,13 @@ export function ImageModal({
   return (
     <Dialog onOpenChange={onClose} open={isOpen}>
       <DialogContent>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           alt={imageName ?? 'Expanded image'}
           className="max-h-[90vh] max-w-full rounded-lg object-contain"
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
           src={imageUrl}
+          width={1200}
+          height={900}
         />
       </DialogContent>
     </Dialog>

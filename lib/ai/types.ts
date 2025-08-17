@@ -1,75 +1,39 @@
-import type { InferUITool, UIMessage, UIMessageStreamWriter } from 'ai';
+import type { UIMessage, UIMessageStreamWriter } from 'ai';
 import { z } from 'zod';
-import type { generateImage } from '@/lib/ai/tools/generate-image';
-import type { getWeather } from '@/lib/ai/tools/get-weather';
-import type { readDocument } from '@/lib/ai/tools/read-document';
-import type { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import type { retrieve } from '@/lib/ai/tools/retrieve';
-import type { stockChart } from '@/lib/ai/tools/stock-chart';
-import type { updateDocument } from '@/lib/ai/tools/update-document';
 import type { Suggestion } from '@/lib/db/schema';
 import type { ArtifactKind } from '../artifacts/artifact-kind';
 import type { ModelId } from './model-id';
-import type { createDocumentTool as createDocument } from './tools/create-document';
-
-export const toolNameSchema = z.enum([
-  'getWeather',
-  'createDocument',
-  'updateDocument',
-  'requestSuggestions',
-  'readDocument',
-  'retrieve',
-  'stockChart',
-  'generateImage',
-]);
-
-const _ = toolNameSchema.options satisfies ToolName[];
-
-type ToolNameInternal = z.infer<typeof toolNameSchema>;
-
-export const frontendToolsSchema = z.enum(['generateImage', 'createDocument']);
-
-const __ = frontendToolsSchema.options satisfies ToolNameInternal[];
-
-export type UiToolName = z.infer<typeof frontendToolsSchema>;
 export const messageMetadataSchema = z.object({
   createdAt: z.date(),
   parentMessageId: z.string().nullable(),
   selectedModel: z.custom<ModelId>((val) => typeof val === 'string'),
   isPartial: z.boolean().optional(),
-  selectedTool: frontendToolsSchema.optional(),
+  // Optional UI-selected tool for the message (UI-only; may be null/undefined)
+  selectedTool: z.custom<UiToolName | null | undefined>(() => true).optional(),
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
-type weatherTool = InferUITool<typeof getWeather>;
-type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
-type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
-type requestSuggestionsTool = InferUITool<
-  ReturnType<typeof requestSuggestions>
->;
-type readDocumentTool = InferUITool<ReturnType<typeof readDocument>>;
-type generateImageTool = InferUITool<ReturnType<typeof generateImage>>;
-type stockChartTool = InferUITool<typeof stockChart>;
-type retrieveTool = InferUITool<typeof retrieve>;
+// Tool name unions
+export type UiToolName = 'generateImage' | 'createDocument';
+// Full set of tool names that may appear in streamed parts
+export type ToolName =
+  | UiToolName
+  | 'updateDocument'
+  | 'getWeather'
+  | 'requestSuggestions'
+  | 'retrieve'
+  | 'readDocument'
+  | 'stockChart';
 
-export type ChatTools = {
-  getWeather: weatherTool;
-  createDocument: createDocumentTool;
-  updateDocument: updateDocumentTool;
-  requestSuggestions: requestSuggestionsTool;
-  readDocument: readDocumentTool;
-  generateImage: generateImageTool;
-  stockChart: stockChartTool;
-  retrieve: retrieveTool;
-};
+// Tool map keyed by supported tool names (no payload shape defined yet)
+export type ChatTools = Record<ToolName, any>;
 
 export type CustomUIDataTypes = {
   textDelta: string;
   imageDelta: string;
   sheetDelta: string;
   codeDelta: string;
-  suggestion: Suggestion;
   appendMessage: string;
   id: string;
   messageId: string;
@@ -77,6 +41,8 @@ export type CustomUIDataTypes = {
   kind: ArtifactKind;
   clear: null;
   finish: null;
+  responseId: string;
+  suggestion: Suggestion;
 };
 
 export type ChatMessage = Omit<
@@ -84,9 +50,8 @@ export type ChatMessage = Omit<
   'metadata'
 > & {
   metadata: MessageMetadata;
+  annotations?: any[]; // Database annotations field for compatibility
 };
-
-export type ToolName = keyof ChatTools;
 
 export type StreamWriter = UIMessageStreamWriter<ChatMessage>;
 

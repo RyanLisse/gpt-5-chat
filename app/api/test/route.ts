@@ -1,4 +1,4 @@
-export async function GET() {
+export function GET() {
   return new Response('Test API route is working!', {
     status: 200,
     headers: {
@@ -7,7 +7,7 @@ export async function GET() {
   });
 }
 
-export async function POST() {
+export function POST() {
   return new Response('Test POST API route is working!', {
     status: 200,
     headers: {

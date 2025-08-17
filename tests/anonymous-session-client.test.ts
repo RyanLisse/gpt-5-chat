@@ -40,9 +40,12 @@ describe('anonymous-session client helpers', () => {
     const session = createAnonymousSession();
     // Write a cookie with an old createdAt to simulate expiration
     const expired = { ...session, createdAt: new Date(0) };
-    document.cookie = `${ANONYMOUS_SESSION_COOKIES_KEY}=${encodeURIComponent(
+    const expiredCookie = `${ANONYMOUS_SESSION_COOKIES_KEY}=${encodeURIComponent(
       JSON.stringify(expired),
     )}; Path=/; Max-Age=${ANONYMOUS_LIMITS.SESSION_DURATION}; SameSite=Lax`;
+
+    // Use global document stub for testing instead of direct assignment
+    (globalThis as any).document.cookie = expiredCookie;
 
     const readBack = getAnonymousSession();
     expect(readBack).toBeNull();

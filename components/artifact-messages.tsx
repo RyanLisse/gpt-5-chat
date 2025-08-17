@@ -18,6 +18,7 @@ function areEqual(
   prevProps: ArtifactMessagesProps,
   nextProps: ArtifactMessagesProps,
 ) {
+  // Special case: both streaming should not re-render
   if (
     prevProps.artifactStatus === 'streaming' &&
     nextProps.artifactStatus === 'streaming'
@@ -25,23 +26,19 @@ function areEqual(
     return true;
   }
 
-  if (!equal(prevProps.votes, nextProps.votes)) {
-    return false;
-  }
-  if (prevProps.artifactStatus !== nextProps.artifactStatus) {
-    return false;
-  }
-  if (prevProps.isReadonly !== nextProps.isReadonly) {
-    return false;
-  }
-  if (prevProps.sendMessage !== nextProps.sendMessage) {
-    return false;
-  }
-  if (prevProps.regenerate !== nextProps.regenerate) {
-    return false;
-  }
+  // Compare all relevant props using functional approach
+  const propsToCompare: (keyof ArtifactMessagesProps)[] = [
+    'artifactStatus',
+    'isReadonly',
+    'sendMessage',
+    'regenerate',
+  ];
 
-  return true;
+  const allPropsEqual = propsToCompare.every(
+    (prop) => prevProps[prop] === nextProps[prop],
+  );
+
+  return allPropsEqual && equal(prevProps.votes, nextProps.votes);
 }
 
 export const ArtifactMessages = memo(PureArtifactMessages, areEqual);

@@ -28,42 +28,47 @@ type DocumentToolResultProps = {
     title: string;
     kind: ArtifactKind;
   };
-  isReadonly: boolean;
   messageId: string;
+  isReadonly?: boolean;
 };
 
 function PureDocumentToolResult({
   type,
   result,
-  isReadonly,
   messageId,
+  isReadonly: _isReadonly,
 }: DocumentToolResultProps) {
   const { setArtifact } = useArtifact();
 
   return (
     <button
       className="flex w-fit cursor-pointer flex-row items-start gap-3 rounded-xl border bg-background px-3 py-2"
-      onClick={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
+      disabled={isReadonly}
+      onClick={
+        isReadonly
+          ? undefined
+          : (event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
 
-        const boundingBox = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        };
+              const boundingBox = {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+              };
 
-        setArtifact({
-          documentId: result.id,
-          kind: result.kind,
-          content: '',
-          title: result.title,
-          messageId,
-          isVisible: true,
-          status: 'idle',
-          boundingBox,
-        });
-      }}
+              setArtifact({
+                documentId: result.id,
+                kind: result.kind,
+                content: '',
+                title: result.title,
+                messageId,
+                isVisible: true,
+                status: 'idle',
+                boundingBox,
+              });
+            }
+      }
       type="button"
     >
       <div className="mt-1 text-muted-foreground">
@@ -87,7 +92,7 @@ export const DocumentToolResult = memo(PureDocumentToolResult, () => true);
 type DocumentToolCallProps = {
   type: 'create' | 'update' | 'request-suggestions';
   args: { title?: string };
-  isReadonly: boolean;
+  isReadonly?: boolean;
 };
 
 function PureDocumentToolCall({
@@ -100,22 +105,27 @@ function PureDocumentToolCall({
   return (
     <button
       className="cursor pointer flex w-fit flex-row items-start justify-between gap-3 rounded-xl border px-3 py-2"
-      onClick={(event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
+      disabled={isReadonly}
+      onClick={
+        isReadonly
+          ? undefined
+          : (event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
 
-        const boundingBox = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        };
+              const boundingBox = {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+              };
 
-        setArtifact((currentArtifact) => ({
-          ...currentArtifact,
-          isVisible: true,
-          boundingBox,
-        }));
-      }}
+              setArtifact((currentArtifact) => ({
+                ...currentArtifact,
+                isVisible: true,
+                boundingBox,
+              }));
+            }
+      }
       type="button"
     >
       <div className="flex flex-row items-start gap-3">

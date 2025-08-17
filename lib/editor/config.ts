@@ -50,11 +50,9 @@ export function createHeadingTransform(level: number) {
 }
 
 export const handleEditorChange = ({
-  editorState,
   editor,
   onSaveContent,
 }: {
-  editorState: any;
   editor: LexicalEditor;
   onSaveContent: (updatedContent: string, debounce: boolean) => void;
 }) => {

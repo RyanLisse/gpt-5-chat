@@ -1,7 +1,7 @@
 // AGENT 3: Database Persistence Implementation for London School TDD
 import { eq, lt, sql } from 'drizzle-orm';
-import { db } from '@/lib/db/client';
-import { conversationState as conversationStateTable } from '@/lib/db/schema';
+import { db } from '../../db/client';
+import { conversationState as conversationStateTable } from '../../db/schema';
 import type { ConversationState, IPersistenceProvider } from './types';
 
 export class DatabasePersistenceProvider implements IPersistenceProvider {
@@ -9,9 +9,13 @@ export class DatabasePersistenceProvider implements IPersistenceProvider {
     _conversationId: string,
     state: ConversationState,
   ): Promise<void> {
+    if (!state.userId) {
+      throw new Error('User ID is required for saving conversation state');
+    }
+
     const dbState = {
       conversationId: state.conversationId,
-      userId: state.userId!,
+      userId: state.userId,
       previousResponseId: state.previousResponseId || null,
       contextMetadata: state.contextMetadata || null,
       createdAt: state.createdAt ? new Date(state.createdAt) : new Date(),
@@ -103,7 +107,7 @@ export class InMemoryPersistenceProvider implements IPersistenceProvider {
     const cutoffTime = Date.now() - olderThanHours * 60 * 60 * 1000;
     let cleaned = 0;
 
-    for (const [id, state] of this.store.entries()) {
+    for (const [id, state] of Array.from(this.store.entries())) {
       if (state.updatedAt && new Date(state.updatedAt).getTime() < cutoffTime) {
         this.store.delete(id);
         cleaned++;

@@ -77,41 +77,34 @@ async function handleFileUpload(file: Blob, filename: string) {
 }
 
 export async function POST(request: Request) {
+  // Early authentication check
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Early body validation
+  if (request.body === null) {
+    return new Response('Request body is empty', { status: 400 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Process form data with error handling
+    const formResult = await processFormData(request);
+    if ('error' in formResult) {
+      return NextResponse.json(
+        { error: formResult.error },
+        { status: formResult.status },
+      );
     }
 
-    if (request.body === null) {
-      return new Response('Request body is empty', { status: 400 });
-    }
+    // Extract file data and handle upload
+    const { file, formData } = formResult;
+    const filename = sanitizeFilename(formData);
+    const result = await handleFileUpload(file, filename);
 
-    try {
-      const formResult = await processFormData(request);
-      if ('error' in formResult) {
-        return NextResponse.json(
-          { error: formResult.error },
-          { status: formResult.status },
-        );
-      }
-
-      const { file, formData } = formResult;
-      const filename = sanitizeFilename(formData);
-
-      try {
-        const result = await handleFileUpload(file, filename);
-        return NextResponse.json(result);
-      } catch (_error) {
-        return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-      }
-    } catch (_error) {
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-    }
+    return NextResponse.json(result);
   } catch (_error) {
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { MessageSquare } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 
@@ -14,46 +13,22 @@ import {
 } from '@/components/ui/command';
 import { useGetAllChats } from '@/hooks/chat-sync-hooks';
 import type { UIChat } from '@/lib/types/uiChat';
+import { groupChatsByDate } from '@/lib/utils/chat-grouping';
 
-type GroupedChats = {
-  today: UIChat[];
-  yesterday: UIChat[];
-  lastWeek: UIChat[];
-  lastMonth: UIChat[];
-  older: UIChat[];
-};
+const _groupChatsByDateForSearch = (chats: UIChat[]) => {
+  const groups = groupChatsByDate(chats, {
+    dateField: 'createdAt',
+    includePinned: false,
+  });
 
-const groupChatsByDate = (chats: UIChat[]): GroupedChats => {
-  const now = new Date();
-  const oneWeekAgo = subWeeks(now, 1);
-  const oneMonthAgo = subMonths(now, 1);
-
-  return chats.reduce(
-    (groups, chat) => {
-      const chatDate = new Date(chat.createdAt);
-
-      if (isToday(chatDate)) {
-        groups.today.push(chat);
-      } else if (isYesterday(chatDate)) {
-        groups.yesterday.push(chat);
-      } else if (chatDate > oneWeekAgo) {
-        groups.lastWeek.push(chat);
-      } else if (chatDate > oneMonthAgo) {
-        groups.lastMonth.push(chat);
-      } else {
-        groups.older.push(chat);
-      }
-
-      return groups;
-    },
-    {
-      today: [],
-      yesterday: [],
-      lastWeek: [],
-      lastMonth: [],
-      older: [],
-    } as GroupedChats,
-  );
+  // Return only the non-pinned groups for search
+  return {
+    today: groups.today,
+    yesterday: groups.yesterday,
+    lastWeek: groups.lastWeek,
+    lastMonth: groups.lastMonth,
+    older: groups.older,
+  };
 };
 
 type SearchChatsListProps = {

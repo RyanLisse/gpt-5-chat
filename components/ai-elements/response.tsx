@@ -306,7 +306,11 @@ const components: Options['components'] = {
   },
 };
 
-export const Response = memo(
+type BaseResponseProps = ResponseProps & {
+  markdownComponents?: Options['components'];
+};
+
+const BaseResponse = memo(
   ({
     className,
     options,
@@ -315,8 +319,9 @@ export const Response = memo(
     allowedLinkPrefixes,
     defaultOrigin,
     parseIncompleteMarkdown: shouldParseIncompleteMarkdown = true,
+    markdownComponents: customComponents,
     ...props
-  }: ResponseProps) => {
+  }: BaseResponseProps) => {
     // Parse the children to remove incomplete markdown tokens if enabled
     const parsedChildren =
       typeof children === 'string' && shouldParseIncompleteMarkdown
@@ -334,7 +339,7 @@ export const Response = memo(
         <HardenedMarkdown
           allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
           allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
-          components={components}
+          components={customComponents}
           defaultOrigin={defaultOrigin}
           rehypePlugins={[rehypeKatex]}
           remarkPlugins={[remarkGfm, remarkMath]}
@@ -348,47 +353,21 @@ export const Response = memo(
   (prevProps, nextProps) => prevProps.children === nextProps.children,
 );
 
+BaseResponse.displayName = 'BaseResponse';
+
+export const Response = memo(
+  (props: ResponseProps) => (
+    <BaseResponse {...props} markdownComponents={components} />
+  ),
+  (prevProps, nextProps) => prevProps.children === nextProps.children,
+);
+
 Response.displayName = 'Response';
 
 export const StyledResponse = memo(
-  ({
-    className,
-    options,
-    children,
-    allowedImagePrefixes,
-    allowedLinkPrefixes,
-    defaultOrigin,
-    parseIncompleteMarkdown: shouldParseIncompleteMarkdown = true,
-    ...props
-  }: ResponseProps) => {
-    // Parse the children to remove incomplete markdown tokens if enabled
-    const parsedChildren =
-      typeof children === 'string' && shouldParseIncompleteMarkdown
-        ? parseIncompleteMarkdown(children)
-        : children;
-
-    return (
-      <div
-        className={cn(
-          'size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-          className,
-        )}
-        {...props}
-      >
-        <HardenedMarkdown
-          allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
-          allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
-          components={markdownComponents}
-          defaultOrigin={defaultOrigin}
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
-          {...options}
-        >
-          {parsedChildren}
-        </HardenedMarkdown>
-      </div>
-    );
-  },
+  (props: ResponseProps) => (
+    <BaseResponse {...props} markdownComponents={markdownComponents} />
+  ),
   (prevProps, nextProps) => prevProps.children === nextProps.children,
 );
 

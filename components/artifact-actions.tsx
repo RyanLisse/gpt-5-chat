@@ -65,6 +65,133 @@ async function handleActionClick(
   }
 }
 
+// Configuration object for artifact action context
+type ArtifactActionConfig = {
+  artifact: any;
+  handleVersionChange: any;
+  currentVersionIndex: number;
+  isCurrentVersion: boolean;
+  mode: 'edit' | 'diff';
+  metadata: any;
+  setMetadata: any;
+  isReadonly: boolean;
+};
+
+// Hook for managing artifact action context and loading state
+function useArtifactActionContext(config: ArtifactActionConfig) {
+  const {
+    artifact,
+    handleVersionChange,
+    currentVersionIndex,
+    isCurrentVersion,
+    mode,
+    metadata,
+    setMetadata,
+    isReadonly,
+  } = config;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const actionContext: ArtifactActionContext = {
+    content: artifact.content,
+    handleVersionChange,
+    currentVersionIndex,
+    isCurrentVersion,
+    mode: mode as 'edit' | 'diff',
+    metadata,
+    setMetadata,
+    isReadonly,
+  };
+
+  return { actionContext, isLoading, setIsLoading };
+}
+
+// Component for rendering toggle-type actions (View changes)
+function ToggleActionButton({
+  action,
+  actionContext,
+  isLoading,
+  artifact,
+  mode,
+  setIsLoading,
+}: any) {
+  return (
+    <div>
+      <Toggle
+        className={cn('h-fit', {
+          'p-2': !action.label,
+          'px-2 py-1.5': action.label,
+        })}
+        disabled={isActionDisabled(action, actionContext, isLoading, artifact)}
+        onClick={() => handleActionClick(action, actionContext, setIsLoading)}
+        pressed={mode === 'diff'}
+      >
+        {action.icon}
+        {action.label}
+      </Toggle>
+    </div>
+  );
+}
+
+// Component for rendering button-type actions
+function ButtonAction({
+  action,
+  actionContext,
+  isLoading,
+  artifact,
+  setIsLoading,
+}: any) {
+  return (
+    <Button
+      className={cn('h-fit dark:hover:bg-zinc-700', {
+        'p-2': !action.label,
+        'px-2 py-1.5': action.label,
+      })}
+      disabled={isActionDisabled(action, actionContext, isLoading, artifact)}
+      onClick={() => handleActionClick(action, actionContext, setIsLoading)}
+      variant="outline"
+    >
+      {action.icon}
+      {action.label}
+    </Button>
+  );
+}
+
+// Component for rendering individual action with tooltip
+function ActionWithTooltip({
+  action,
+  actionContext,
+  isLoading,
+  artifact,
+  mode,
+  setIsLoading,
+}: any) {
+  return (
+    <Tooltip key={action.description}>
+      <TooltipTrigger asChild>
+        {action.description === 'View changes' ? (
+          <ToggleActionButton
+            action={action}
+            actionContext={actionContext}
+            artifact={artifact}
+            isLoading={isLoading}
+            mode={mode}
+            setIsLoading={setIsLoading}
+          />
+        ) : (
+          <ButtonAction
+            action={action}
+            actionContext={actionContext}
+            artifact={artifact}
+            isLoading={isLoading}
+            setIsLoading={setIsLoading}
+          />
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{action.description}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 function PureArtifactActions({
   artifact,
   handleVersionChange,
@@ -75,8 +202,6 @@ function PureArtifactActions({
   setMetadata,
   isReadonly,
 }: ArtifactActionsProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
   const artifactDefinition = artifactDefinitions.find(
     (definition) => definition.kind === artifact.kind,
   );
@@ -85,8 +210,8 @@ function PureArtifactActions({
     throw new Error('Artifact definition not found!');
   }
 
-  const actionContext: ArtifactActionContext = {
-    content: artifact.content,
+  const { actionContext, isLoading, setIsLoading } = useArtifactActionContext({
+    artifact,
     handleVersionChange,
     currentVersionIndex,
     isCurrentVersion,
@@ -94,7 +219,7 @@ function PureArtifactActions({
     metadata,
     setMetadata,
     isReadonly,
-  };
+  });
 
   const filteredActions = artifactDefinition.actions.filter((action) =>
     shouldShowAction(action, isReadonly),
@@ -103,54 +228,15 @@ function PureArtifactActions({
   return (
     <div className="flex flex-row gap-1">
       {filteredActions.map((action) => (
-        <Tooltip key={action.description}>
-          <TooltipTrigger asChild>
-            {action.description === 'View changes' ? (
-              <div>
-                <Toggle
-                  className={cn('h-fit', {
-                    'p-2': !action.label,
-                    'px-2 py-1.5': action.label,
-                  })}
-                  disabled={isActionDisabled(
-                    action,
-                    actionContext,
-                    isLoading,
-                    artifact,
-                  )}
-                  onClick={() =>
-                    handleActionClick(action, actionContext, setIsLoading)
-                  }
-                  pressed={mode === 'diff'}
-                >
-                  {action.icon}
-                  {action.label}
-                </Toggle>
-              </div>
-            ) : (
-              <Button
-                className={cn('h-fit dark:hover:bg-zinc-700', {
-                  'p-2': !action.label,
-                  'px-2 py-1.5': action.label,
-                })}
-                disabled={isActionDisabled(
-                  action,
-                  actionContext,
-                  isLoading,
-                  artifact,
-                )}
-                onClick={() =>
-                  handleActionClick(action, actionContext, setIsLoading)
-                }
-                variant="outline"
-              >
-                {action.icon}
-                {action.label}
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>{action.description}</TooltipContent>
-        </Tooltip>
+        <ActionWithTooltip
+          action={action}
+          actionContext={actionContext}
+          artifact={artifact}
+          isLoading={isLoading}
+          key={action.description}
+          mode={mode}
+          setIsLoading={setIsLoading}
+        />
       ))}
     </div>
   );

@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useArtifact } from '@/hooks/use-artifact';
 import type { Suggestion } from '@/lib/db/schema';
-import { useChatInput } from '@/providers/chat-input-provider';
 import { artifactDefinitions } from './artifact';
 import { useDataStream } from './data-stream-provider';
 
@@ -20,16 +19,54 @@ export type DataStreamDelta = {
     | 'suggestion'
     | 'clear'
     | 'finish'
-    | 'kind';
-  content: string | Suggestion;
+    | 'kind'
+    | 'data-responseId'
+    | 'data-responses'
+    | 'data-textDelta'
+    | 'data-codeDelta'
+    | 'data-sheetDelta'
+    | 'data-imageDelta';
+  content?: string | Suggestion;
+  delta?: string;
+  data?: any;
+  id?: string;
 };
 
-export function DataStreamHandler({ id }: { id: string }) {
+type StreamPart = any;
+
+function normalizeStreamPart(
+  delta: StreamPart,
+  setMetadata: (updater: (current: any) => any) => void,
+) {
+  // Map AI SDK v5 custom text delta to artifact-friendly event
+  if (delta?.type === 'text-delta' && typeof delta?.delta === 'string') {
+    return { type: 'data-textDelta', data: delta.delta } as const;
+  }
+  // Capture responseId emitted as custom data event
+  if (delta?.type === 'data-responseId') {
+    const responseId =
+      (delta as any)?.data?.responseId ??
+      (delta as any)?.data ??
+      (delta as any)?.id;
+    if (responseId) {
+      setMetadata((current: any) => ({ ...(current ?? {}), responseId }));
+    }
+    return delta;
+  }
+  // Some servers also emit an annotation-like wrapper
+  if (delta?.type === 'data-responses' && (delta as any)?.data?.responseId) {
+    const responseId = (delta as any).data.responseId as string;
+    setMetadata((current: any) => ({ ...(current ?? {}), responseId }));
+    return delta;
+  }
+  return delta;
+}
+
+export function DataStreamHandler({ id: _id }: { id: string }) {
   const { dataStream } = useDataStream();
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
   const { data: session } = useSession();
-  const { setSelectedTool } = useChatInput();
   const saveDocumentMutation = useSaveDocument(
     artifact.documentId,
     artifact.messageId,
@@ -46,67 +83,46 @@ export function DataStreamHandler({ id }: { id: string }) {
 
     newDeltas.forEach((delta) => {
       const artifactDefinition = artifactDefinitions.find(
-        (artifactDefinition) => artifactDefinition.kind === artifact.kind,
+        (def) => def.kind === artifact.kind,
       );
+
+      const normalizedPart = normalizeStreamPart(delta, setMetadata);
 
       if (artifactDefinition?.onStreamPart) {
         artifactDefinition.onStreamPart({
-          streamPart: delta,
+          streamPart: normalizedPart,
           setArtifact,
           setMetadata,
         });
       }
 
+      // Handle artifact update based on delta type
       setArtifact((draftArtifact) => {
-        switch (delta.type) {
-          case 'data-id':
-            return {
-              ...draftArtifact,
-              documentId: delta.data,
-              status: 'streaming',
-            };
+        const dataHandlers = {
+          'data-id': { documentId: normalizedPart.data },
+          'data-messageId': { messageId: normalizedPart.data },
+          'data-title': { title: normalizedPart.data },
+          'data-kind': { kind: normalizedPart.data },
+          'data-clear': { content: '' },
+          'data-finish': { status: 'idle' },
+        } as const;
 
-          case 'data-messageId':
-            return {
-              ...draftArtifact,
-              messageId: delta.data,
-              status: 'streaming',
-            };
-
-          case 'data-title':
-            return {
-              ...draftArtifact,
-              title: delta.data,
-              status: 'streaming',
-            };
-
-          case 'data-kind':
-            return {
-              ...draftArtifact,
-              kind: delta.data,
-              status: 'streaming',
-            };
-
-          case 'data-clear':
-            return {
-              ...draftArtifact,
-              content: '',
-              status: 'streaming',
-            };
-
-          case 'data-finish':
-            return {
-              ...draftArtifact,
-              status: 'idle',
-            };
-
-          default:
-            return draftArtifact;
+        const updates = (dataHandlers as any)[normalizedPart.type];
+        if (!updates) {
+          return draftArtifact;
         }
+
+        const baseUpdate =
+          normalizedPart.type === 'data-finish' ? {} : { status: 'streaming' };
+        return {
+          ...draftArtifact,
+          ...updates,
+          ...baseUpdate,
+        };
       });
 
       // Artifacts need to be saved locally for anonymous users
-      if (delta.type === 'data-finish' && !isAuthenticated) {
+      if (normalizedPart.type === 'data-finish' && !isAuthenticated) {
         saveDocumentMutation.mutate({
           id: artifact.documentId,
           title: artifact.title,
@@ -122,7 +138,6 @@ export function DataStreamHandler({ id }: { id: string }) {
     artifact,
     saveDocumentMutation,
     isAuthenticated,
-    setSelectedTool,
   ]);
 
   return null;

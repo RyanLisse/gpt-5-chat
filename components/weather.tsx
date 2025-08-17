@@ -3,7 +3,28 @@
 import cx from 'classnames';
 import { format, isWithinInterval } from 'date-fns';
 import { useEffect, useState } from 'react';
-import type { WeatherAtLocation } from '@/lib/ai/tools/get-weather';
+
+// Local minimal type for weather data used by this component
+export type WeatherAtLocation = {
+  current: {
+    time: string;
+    temperature_2m: number;
+  };
+  current_units: {
+    temperature_2m: string;
+  };
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+  };
+  hourly_units: {
+    temperature_2m: string;
+  };
+  daily: {
+    sunrise: string[];
+    sunset: string[];
+  };
+};
 
 const SAMPLE = {
   latitude: 37.763_283,
@@ -198,7 +219,8 @@ export function Weather({
 
   // Find the index of the current time or the next closest time
   const currentTimeIndex = weatherAtLocation.hourly.time.findIndex(
-    (time) => new Date(time) >= new Date(weatherAtLocation.current.time),
+    (time: string) =>
+      new Date(time) >= new Date(weatherAtLocation.current.time),
   );
 
   // Slice the arrays to get the desired number of items
@@ -246,7 +268,7 @@ export function Weather({
       </div>
 
       <div className="flex flex-row justify-between">
-        {displayTimes.map((time, index) => (
+        {displayTimes.map((time: string, index: number) => (
           <div className="flex flex-col items-center gap-1" key={time}>
             <div className="text-blue-100 text-xs">
               {format(new Date(time), 'ha')}

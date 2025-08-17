@@ -12,60 +12,50 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = Boolean(auth?.user);
-      const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
+      const pathname = nextUrl.pathname;
 
-      // Allow any API routes for authentication to pass through
-      if (isApiAuthRoute) {
-        return true;
-      }
+      // Helper function to check if route should always be allowed
+      const isPublicRoute = (path: string): boolean => {
+        const publicRoutes = [
+          '/api/auth',
+          '/api/trpc',
+          '/api/chat',
+          '/login',
+          '/register',
+          '/share/',
+        ];
+        return (
+          publicRoutes.some((route) => path.startsWith(route)) || path === '/'
+        );
+      };
 
-      // Allow tRPC API routes for public shared documents
-      const isTrpcApi = nextUrl.pathname.startsWith('/api/trpc');
-      if (isTrpcApi) {
-        return true;
-      }
+      // Helper function to handle redirect
+      const redirectToHome = () =>
+        Response.redirect(new URL('/', nextUrl as unknown as URL));
 
-      // Allow all chat API routes for anonymous access
-      const isChatApiRoute = nextUrl.pathname === '/api/chat';
-      if (isChatApiRoute) {
-        return true;
-      }
-
-      const isOnChat = nextUrl.pathname.startsWith('/');
-      const isOnLoginPage = nextUrl.pathname.startsWith('/login');
-      const isOnRegisterPage = nextUrl.pathname.startsWith('/register');
-      const isOnSharePage = nextUrl.pathname.startsWith('/share/');
-
-      if (isLoggedIn && (isOnLoginPage || isOnRegisterPage)) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
-      }
-
-      if (isOnRegisterPage || isOnLoginPage) {
-        return true;
-      }
-
-      // Allow anonymous access to shared chat pages
-      if (isOnSharePage) {
-        return true;
-      }
-
-      if (isOnChat) {
-        // Allow anonymous access to main chat page
-        if (nextUrl.pathname === '/') {
-          return true;
+      // Early returns for public routes
+      if (isPublicRoute(pathname)) {
+        // Redirect logged-in users away from auth pages
+        if (
+          isLoggedIn &&
+          (pathname.startsWith('/login') || pathname.startsWith('/register'))
+        ) {
+          return redirectToHome();
         }
-        // Require auth for specific chat IDs
-        if (isLoggedIn) {
-          return true;
+        return true;
+      }
+
+      // Handle chat routes
+      if (pathname.startsWith('/')) {
+        // Specific chat IDs require authentication
+        if (pathname !== '/' && !isLoggedIn) {
+          return false;
         }
-        return false; // Redirect unauthenticated users to login page
+        return true;
       }
 
-      if (isLoggedIn) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
-      }
-
-      return true;
+      // Default fallback - redirect logged-in users to home, allow others
+      return isLoggedIn ? redirectToHome() : true;
     },
   },
 } satisfies NextAuthConfig;

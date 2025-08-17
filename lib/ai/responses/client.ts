@@ -49,7 +49,7 @@ export class ResponsesAPIClient {
           if (item.type === 'text') {
             return {
               type: 'text',
-              text: item.content,
+              text: String(item.content ?? ''),
               role: 'user',
               ...(item.metadata ? { metadata: item.metadata } : {}),
             } as const;
@@ -207,9 +207,12 @@ function mapTools(tools?: Tool[]) {
     if (t.type === 'web_search') {
       // Feature-flagged; default OFF
       if (process.env.RESPONSES_ENABLE_WEB_SEARCH === 'true') {
+        const cfg: any = (t as any).config;
+        const hasNonEmptyConfig =
+          cfg && typeof cfg === 'object' && Object.keys(cfg).length > 0;
         out.push({
           type: 'web_search',
-          ...('config' in t ? { config: (t as any).config } : {}),
+          ...(hasNonEmptyConfig ? { config: cfg } : {}),
         });
       }
     }

@@ -459,42 +459,41 @@ export function TextDotsLoader({
   );
 }
 
+// Loader component mapping to reduce switch complexity
+const loaderComponents = {
+  circular: CircularLoader,
+  classic: ClassicLoader,
+  pulse: PulseLoader,
+  'pulse-dot': PulseDotLoader,
+  dots: DotsLoader,
+  typing: TypingLoader,
+  wave: WaveLoader,
+  bars: BarsLoader,
+  terminal: TerminalLoader,
+  'text-blink': TextBlinkLoader,
+  'text-shimmer': TextShimmerLoader,
+  'loading-dots': TextDotsLoader,
+} as const;
+
 function Loader({
   variant = 'circular',
   size = 'md',
   text,
   className,
 }: LoaderProps) {
-  switch (variant) {
-    case 'circular':
-      return <CircularLoader className={className} size={size} />;
-    case 'classic':
-      return <ClassicLoader className={className} size={size} />;
-    case 'pulse':
-      return <PulseLoader className={className} size={size} />;
-    case 'pulse-dot':
-      return <PulseDotLoader className={className} size={size} />;
-    case 'dots':
-      return <DotsLoader className={className} size={size} />;
-    case 'typing':
-      return <TypingLoader className={className} size={size} />;
-    case 'wave':
-      return <WaveLoader className={className} size={size} />;
-    case 'bars':
-      return <BarsLoader className={className} size={size} />;
-    case 'terminal':
-      return <TerminalLoader className={className} size={size} />;
-    case 'text-blink':
-      return <TextBlinkLoader className={className} size={size} text={text} />;
-    case 'text-shimmer':
-      return (
-        <TextShimmerLoader className={className} size={size} text={text} />
-      );
-    case 'loading-dots':
-      return <TextDotsLoader className={className} size={size} text={text} />;
-    default:
-      return <CircularLoader className={className} size={size} />;
-  }
+  // Get the appropriate loader component
+  const LoaderComponent = loaderComponents[variant] || CircularLoader;
+
+  // Text-based loaders need the text prop
+  const isTextLoader = ['text-blink', 'text-shimmer', 'loading-dots'].includes(
+    variant,
+  );
+
+  return isTextLoader ? (
+    <LoaderComponent className={className} size={size} text={text} />
+  ) : (
+    <LoaderComponent className={className} size={size} />
+  );
 }
 
 export { Loader };

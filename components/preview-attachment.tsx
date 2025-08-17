@@ -1,4 +1,5 @@
 import { Download, ExternalLink, FileText } from 'lucide-react';
+import Image from 'next/image';
 import type { Attachment } from '@/lib/ai/types';
 import { CrossIcon, LoaderIcon } from './icons';
 import { Button } from './ui/button';
@@ -36,14 +37,14 @@ export const PreviewAttachment = ({
       <div className="relative flex aspect-video h-16 w-20 flex-col items-center justify-center rounded-md bg-muted">
         {contentType ? (
           contentType.startsWith('image') ? (
-            // NOTE: it is recommended to use next/image for images
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               alt={name ?? 'An image attachment'}
               className="size-full cursor-pointer rounded-md object-cover"
               key={url}
               onClick={() => onImageClick?.(url, name)}
               src={url}
+              width={80}
+              height={64}
             />
           ) : isPdf ? (
             <div className="flex h-full flex-col items-center justify-center">

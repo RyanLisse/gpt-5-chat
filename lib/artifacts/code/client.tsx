@@ -79,7 +79,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       language: 'python',
     });
   },
-  onStreamPart: ({ streamPart, setArtifact, setMetadata }) => {
+  onStreamPart: ({ streamPart, setArtifact }) => {
     if (streamPart.type === 'data-codeDelta') {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
@@ -134,7 +134,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       icon: <PlayIcon size={18} />,
       label: 'Run',
       description: 'Execute code',
-      onClick: async ({ content, setMetadata, metadata }) => {
+      onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: ConsoleOutputContent[] = [];
 
@@ -226,7 +226,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
           }));
         }
       },
-      isDisabled: ({ isReadonly, content, metadata }) => {
+      isDisabled: ({ isReadonly, metadata }) => {
         if (isReadonly) {
           return true;
         }

@@ -11,7 +11,6 @@ import {
 } from 'react';
 import { useDocuments } from '@/hooks/chat-sync-hooks';
 import { useArtifact } from '@/hooks/use-artifact';
-import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import type { Document } from '@/lib/db/schema';
 import { cn } from '@/lib/utils';
 import type { UIArtifact } from './artifact';
@@ -91,7 +90,7 @@ export function DocumentPreview({
   }
 
   if (isDocumentsFetching) {
-    return <LoadingSkeleton artifactKind={result.kind ?? args.kind} />;
+    return <LoadingSkeleton />;
   }
 
   const document: Document | null = previewDocument
@@ -109,7 +108,7 @@ export function DocumentPreview({
       : null;
 
   if (!document) {
-    return <LoadingSkeleton artifactKind={artifact.kind} />;
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -122,7 +121,6 @@ export function DocumentPreview({
       />
       <DocumentHeader
         isStreaming={artifact.status === 'streaming'}
-        kind={document.kind}
         title={document.title}
         type={type}
       />
@@ -131,7 +129,7 @@ export function DocumentPreview({
   );
 }
 
-const LoadingSkeleton = ({ artifactKind }: { artifactKind: ArtifactKind }) => (
+const LoadingSkeleton = () => (
   <div className="w-full">
     <div className="flex h-[57px] flex-row items-center justify-between gap-2 rounded-t-2xl border border-b-0 p-4 dark:border-zinc-700 dark:bg-muted">
       <div className="flex flex-row items-center gap-3">
@@ -230,12 +228,10 @@ const getActionText = (
 
 const PureDocumentHeader = ({
   title,
-  kind,
   isStreaming,
   type,
 }: {
   title: string;
-  kind: ArtifactKind;
   isStreaming: boolean;
   type: 'create' | 'update';
 }) => (

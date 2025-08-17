@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,10 @@ export function SearchForm({ onSearch, loading, error }: SearchFormProps) {
   const [vectorstoreId, setVectorstoreId] = useState('');
   const [query, setQuery] = useState('');
   const [topK, setTopK] = useState(String(DEFAULT_TOP_K));
+
+  const vectorstoreIdId = useId();
+  const queryId = useId();
+  const topKId = useId();
 
   const validateInputs = () => {
     if (!vectorstoreId.trim()) {
@@ -53,9 +57,9 @@ export function SearchForm({ onSearch, loading, error }: SearchFormProps) {
   return (
     <form className="space-y-4 rounded-lg border p-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="vectorstoreId">Vector Store ID</Label>
+        <Label htmlFor={vectorstoreIdId}>Vector Store ID</Label>
         <Input
-          id="vectorstoreId"
+          id={vectorstoreIdId}
           onChange={(e) => setVectorstoreId(e.target.value)}
           placeholder="vs_..."
           required
@@ -64,9 +68,9 @@ export function SearchForm({ onSearch, loading, error }: SearchFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="query">Search Query</Label>
+        <Label htmlFor={queryId}>Search Query</Label>
         <Input
-          id="query"
+          id={queryId}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="What do you want to find?"
           required
@@ -75,9 +79,9 @@ export function SearchForm({ onSearch, loading, error }: SearchFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="topK">Top K (optional)</Label>
+        <Label htmlFor={topKId}>Top K (optional)</Label>
         <Input
-          id="topK"
+          id={topKId}
           max={50}
           min={1}
           onChange={(e) => setTopK(e.target.value)}

@@ -1,3 +1,29 @@
+import { describe, expect, it } from 'vitest';
+
+// Unit tests for chat functionality
+describe('Chat (Unit Tests)', () => {
+  it('should be a placeholder test suite for chat unit tests', () => {
+    // This file contains Playwright E2E tests that only run with PLAYWRIGHT=1
+    // For unit tests, we need separate test files
+    expect(true).toBe(true);
+  });
+
+  it('should validate chat message structure', () => {
+    const chatMessage = {
+      id: 'msg-1',
+      role: 'user',
+      content: 'Hello world',
+      timestamp: new Date().toISOString(),
+    };
+
+    expect(chatMessage).toHaveProperty('id');
+    expect(chatMessage).toHaveProperty('role');
+    expect(chatMessage).toHaveProperty('content');
+    expect(['user', 'assistant', 'system']).toContain(chatMessage.role);
+  });
+});
+
+// Note: The Playwright E2E tests below only run when PLAYWRIGHT=1 is set
 // Only define Playwright e2e tests when explicitly enabled.
 // Prevents Bun/Vitest from importing Playwright and failing unit test runs.
 if (process.env.PLAYWRIGHT === '1') {

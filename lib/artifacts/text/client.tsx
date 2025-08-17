@@ -124,7 +124,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       onClick: ({ handleVersionChange }) => {
         handleVersionChange('toggle');
       },
-      isDisabled: ({ currentVersionIndex, setMetadata }) => {
+      isDisabled: ({ currentVersionIndex }) => {
         if (currentVersionIndex === 0) {
           return true;
         }

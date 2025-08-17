@@ -72,14 +72,23 @@ function useArtifactState(
 }
 
 // Custom hook for artifact initialization
-function useArtifactInitialization(
-  artifact: UIArtifact,
-  artifactDefinition: any,
-  setMetadata: any,
-  trpc: any,
-  queryClient: any,
-  isAuthenticated: boolean,
-) {
+type ArtifactInitializationOptions = {
+  artifact: UIArtifact;
+  artifactDefinition: any;
+  setMetadata: any;
+  trpc: any;
+  queryClient: any;
+  isAuthenticated: boolean;
+};
+
+function useArtifactInitialization({
+  artifact,
+  artifactDefinition,
+  setMetadata,
+  trpc,
+  queryClient,
+  isAuthenticated,
+}: ArtifactInitializationOptions) {
   useEffect(() => {
     if (
       artifact.documentId !== 'init' &&
@@ -106,7 +115,7 @@ function useArtifactInitialization(
 }
 
 // Chat panel component
-const ArtifactChatPanel = memo(function ArtifactChatPanel({
+const ArtifactChatPanel = memo(function ArtifactChatPanelComponent({
   chatId,
   artifact,
   isReadonly,
@@ -154,7 +163,7 @@ const ArtifactChatPanel = memo(function ArtifactChatPanel({
 });
 
 // Artifact header component
-const ArtifactHeader = memo(function ArtifactHeader({
+const ArtifactHeader = memo(function ArtifactHeaderComponent({
   artifact,
   document,
   isContentDirty,
@@ -230,7 +239,7 @@ const ArtifactHeader = memo(function ArtifactHeader({
 });
 
 // Main content area component
-const ArtifactMainContent = memo(function ArtifactMainContent({
+const ArtifactMainContent = memo(function ArtifactMainContentComponent({
   artifact,
   artifactDefinition,
   isCurrentVersion,
@@ -366,14 +375,18 @@ function createChatPanel(artifact: UIArtifact, props: PureArtifactProps) {
   );
 }
 
-// Utility function to create main content
-function createMainContent(
-  artifact: UIArtifact,
-  artifactState: any,
-  metadata: any,
-  setMetadata: any,
-  props: PureArtifactProps,
-) {
+// Configuration interface for main content creation
+type MainContentConfig = {
+  artifact: UIArtifact;
+  artifactState: any;
+  metadata: any;
+  setMetadata: any;
+  props: PureArtifactProps;
+};
+
+// Utility function to create main content with options object pattern
+function createMainContent(config: MainContentConfig) {
+  const { artifact, artifactState, metadata, setMetadata, props } = config;
   return (
     <>
       <ArtifactHeader
@@ -420,27 +433,27 @@ function PureArtifact(props: PureArtifactProps) {
     props.isReadonly,
   );
 
-  useArtifactInitialization(
+  useArtifactInitialization({
     artifact,
-    artifactState.artifactDefinition,
+    artifactDefinition: artifactState.artifactDefinition,
     setMetadata,
-    artifactState.trpc,
-    artifactState.queryClient,
-    props.isAuthenticated,
-  );
+    trpc: artifactState.trpc,
+    queryClient: artifactState.queryClient,
+    isAuthenticated: props.isAuthenticated,
+  });
 
   return (
     <ArtifactLayout
       artifact={artifact}
       chatPanel={createChatPanel(artifact, props)}
       isCurrentVersion={artifactState.isCurrentVersion}
-      mainContent={createMainContent(
+      mainContent={createMainContent({
         artifact,
         artifactState,
         metadata,
         setMetadata,
         props,
-      )}
+      })}
     />
   );
 }

@@ -6,6 +6,26 @@ import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { getDefaultThread } from '@/lib/thread-utils';
 
+// Error state component
+function SharedChatError() {
+  return (
+    <div className="flex h-dvh items-center justify-center">
+      <div className="text-muted-foreground">
+        This chat is not available or has been set to private
+      </div>
+    </div>
+  );
+}
+
+// Loading state component
+function SharedChatLoading() {
+  return (
+    <WithSkeleton className="h-full w-full" isLoading={true}>
+      <div className="flex h-screen w-full" />
+    </WithSkeleton>
+  );
+}
+
 export function SharedChatPage({ id }: { id: string }) {
   const {
     data: chat,
@@ -27,40 +47,27 @@ export function SharedChatPage({ id }: { id: string }) {
     );
   }, [messages]);
 
+  // Early validation
   if (!id) {
     return notFound();
   }
 
+  // Error handling
   if (chatError || messagesError) {
-    // TODO: Replace for error page
-    return (
-      <div className="flex h-dvh items-center justify-center">
-        <div className="text-muted-foreground">
-          This chat is not available or has been set to private
-        </div>
-      </div>
-    );
+    return <SharedChatError />;
   }
 
-  if (!(isChatLoading || chat)) {
-    return notFound();
-  }
-
+  // Loading state
   if (isMessagesLoading || isChatLoading) {
-    return (
-      <WithSkeleton
-        className="h-full w-full"
-        isLoading={isChatLoading || isMessagesLoading}
-      >
-        <div className="flex h-screen w-full" />
-      </WithSkeleton>
-    );
+    return <SharedChatLoading />;
   }
 
+  // Final validation and fallback
   if (!chat) {
     return notFound();
   }
 
+  // Success state - render chat
   return (
     <>
       <WithSkeleton

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Guest Chat Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #f5f5f5;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .rate-limit-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Guest Chat Test Suite</h1>
+    <p>This test suite verifies all guest user functionality requirements including authentication, rate limiting, local storage persistence, and response annotations.</p>
+
+    <!-- Test 1: No Authentication Required -->
+    <div class="test-section">
+        <h2 class="test-header">Test 1: No Authentication Required</h2>
+        <p>Verify that guest users can access chat functionality without logging in.</p>
+        <button onclick="testNoAuthRequired()">Run Authentication Test</button>
+        <div id="auth-test-results"></div>
+    </div>
+
+    <!-- Test 2: IP-based Rate Limiting -->
+    <div class="test-section">
+        <h2 class="test-header">Test 2: IP-based Rate Limiting</h2>
+        <p>Test rate limiting for guest users with multiple rapid requests.</p>
+        <button onclick="testRateLimiting()">Run Rate Limiting Test</button>
+        <div class="rate-limit-info">
+            <strong>Rate Limit Info:</strong> This will send 10 rapid requests to test rate limiting.
+        </div>
+        <div id="rate-limit-results"></div>
+    </div>
+
+    <!-- Test 3: Local Storage Persistence -->
+    <div class="test-section">
+        <h2 class="test-header">Test 3: Local Storage Chat Persistence</h2>
+        <p>Test that guest chat messages persist in localStorage across page refreshes.</p>
+        <button onclick="testLocalStoragePersistence()">Test Persistence</button>
+        <button onclick="clearLocalStorage()">Clear Storage</button>
+        <button onclick="simulatePageRefresh()">Simulate Refresh</button>
+        <div id="storage-test-results"></div>
+        <div id="storage-contents"></div>
+    </div>
+
+    <!-- Test 4: Response Annotations -->
+    <div class="test-section">
+        <h2 class="test-header">Test 4: Response Annotations & ResponseId</h2>
+        <p>Verify that AI responses include responseId and proper annotations.</p>
+        <button onclick="testResponseAnnotations()">Test Response Annotations</button>
+        <div id="annotation-test-results"></div>
+    </div>
+
+    <!-- Test 5: Interactive Chat Test -->
+    <div class="test-section">
+        <h2 class="test-header">Test 5: Interactive Guest Chat</h2>
+        <p>Interactive chat interface to test the complete guest user experience.</p>
+        <div class="chat-container" id="chat-messages"></div>
+        <div class="input-container">
+            <input type="text" id="chat-input" placeholder="Type your message here..." />
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+        <div id="chat-test-results"></div>
+    </div>
+
+    <script>
+        // Global variables for testing
+        let testResults = {};
+        let chatHistory = [];
+
+        // Test 1: No Authentication Required
+        async function testNoAuthRequired() {
+            const resultsDiv = document.getElementById('auth-test-results');
+            resultsDiv.innerHTML = '<div class="info">Testing authentication requirements...</div>';
+
+            try {
+                // Test if we can make a request without any authentication headers
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: 'auth-test-chat',
+                        message: {
+                            id: 'auth-test-message',
+                            role: 'user',
+                            parts: [{ type: 'text', text: 'Hello, I am testing guest access.' }],
+                            metadata: { selectedModel: 'openai/gpt-4o-mini' }
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = '<div class="success">✓ PASS: Guest users can access chat API without authentication</div>';
+                    testResults.authentication = 'PASS';
+                } else {
+                    const errorText = await response.text();
+                    resultsDiv.innerHTML = `<div class="error">✗ FAIL: Authentication required. Status: ${response.status}, Error: ${errorText}</div>`;
+                    testResults.authentication = 'FAIL';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">✗ ERROR: ${error.message}</div>`;
+                testResults.authentication = 'ERROR';
+            }
+        }
+
+        // Test 2: Rate Limiting
+        async function testRateLimiting() {
+            const resultsDiv = document.getElementById('rate-limit-results');
+            resultsDiv.innerHTML = '<div class="info">Testing rate limiting with 10 rapid requests...</div>';
+
+            const requests = [];
+            const startTime = Date.now();
+
+            // Send 10 rapid requests
+            for (let i = 0; i < 10; i++) {
+                requests.push(
+                    fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: `rate-test-chat-${i}`,
+                            message: {
+                                id: `rate-test-message-${i}`,
+                                role: 'user',
+                                parts: [{ type: 'text', text: `Rate limit test message ${i}` }],
+                                metadata: { selectedModel: 'openai/gpt-4o-mini' }
+                            }
+                        })
+                    })
+                );
+            }
+
+            try {
+                const responses = await Promise.all(requests);
+                const endTime = Date.now();
+                
+                let rateLimitedCount = 0;
+                let successCount = 0;
+                let rateLimitHeaders = {};
+
+                for (const response of responses) {
+                    if (response.status === 429) {
+                        rateLimitedCount++;
+                    } else if (response.ok) {
+                        successCount++;
+                    }
+
+                    // Check for rate limit headers
+                    if (response.headers.get('x-ratelimit-limit')) {
+                        rateLimitHeaders = {
+                            limit: response.headers.get('x-ratelimit-limit'),
+                            remaining: response.headers.get('x-ratelimit-remaining'),
+                            reset: response.headers.get('x-ratelimit-reset')
+                        };
+                    }
+                }
+
+                let resultHtml = `
+                    <div class="test-details">
+                        <strong>Test Results:</strong><br>
+                        • Total requests: 10<br>
+                        • Successful: ${successCount}<br>
+                        • Rate limited (429): ${rateLimitedCount}<br>
+                        • Time taken: ${endTime - startTime}ms<br>
+                `;
+
+                if (Object.keys(rateLimitHeaders).length > 0) {
+                    resultHtml += `• Rate limit headers found: ${JSON.stringify(rateLimitHeaders)}<br>`;
+                }
+
+                resultHtml += '</div>';
+
+                if (rateLimitedCount > 0) {
+                    resultsDiv.innerHTML = `<div class="success">✓ PASS: Rate limiting is working</div>${resultHtml}`;
+                    testResults.rateLimiting = 'PASS';
+                } else {
+                    resultsDiv.innerHTML = `<div class="warning">⚠ WARNING: No rate limiting detected</div>${resultHtml}`;
+                    testResults.rateLimiting = 'WARNING';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">✗ ERROR: ${error.message}</div>`;
+                testResults.rateLimiting = 'ERROR';
+            }
+        }
+
+        // Test 3: Local Storage Persistence
+        function testLocalStoragePersistence() {
+            const resultsDiv = document.getElementById('storage-test-results');
+            const contentsDiv = document.getElementById('storage-contents');
+
+            try {
+                // Test writing to localStorage
+                const testData = {
+                    chatId: 'test-guest-chat',
+                    messages: [
+                        { id: '1', role: 'user', text: 'Test message 1', timestamp: Date.now() },
+                        { id: '2', role: 'assistant', text: 'Test response 1', timestamp: Date.now() }
+                    ],
+                    timestamp: Date.now()
+                };
+
+                localStorage.setItem('guest-chat-test', JSON.stringify(testData));
+                
+                // Test reading from localStorage
+                const retrieved = JSON.parse(localStorage.getItem('guest-chat-test'));
+                
+                if (retrieved && retrieved.chatId === testData.chatId) {
+                    resultsDiv.innerHTML = '<div class="success">✓ PASS: Local storage persistence working</div>';
+                    contentsDiv.innerHTML = `<div class="info"><strong>Stored Data:</strong><br><pre>${JSON.stringify(retrieved, null, 2)}</pre></div>`;
+                    testResults.localStorage = 'PASS';
+                } else {
+                    resultsDiv.innerHTML = '<div class="error">✗ FAIL: Local storage persistence failed</div>';
+                    testResults.localStorage = 'FAIL';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">✗ ERROR: ${error.message}</div>`;
+                testResults.localStorage = 'ERROR';
+            }
+        }
+
+        function clearLocalStorage() {
+            localStorage.removeItem('guest-chat-test');
+            document.getElementById('storage-contents').innerHTML = '<div class="info">Local storage cleared</div>';
+        }
+
+        function simulatePageRefresh() {
+            const contentsDiv = document.getElementById('storage-contents');
+            const stored = localStorage.getItem('guest-chat-test');
+            
+            if (stored) {
+                contentsDiv.innerHTML = `<div class="success">✓ Data persisted after refresh simulation</div><div class="info"><pre>${JSON.stringify(JSON.parse(stored), null, 2)}</pre></div>`;
+            } else {
+                contentsDiv.innerHTML = '<div class="error">✗ No data found after refresh simulation</div>';
+            }
+        }
+
+        // Test 4: Response Annotations
+        async function testResponseAnnotations() {
+            const resultsDiv = document.getElementById('annotation-test-results');
+            resultsDiv.innerHTML = '<div class="info">Testing response annotations and responseId...</div>';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: 'annotation-test-chat',
+                        message: {
+                            id: 'annotation-test-message',
+                            role: 'user',
+                            parts: [{ type: 'text', text: 'Please respond so I can test annotations.' }],
+                            metadata: { selectedModel: 'openai/gpt-4o-mini' }
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                // Parse streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let responseId = null;
+                let hasTextContent = false;
+                let annotations = [];
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    // Add new chunk to buffer
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Process complete lines
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6).trim();
+                            if (data === '[DONE]') break;
+                            if (!data) continue; // Skip empty data lines
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                console.log('Parsed SSE event:', parsed);
+
+                                if (parsed.type === 'text-delta') {
+                                    hasTextContent = true;
+                                    console.log('Found text-delta:', parsed.delta);
+                                } else if (parsed.type === 'data-responseId') {
+                                    responseId = parsed.data || parsed.id;
+                                    console.log('Found responseId:', responseId);
+                                } else if (parsed.type && parsed.type.startsWith('data-')) {
+                                    annotations.push(parsed);
+                                    console.log('Found annotation:', parsed.type);
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse SSE data:', data, 'Error:', e.message);
+                            }
+                        }
+                    }
+                }
+
+                let resultHtml = '<div class="test-details">';
+                resultHtml += `• Text content received: ${hasTextContent ? 'Yes' : 'No'}<br>`;
+                resultHtml += `• ResponseId found: ${responseId ? 'Yes (' + responseId + ')' : 'No'}<br>`;
+                resultHtml += `• Annotations count: ${annotations.length}<br>`;
+                if (annotations.length > 0) {
+                    resultHtml += `• Annotation types: ${annotations.map(a => a.type).join(', ')}<br>`;
+                }
+                resultHtml += '</div>';
+
+                if (responseId && hasTextContent) {
+                    resultsDiv.innerHTML = `<div class="success">✓ PASS: Response annotations working correctly</div>${resultHtml}`;
+                    testResults.annotations = 'PASS';
+                } else {
+                    resultsDiv.innerHTML = `<div class="error">✗ FAIL: Missing responseId or text content</div>${resultHtml}`;
+                    testResults.annotations = 'FAIL';
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">✗ ERROR: ${error.message}</div>`;
+                testResults.annotations = 'ERROR';
+            }
+        }
+
+        // Test 5: Interactive Chat
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const messagesDiv = document.getElementById('chat-messages');
+            const resultsDiv = document.getElementById('chat-test-results');
+            
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Add user message to chat
+            addChatMessage(message, true);
+            input.value = '';
+
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai-message';
+            loadingDiv.textContent = 'AI is thinking...';
+            messagesDiv.appendChild(loadingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: 'interactive-test-chat',
+                        message: {
+                            id: 'interactive-message-' + Date.now(),
+                            role: 'user',
+                            parts: [{ type: 'text', text: message }],
+                            metadata: { selectedModel: 'openai/gpt-4o-mini' }
+                        }
+                    })
+                });
+
+                messagesDiv.removeChild(loadingDiv);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                }
+
+                // Handle streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let aiResponse = '';
+                let buffer = '';
+                let responseId = null;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    // Add new chunk to buffer
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Process complete lines
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6).trim();
+                            if (data === '[DONE]') break;
+                            if (!data) continue; // Skip empty data lines
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                console.log('Interactive chat - parsed SSE event:', parsed);
+
+                                if (parsed.type === 'text-delta' && parsed.delta) {
+                                    aiResponse += parsed.delta;
+                                    console.log('Added delta to response:', parsed.delta);
+                                }
+                                if (parsed.type === 'data-responseId') {
+                                    responseId = parsed.data?.responseId || parsed.data || parsed.id;
+                                    console.log('Interactive chat found responseId:', responseId);
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse SSE data:', data, 'Error:', e.message);
+                            }
+                        }
+                    }
+                }
+
+                if (aiResponse) {
+                    addChatMessage(aiResponse, false);
+                    
+                    // Store in localStorage for persistence test
+                    chatHistory.push(
+                        { role: 'user', text: message, timestamp: Date.now() },
+                        { role: 'assistant', text: aiResponse, timestamp: Date.now() }
+                    );
+                    localStorage.setItem('guest-chat-history', JSON.stringify(chatHistory));
+                    
+                    // Verify both response content and responseId
+                    if (responseId) {
+                        resultsDiv.innerHTML = `<div class="success">✓ Interactive chat working correctly (responseId: ${responseId})</div>`;
+                    } else {
+                        resultsDiv.innerHTML = '<div class="warning">⚠ Chat working but no responseId captured</div>';
+                    }
+                } else {
+                    resultsDiv.innerHTML = '<div class="error">✗ No response received</div>';
+                }
+
+            } catch (error) {
+                messagesDiv.removeChild(loadingDiv);
+                resultsDiv.innerHTML = `<div class="error">✗ ERROR: ${error.message}</div>`;
+            }
+        }
+
+        function addChatMessage(text, isUser) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        // Load chat history on page load
+        window.addEventListener('load', function() {
+            const stored = localStorage.getItem('guest-chat-history');
+            if (stored) {
+                chatHistory = JSON.parse(stored);
+                chatHistory.forEach(msg => {
+                    addChatMessage(msg.text, msg.role === 'user');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

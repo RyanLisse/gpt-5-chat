@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-export interface ErrorHandlerParams {
+export type ErrorHandlerParams = {
   error: unknown;
   perfTracker: {
     end: (status: number) => void;
   };
   fallbackMessage?: string;
-}
+};
 
 /**
  * Standardized error handling for API routes with performance tracking.

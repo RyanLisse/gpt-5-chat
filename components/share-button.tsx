@@ -2,7 +2,7 @@
 
 import { Copy, GlobeIcon, Loader2, LockIcon, Share } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +35,7 @@ function ShareDialogContent({
   const [step, setStep] = useState<ShareStep>('info');
   const { data: chat } = useGetChatById(chatId);
   const setVisibilityMutation = useSetVisibility();
+  const linkInputId = useId();
 
   const isPublic = chat?.visibility === 'public';
   const isPending = setVisibilityMutation.isPending;
@@ -178,13 +179,13 @@ function ShareDialogContent({
           </DialogHeader>
           <div className="flex items-center space-x-2">
             <div className="grid flex-1 gap-2">
-              <label className="sr-only" htmlFor="link">
+              <label className="sr-only" htmlFor={linkInputId}>
                 Link
               </label>
               <input
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 defaultValue={`${window.location.origin}/share/${chatId}`}
-                id="link"
+                id={linkInputId}
                 readOnly
               />
             </div>

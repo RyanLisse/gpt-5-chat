@@ -320,13 +320,19 @@ export function useDeleteTrailingMessages() {
   // Delete trailing messages mutation
   const deleteTrailingMessagesMutation = useMutation({
     mutationFn: isAuthenticated
-      ? async ({ messageId, chatId }: { messageId: string; chatId: string }) =>
+      ? async ({
+          messageId,
+          chatId: _chatId,
+        }: {
+          messageId: string;
+          chatId: string;
+        }) =>
           await deleteTrailingMutationOptions?.mutationFn?.({
             messageId,
           })
       : async ({
           messageId,
-          chatId,
+          chatId: _chatId,
         }: {
           messageId: string;
           chatId: string;
@@ -511,7 +517,11 @@ export function useSaveMessageMutation() {
       }
       toast.error('Failed to save message');
     },
-    onSuccess: (_data, { message, chatId }, { previousMessages }) => {
+    onSuccess: (
+      _data,
+      { message, chatId },
+      { previousMessages: _previousMessages },
+    ) => {
       if (isAuthenticated) {
         // Credits functionality was removed - no invalidation needed
         // if (message.role === 'assistant') {
@@ -559,8 +569,8 @@ export function useSetVisibility() {
     mutationFn: isAuthenticated
       ? trpc.chat.setVisibility.mutationOptions().mutationFn
       : async ({
-          chatId,
-          visibility,
+          chatId: _chatId,
+          visibility: _visibility,
         }: {
           chatId: string;
           visibility: 'private' | 'public';

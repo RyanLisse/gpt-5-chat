@@ -23,32 +23,15 @@ import { Messages } from './messages';
 function useRecreateChat(id: string, initialMessages: ChatMessage[]) {
   useEffect(() => {
     if (id !== chatStore.getState().id) {
-      chatStore.getState().setNewChat(id, initialMessages || []);
+      chatStore.getState().setNewChat(id, initialMessages);
     }
   }, [id, initialMessages]);
 }
 
-export function Chat({
-  id,
-  initialMessages,
-  isReadonly,
-}: {
-  id: string;
-  initialMessages: ChatMessage[];
-  isReadonly: boolean;
-}) {
-  const trpc = useTRPC();
-  const { data: session } = useSession();
+// Hook for managing chat callbacks with proper error handling
+function useChatCallbacks(id: string, isAuthenticated: boolean) {
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-
   const { setDataStream } = useDataStream();
-
-  // Workaround to act as `shouldRecreateChat` functionality in the `useChat` hook
-  // If the id is different from the stored id, reset the chat with new messages
-  useRecreateChat(id, initialMessages);
-
-  const isAuthenticated = Boolean(session?.user);
-  const isLoading = id !== chatStore.getState().id;
 
   const onFinish = useCallback(
     ({ message }: { message: ChatMessage }) => {
@@ -79,18 +62,25 @@ export function Chat({
   }, []);
 
   const prepareSendMessagesRequest = useCallback(
-    ({ messages, id, body }: any) => {
+    ({ messages: requestMessages, id: requestId, body }: any) => {
       return {
         body: {
-          id,
-          message: messages.at(-1),
-          prevMessages: isAuthenticated ? [] : messages.slice(0, -1),
+          id: requestId,
+          message: requestMessages.at(-1),
+          prevMessages: isAuthenticated ? [] : requestMessages.slice(0, -1),
           ...body,
         },
       };
     },
     [isAuthenticated],
   );
+
+  return { onFinish, onData, onError, prepareSendMessagesRequest };
+}
+
+// Hook for managing chat instance and configuration
+function useChatInstance(id: string, callbacks: any) {
+  const { onFinish, onData, onError, prepareSendMessagesRequest } = callbacks;
 
   const chat = useMemo(() => {
     return new ZustandChat<ChatMessage>({
@@ -108,70 +98,146 @@ export function Chat({
     });
   }, [id, onFinish, prepareSendMessagesRequest, onData, onError]);
 
+  return chat;
+}
+
+// Configuration for chat votes query
+interface ChatVotesConfig {
+  chatId: string;
+  messagesLength: number;
+  isReadonly: boolean;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+// Hook for managing votes query with proper conditions
+function useChatVotes(config: ChatVotesConfig) {
+  const { chatId, messagesLength, isReadonly, isAuthenticated, isLoading } =
+    config;
+  const trpc = useTRPC();
+
+  return useQuery({
+    ...trpc.vote.getVotes.queryOptions({ chatId }),
+    enabled:
+      messagesLength >= 2 && !isReadonly && isAuthenticated && !isLoading,
+  });
+}
+
+// Main chat area component
+function ChatMainArea({
+  id,
+  isReadonly,
+  messages,
+  regenerate,
+  sendMessage,
+  votes,
+  status,
+  stop,
+  user,
+  isArtifactVisible,
+  sidebarState,
+}: any) {
+  return (
+    <div
+      className={cn(
+        '@container flex h-dvh min-w-0 max-w-screen flex-col bg-background md:max-w-[calc(100vw-var(--sidebar-width))]',
+        sidebarState === 'collapsed' && 'md:max-w-screen',
+      )}
+    >
+      <ChatHeader
+        chatId={id}
+        hasMessages={messages.length > 0}
+        isReadonly={isReadonly}
+        user={user}
+      />
+
+      <Messages
+        isReadonly={isReadonly}
+        isVisible={!isArtifactVisible}
+        regenerate={regenerate}
+        sendMessage={sendMessage}
+        votes={votes}
+      />
+
+      {isReadonly ? (
+        <CloneChatButton chatId={id} className="w-full" />
+      ) : (
+        <MultimodalInput
+          chatId={id}
+          parentMessageId={chatStore.getState().getLastMessageId()}
+          sendMessage={sendMessage}
+          status={status}
+          stop={stop}
+        />
+      )}
+    </div>
+  );
+}
+
+export function Chat({
+  id,
+  initialMessages,
+  isReadonly,
+}: {
+  id: string;
+  initialMessages: ChatMessage[];
+  isReadonly: boolean;
+}) {
+  const { data: session } = useSession();
+
+  useRecreateChat(id, initialMessages);
+
+  const isAuthenticated = Boolean(session?.user);
+  const isLoading = id !== chatStore.getState().id;
+
+  const callbacks = useChatCallbacks(id, isAuthenticated);
+  const chat = useChatInstance(id, callbacks);
+
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({
       // @ts-expect-error #private property required but not really
       chat,
       experimental_throttle: 100,
     });
-  // Auto-resume functionality
+
   useAutoResume({
     autoResume: true,
     initialMessages,
     resumeStream,
   });
 
-  const { data: votes } = useQuery({
-    ...trpc.vote.getVotes.queryOptions({ chatId: id }),
-    enabled:
-      messages.length >= 2 &&
-      !isReadonly &&
-      Boolean(session?.user) &&
-      !isLoading,
+  const { data: votes } = useChatVotes({
+    chatId: id,
+    messagesLength: messages.length,
+    isReadonly,
+    isAuthenticated,
+    isLoading,
   });
 
   const { state } = useSidebar();
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  const isArtifactVisible = useArtifactSelector(
+    (artifactState) => artifactState.isVisible,
+  );
 
   return (
     <>
-      <div
-        className={cn(
-          '@container flex h-dvh min-w-0 max-w-screen flex-col bg-background md:max-w-[calc(100vw-var(--sidebar-width))]',
-          state === 'collapsed' && 'md:max-w-screen',
-        )}
-      >
-        <ChatHeader
-          chatId={id}
-          hasMessages={messages.length > 0}
-          isReadonly={isReadonly}
-          user={session?.user}
-        />
-
-        <Messages
-          isReadonly={isReadonly}
-          isVisible={!isArtifactVisible}
-          regenerate={regenerate}
-          sendMessage={sendMessage}
-          votes={votes}
-        />
-
-        {isReadonly ? (
-          <CloneChatButton chatId={id} className="w-full" />
-        ) : (
-          <MultimodalInput
-            chatId={id}
-            parentMessageId={chatStore.getState().getLastMessageId()}
-            sendMessage={sendMessage}
-            status={status}
-            stop={stop}
-          />
-        )}
-      </div>
+      <ChatMainArea
+        id={id}
+        isArtifactVisible={isArtifactVisible}
+        isReadonly={isReadonly}
+        messages={messages}
+        regenerate={regenerate}
+        sendMessage={sendMessage}
+        sidebarState={state}
+        status={status}
+        stop={stop}
+        user={session?.user}
+        votes={votes}
+      />
 
       <Artifact
         chatId={id}
-        isAuthenticated={Boolean(session?.user)}
+        isAuthenticated={isAuthenticated}
         isReadonly={isReadonly}
         messages={messages}
         regenerate={regenerate}

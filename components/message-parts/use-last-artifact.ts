@@ -1,12 +1,13 @@
-import { chatStore } from '@/lib/stores/chat-store';
 import type { ChatMessage } from '@/lib/ai/types';
+import { chatStore } from '@/lib/stores/chat-store';
 
 export const useLastArtifact = () => {
   const isLastArtifact = (
     messages: ChatMessage[],
     currentToolCallId: string,
   ): boolean => {
-    let lastArtifact: { messageIndex: number; toolCallId: string } | null = null;
+    let lastArtifact: { messageIndex: number; toolCallId: string } | null =
+      null;
 
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];

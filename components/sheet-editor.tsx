@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { parse, unparse } from 'papaparse';
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import DataGrid, { textEditor } from 'react-data-grid';
 import { cn } from '@/lib/utils';
 
@@ -20,62 +20,78 @@ type SheetEditorProps = {
 const MIN_ROWS = 50;
 const MIN_COLS = 26;
 
+// Helper function to create empty data structure
+function createEmptyData(): string[][] {
+  return new Array(MIN_ROWS).fill(new Array(MIN_COLS).fill(''));
+}
+
+// Helper function to pad data to minimum dimensions
+function padDataToMinimums(data: string[][]): string[][] {
+  const paddedData = data.map((row) => {
+    const paddedRow = [...row];
+    while (paddedRow.length < MIN_COLS) {
+      paddedRow.push('');
+    }
+    return paddedRow;
+  });
+
+  while (paddedData.length < MIN_ROWS) {
+    paddedData.push(new Array(MIN_COLS).fill(''));
+  }
+
+  return paddedData;
+}
+
+// Helper function to create column definitions
+function createColumns(isReadonly: boolean) {
+  const rowNumberColumn = {
+    key: 'rowNumber',
+    name: '',
+    frozen: true,
+    width: 50,
+    renderCell: ({ rowIdx }: { rowIdx: number }) => rowIdx + 1,
+    cellClass: 'border-t border-r dark:bg-zinc-950 dark:text-zinc-50',
+    headerCellClass: 'border-t border-r dark:bg-zinc-900 dark:text-zinc-50',
+  };
+
+  const dataColumns = Array.from({ length: MIN_COLS }, (_, i) => ({
+    key: i.toString(),
+    name: String.fromCharCode(65 + i),
+    renderEditCell: isReadonly ? undefined : textEditor,
+    width: 120,
+    cellClass: cn(`border-t dark:bg-zinc-950 dark:text-zinc-50`, {
+      'border-l': i !== 0,
+    }),
+    headerCellClass: cn(`border-t dark:bg-zinc-900 dark:text-zinc-50`, {
+      'border-l': i !== 0,
+    }),
+  }));
+
+  return [rowNumberColumn, ...dataColumns];
+}
+
 const PureSpreadsheetEditor = ({
   content,
   saveContent,
-  status,
-  isCurrentVersion,
+  status: _status,
+  isCurrentVersion: _isCurrentVersion,
   isReadonly,
 }: SheetEditorProps) => {
   const { theme } = useTheme();
 
   const parseData = useMemo(() => {
     if (!content) {
-      return new Array(MIN_ROWS).fill(new Array(MIN_COLS).fill(''));
+      return createEmptyData();
     }
+
     const result = parse<string[]>(content, { skipEmptyLines: true });
-
-    const paddedData = result.data.map((row) => {
-      const paddedRow = [...row];
-      while (paddedRow.length < MIN_COLS) {
-        paddedRow.push('');
-      }
-      return paddedRow;
-    });
-
-    while (paddedData.length < MIN_ROWS) {
-      paddedData.push(new Array(MIN_COLS).fill(''));
-    }
-
-    return paddedData;
+    return padDataToMinimums(result.data);
   }, [content]);
 
-  const columns = useMemo(() => {
-    const rowNumberColumn = {
-      key: 'rowNumber',
-      name: '',
-      frozen: true,
-      width: 50,
-      renderCell: ({ rowIdx }: { rowIdx: number }) => rowIdx + 1,
-      cellClass: 'border-t border-r dark:bg-zinc-950 dark:text-zinc-50',
-      headerCellClass: 'border-t border-r dark:bg-zinc-900 dark:text-zinc-50',
-    };
-
-    const dataColumns = Array.from({ length: MIN_COLS }, (_, i) => ({
-      key: i.toString(),
-      name: String.fromCharCode(65 + i),
-      renderEditCell: isReadonly ? undefined : textEditor,
-      width: 120,
-      cellClass: cn(`border-t dark:bg-zinc-950 dark:text-zinc-50`, {
-        'border-l': i !== 0,
-      }),
-      headerCellClass: cn(`border-t dark:bg-zinc-900 dark:text-zinc-50`, {
-        'border-l': i !== 0,
-      }),
-    }));
-
-    return [rowNumberColumn, ...dataColumns];
-  }, [isReadonly]);
+  const columns = useMemo(
+    () => createColumns(isReadonly ?? false),
+    [isReadonly],
+  );
 
   const initialRows = useMemo(() => {
     return parseData.map((row, rowIndex) => {
@@ -98,24 +114,32 @@ const PureSpreadsheetEditor = ({
     setLocalRows(initialRows);
   }, [initialRows]);
 
-  const generateCsv = (data: any[][]) => {
-    return unparse(data);
-  };
+  const handleRowsChange = useCallback(
+    (newRows: any[]) => {
+      if (isReadonly) {
+        return;
+      }
 
-  const handleRowsChange = (newRows: any[]) => {
-    if (isReadonly) {
-      return;
-    }
+      setLocalRows(newRows);
 
-    setLocalRows(newRows);
+      const updatedData = newRows.map((row) => {
+        return columns.slice(1).map((col) => row[col.key] || '');
+      });
 
-    const updatedData = newRows.map((row) => {
-      return columns.slice(1).map((col) => row[col.key] || '');
-    });
+      const newCsvContent = unparse(updatedData);
+      saveContent(newCsvContent, true);
+    },
+    [isReadonly, columns, saveContent],
+  );
 
-    const newCsvContent = generateCsv(updatedData);
-    saveContent(newCsvContent, true);
-  };
+  const handleCellClick = useCallback(
+    (args: any) => {
+      if (args.column.key !== 'rowNumber' && !isReadonly) {
+        args.selectCell(true);
+      }
+    },
+    [isReadonly],
+  );
 
   return (
     <DataGrid
@@ -126,11 +150,7 @@ const PureSpreadsheetEditor = ({
         sortable: true,
       }}
       enableVirtualization
-      onCellClick={(args) => {
-        if (args.column.key !== 'rowNumber' && !isReadonly) {
-          args.selectCell(true);
-        }
-      }}
+      onCellClick={handleCellClick}
       onRowsChange={isReadonly ? undefined : handleRowsChange}
       rows={localRows}
       style={{ height: '100%' }}

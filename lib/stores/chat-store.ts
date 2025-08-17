@@ -173,18 +173,30 @@ class ZustandChatState<UI_MESSAGE extends UIMessage>
     // Subscribe to throttled messages changes and notify React callbacks
     this.store.subscribe(
       (state) => state._throttledMessages,
-      () => this.messagesCallbacks.forEach((callback) => callback()),
+      () => {
+        for (const callback of this.messagesCallbacks) {
+          callback();
+        }
+      },
       { equalityFn: (a, b) => a === b },
     );
 
     this.store.subscribe(
       (state) => state.status,
-      () => this.statusCallbacks.forEach((callback) => callback()),
+      () => {
+        for (const callback of this.statusCallbacks) {
+          callback();
+        }
+      },
     );
 
     this.store.subscribe(
       (state) => state.error,
-      () => this.errorCallbacks.forEach((callback) => callback()),
+      () => {
+        for (const callback of this.errorCallbacks) {
+          callback();
+        }
+      },
     );
   }
 

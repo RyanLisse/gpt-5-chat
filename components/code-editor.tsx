@@ -70,8 +70,8 @@ function PureCodeEditor({
         editorRef.current = null;
       }
     };
-    // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
+    // Run effect only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -135,29 +135,23 @@ function PureCodeEditor({
 }
 
 function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
-  if (prevProps.suggestions !== nextProps.suggestions) {
-    return false;
-  }
-  if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
-    return false;
-  }
-  if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
-    return false;
-  }
+  // Special case: both status are streaming should re-render
   if (prevProps.status === 'streaming' && nextProps.status === 'streaming') {
     return false;
   }
-  if (prevProps.content !== nextProps.content) {
-    return false;
-  }
-  if (prevProps.isReadonly !== nextProps.isReadonly) {
-    return false;
-  }
-  if (prevProps.language !== nextProps.language) {
-    return false;
-  }
 
-  return true;
+  // Compare all relevant props for equality
+  const propsToCompare: (keyof EditorProps)[] = [
+    'suggestions',
+    'currentVersionIndex',
+    'isCurrentVersion',
+    'content',
+    'isReadonly',
+    'language',
+    'status',
+  ];
+
+  return propsToCompare.every((prop) => prevProps[prop] === nextProps[prop]);
 }
 
 export const CodeEditor = memo(PureCodeEditor, areEqual);

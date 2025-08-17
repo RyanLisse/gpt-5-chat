@@ -5,13 +5,7 @@ import { createDocumentHandler } from '@/lib/artifacts/server';
 
 export const textDocumentHandler = createDocumentHandler<'text'>({
   kind: 'text',
-  onCreateDocument: async ({
-    title,
-    description,
-    dataStream,
-    prompt,
-    selectedModel,
-  }) => {
+  onCreateDocument: async ({ dataStream, prompt, selectedModel }) => {
     let draftContent = '';
 
     const { fullStream } = streamText({

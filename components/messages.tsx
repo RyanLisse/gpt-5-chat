@@ -34,9 +34,6 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
   const status = useChatStatus();
   const messageIds = useMessageIds();
 
-  // TODO: Verify if this is needed ai sdk v5
-  // useDataStream();
-
   if (!chatId) {
     return null;
   }
@@ -78,7 +75,7 @@ export type MessagesProps = {
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   regenerate: (options?: any) => void;
   isReadonly: boolean;
-  isVisible: boolean;
+  isVisible?: boolean;
   onModelChange?: (modelId: string) => void;
 };
 
@@ -89,7 +86,7 @@ function PureMessages({
   isReadonly,
   isVisible,
 }: MessagesProps) {
-  const { scrollRef, contentRef, scrollToBottom, isNearBottom, state } =
+  const { scrollRef, contentRef, scrollToBottom, isNearBottom } =
     useStickToBottom();
 
   return (
@@ -132,10 +129,6 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
     return false;
   }
   if (prevProps.isReadonly !== nextProps.isReadonly) {
-    return false;
-  }
-  // NOTE: isVisible avoids re-renders when the messages aren't visible
-  if (prevProps.isVisible !== nextProps.isVisible) {
     return false;
   }
   if (prevProps.sendMessage !== nextProps.sendMessage) {

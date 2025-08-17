@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { toast } from 'sonner';
 import { CopyIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -51,10 +52,12 @@ export function GeneratedImage({
   return (
     <div className="flex w-full flex-col gap-4 overflow-hidden rounded-lg border">
       <div className="group relative">
-        <img
+        <Image
           alt={result.prompt}
           className="h-auto w-full max-w-full"
           src={result.imageUrl}
+          width={800}
+          height={600}
         />
         <button
           className={cn(

@@ -45,7 +45,6 @@ export function StockChartMessage({
               ...result.chart,
               x_scale: 'datetime',
             }}
-            data={result.chart.elements}
             interval={args.interval}
             stock_symbols={args.stock_symbols}
             title={args.title}

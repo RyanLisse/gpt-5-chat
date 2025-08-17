@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* Tailwind v4: load plugins via CSS */
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/container-queries';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {

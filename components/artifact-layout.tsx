@@ -129,6 +129,71 @@ function VersionOverlay({ isCurrentVersion }: { isCurrentVersion: boolean }) {
   );
 }
 
+// Helper function to render chat panel for desktop
+function DesktopChatPanel({
+  isCurrentVersion,
+  chatPanel,
+}: {
+  isCurrentVersion: boolean;
+  chatPanel: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      animate={{
+        opacity: 1,
+        x: 0,
+        scale: 1,
+        transition: {
+          delay: ARTIFACT_ANIMATION.ANIMATION_DELAYS.ENTER,
+          type: 'spring',
+          stiffness: ARTIFACT_ANIMATION.SPRING_CONFIG.STIFFNESS,
+          damping: ARTIFACT_ANIMATION.SPRING_CONFIG.DAMPING,
+        },
+      }}
+      className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
+      exit={{
+        opacity: 0,
+        x: 0,
+        scale: 1,
+        transition: { duration: 0 },
+      }}
+      initial={{ opacity: 0, x: 10, scale: 1 }}
+    >
+      <VersionOverlay isCurrentVersion={isCurrentVersion} />
+      {chatPanel}
+    </motion.div>
+  );
+}
+
+// Helper function to render main content area
+function MainContentArea({
+  animationConfig,
+  mainContent,
+}: {
+  animationConfig: any;
+  mainContent: React.ReactNode;
+}) {
+  return (
+    <motion.div
+      animate={animationConfig.animate}
+      className="fixed flex h-dvh flex-col overflow-y-auto border-zinc-200 bg-background md:border-l dark:border-zinc-700"
+      exit={{
+        opacity: 0,
+        scale: ARTIFACT_UI.SCALE_FACTOR,
+        transition: {
+          delay: ARTIFACT_ANIMATION.ANIMATION_DELAYS.SCALE_EXIT,
+          type: 'spring',
+          stiffness: ARTIFACT_ANIMATION.SCALE_SPRING_CONFIG.STIFFNESS,
+          damping: ARTIFACT_ANIMATION.SCALE_SPRING_CONFIG.DAMPING,
+        },
+      }}
+      initial={animationConfig.initial}
+    >
+      {mainContent}
+    </motion.div>
+  );
+}
+
 export function ArtifactLayout({
   artifact,
   isCurrentVersion,
@@ -170,49 +235,16 @@ export function ArtifactLayout({
           )}
 
           {!isMobile && (
-            <motion.div
-              animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
-                transition: {
-                  delay: ARTIFACT_ANIMATION.ANIMATION_DELAYS.ENTER,
-                  type: 'spring',
-                  stiffness: ARTIFACT_ANIMATION.SPRING_CONFIG.STIFFNESS,
-                  damping: ARTIFACT_ANIMATION.SPRING_CONFIG.DAMPING,
-                },
-              }}
-              className="relative h-dvh w-[400px] shrink-0 bg-muted dark:bg-background"
-              exit={{
-                opacity: 0,
-                x: 0,
-                scale: 1,
-                transition: { duration: 0 },
-              }}
-              initial={{ opacity: 0, x: 10, scale: 1 }}
-            >
-              <VersionOverlay isCurrentVersion={isCurrentVersion} />
-              {chatPanel}
-            </motion.div>
+            <DesktopChatPanel
+              chatPanel={chatPanel}
+              isCurrentVersion={isCurrentVersion}
+            />
           )}
 
-          <motion.div
-            animate={animationConfig.animate}
-            className="fixed flex h-dvh flex-col overflow-y-auto border-zinc-200 bg-background md:border-l dark:border-zinc-700"
-            exit={{
-              opacity: 0,
-              scale: ARTIFACT_UI.SCALE_FACTOR,
-              transition: {
-                delay: ARTIFACT_ANIMATION.ANIMATION_DELAYS.SCALE_EXIT,
-                type: 'spring',
-                stiffness: ARTIFACT_ANIMATION.SCALE_SPRING_CONFIG.STIFFNESS,
-                damping: ARTIFACT_ANIMATION.SCALE_SPRING_CONFIG.DAMPING,
-              },
-            }}
-            initial={animationConfig.initial}
-          >
-            {mainContent}
-          </motion.div>
+          <MainContentArea
+            animationConfig={animationConfig}
+            mainContent={mainContent}
+          />
         </motion.div>
       )}
     </AnimatePresence>

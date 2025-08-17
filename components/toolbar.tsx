@@ -1,6 +1,5 @@
 'use client';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ChatRequestOptions } from 'ai';
 import cx from 'classnames';
 import {
   AnimatePresence,
@@ -14,12 +13,10 @@ import {
   memo,
   type ReactNode,
   type SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react';
-import { useOnClickOutside } from 'usehooks-ts';
 import {
   Tooltip,
   TooltipContent,
@@ -33,6 +30,13 @@ import { useChatInput } from '@/providers/chat-input-provider';
 import { artifactDefinitions } from './artifact';
 import type { ArtifactToolbarItem } from './create-artifact';
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from './icons';
+import {
+  getToolbarAnimationConfig,
+  TOOLBAR_MOTION_CONFIG,
+} from './toolbar/toolbar-animations';
+import { useToolbarAppend } from './toolbar/use-toolbar-append';
+import { useToolbarInteractions } from './toolbar/use-toolbar-interactions';
+import { useToolbarTimer } from './toolbar/use-toolbar-timer';
 
 type ToolProps = {
   description: string;
@@ -327,61 +331,22 @@ const PureToolbar = ({
   artifactKind: ArtifactKind;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const { selectedModelId } = useChatInput();
-
-  const append = useCallback(
-    (
-      message: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[0],
-      options?: ChatRequestOptions,
-    ) => {
-      return sendMessage(message, {
-        ...options,
-        body: {
-          data: {
-            reason: false,
-            generateImage: false,
-            writeOrCode: false,
-          },
-        },
-      });
-    },
-    [sendMessage, selectedModelId],
+  const append = useToolbarAppend(sendMessage);
+  const { startCloseTimer, cancelCloseTimer } = useToolbarTimer(
+    setSelectedTool,
+    setIsToolbarVisible,
   );
-
-  useOnClickOutside(toolbarRef as React.RefObject<HTMLElement>, () => {
-    setIsToolbarVisible(false);
-    setSelectedTool(null);
+  const { handleHoverEnd, handleHoverStart } = useToolbarInteractions({
+    toolbarRef,
+    setIsToolbarVisible,
+    setSelectedTool,
+    status,
+    startCloseTimer,
+    cancelCloseTimer,
   });
-
-  const startCloseTimer = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      setSelectedTool(null);
-      setIsToolbarVisible(false);
-    }, 2000);
-  };
-
-  const cancelCloseTimer = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (status === 'streaming') {
@@ -403,54 +368,25 @@ const PureToolbar = ({
     return null;
   }
 
+  const animationConfig = getToolbarAnimationConfig(
+    isToolbarVisible,
+    selectedTool,
+    toolsByArtifactKind,
+  );
+
   return (
     <TooltipProvider delayDuration={0}>
       <motion.div
-        animate={
-          isToolbarVisible
-            ? selectedTool === 'adjust-reading-level'
-              ? {
-                  opacity: 1,
-                  y: 0,
-                  height: 6 * 43,
-                  transition: { delay: 0 },
-                  scale: 0.95,
-                }
-              : {
-                  opacity: 1,
-                  y: 0,
-                  height: toolsByArtifactKind.length * 50,
-                  transition: { delay: 0 },
-                  scale: 1,
-                }
-            : { opacity: 1, y: 0, height: 54, transition: { delay: 0 } }
-        }
+        animate={animationConfig}
         className="absolute right-6 bottom-6 flex cursor-pointer flex-col justify-end rounded-full border bg-background p-1.5 shadow-lg"
-        exit={{ opacity: 0, y: -20, transition: { duration: 0.1 } }}
-        initial={{ opacity: 0, y: -20, scale: 1 }}
-        onAnimationComplete={() => {
-          setIsAnimating(false);
-        }}
-        onAnimationStart={() => {
-          setIsAnimating(true);
-        }}
-        onHoverEnd={() => {
-          if (status === 'streaming') {
-            return;
-          }
-
-          startCloseTimer();
-        }}
-        onHoverStart={() => {
-          if (status === 'streaming') {
-            return;
-          }
-
-          cancelCloseTimer();
-          setIsToolbarVisible(true);
-        }}
+        exit={TOOLBAR_MOTION_CONFIG.exit}
+        initial={TOOLBAR_MOTION_CONFIG.initial}
+        onAnimationComplete={() => setIsAnimating(false)}
+        onAnimationStart={() => setIsAnimating(true)}
+        onHoverEnd={handleHoverEnd}
+        onHoverStart={handleHoverStart}
         ref={toolbarRef}
-        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        transition={TOOLBAR_MOTION_CONFIG.transition}
       >
         {status === 'streaming' ? (
           <motion.div

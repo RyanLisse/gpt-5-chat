@@ -31,7 +31,8 @@ export const getLanguageModel = (modelId: ModelId) => {
 
 export const getImageModel = (modelId: ImageModelId) => {
   const model = getImageModelDefinition(modelId);
-  const { model: modelIdShort, provider } = getModelAndProvider(modelId);
+  const { model: modelIdShort, provider: _provider } =
+    getModelAndProvider(modelId);
 
   if (model.owned_by === 'openai') {
     return openai.image(modelIdShort);

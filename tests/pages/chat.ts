@@ -1,11 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { legacyChatModels } from '@/lib/ai/legacy-models';
+import { BasePage } from './base-page';
 
-export class ChatPage {
-  constructor(private readonly page: Page) {}
-
+export class ChatPage extends BasePage {
   public get sendButton() {
     return this.page.getByTestId('send-button');
   }
@@ -32,12 +31,42 @@ export class ChatPage {
     await this.sendButton.click();
   }
 
+  // TDD London School: Enhanced behavior verification for chat generation
   async isGenerationComplete() {
-    const response = await this.page.waitForResponse((response) =>
-      response.url().includes('/api/chat'),
-    );
-
+    const response = await this.waitForNetworkResponse('/api/chat');
     await response.finished();
+    return response;
+  }
+
+  // Mock chat API responses for fast, predictable tests
+  async setupMockChatResponse(
+    mockResponse: any,
+    rateLimitHeaders?: Record<string, string>,
+  ) {
+    const defaultHeaders = {
+      'x-ratelimit-limit-minute': '60',
+      'x-ratelimit-remaining-minute': '59',
+      'x-ratelimit-reset-minute': '60',
+    };
+
+    if (rateLimitHeaders) {
+      await this.mockRateLimitHeaders('/api/chat', mockResponse, {
+        ...defaultHeaders,
+        ...rateLimitHeaders,
+      });
+    } else {
+      await this.mockApiResponse('/api/chat', mockResponse);
+    }
+  }
+
+  // Enhanced behavior verification for guest users
+  async verifyGuestChatBehavior() {
+    // Verify no authentication redirects occurred
+    await expect(this.page).not.toHaveURL(/(auth|login|register)/);
+
+    // Verify localStorage persistence
+    await this.verifyLocalStorageContains('anonymous-messages');
+    await this.verifyLocalStorageContains('anonymous-chats');
   }
 
   async isVoteComplete() {

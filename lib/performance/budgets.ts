@@ -154,8 +154,9 @@ export class PerformanceBudgetMonitor {
       filtered = filtered.filter((alert) => alert.metric === filters.metric);
     }
 
-    if (filters.since) {
-      filtered = filtered.filter((alert) => alert.timestamp >= filters.since!);
+    if (filters.since !== undefined) {
+      const since = filters.since;
+      filtered = filtered.filter((alert) => alert.timestamp >= since);
     }
 
     filtered.sort((a, b) => b.timestamp - a.timestamp);
@@ -290,7 +291,10 @@ export class AlertNotificationSystem {
   private async sendToEmail(
     _config: Record<string, unknown>,
     _alert: PerformanceAlert,
-  ): Promise<void> {}
+  ): Promise<void> {
+    // Email notification placeholder - integration with email service pending
+    console.log('Email notification not implemented yet:', _alert.id);
+  }
 }
 
 // Global instances

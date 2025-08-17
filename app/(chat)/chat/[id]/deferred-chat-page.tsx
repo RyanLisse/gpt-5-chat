@@ -8,6 +8,17 @@ import { useChatId } from '@/providers/chat-id-provider';
 import { ChatHome } from '../../chat-home';
 import { SharedChatPage } from '../../share/[id]/shared-chat-page';
 
+// Loading skeleton component
+function DeferredChatSkeleton() {
+  return (
+    <div className="flex h-screen w-full">
+      <WithSkeleton className="h-full w-full" isLoading={true}>
+        <div className="flex h-screen w-full" />
+      </WithSkeleton>
+    </div>
+  );
+}
+
 export function DeferredChatPage() {
   const { id, type } = useChatId();
 
@@ -16,33 +27,25 @@ export function DeferredChatPage() {
     type,
   });
 
+  // Early validation
   if (!id) {
     return notFound();
   }
 
   // Show skeleton when deferred values don't match current values
   if (deferredId !== id || deferredType !== type) {
-    return (
-      <div className="flex h-screen w-full">
-        <WithSkeleton className="h-full w-full" isLoading={true}>
-          <div className="flex h-screen w-full" />
-        </WithSkeleton>
-      </div>
-    );
+    return <DeferredChatSkeleton />;
   }
 
-  // Render appropriate page based on type
-  if (deferredType === 'provisional') {
-    return <ChatHome id={deferredId} />;
-  }
+  // Page type mapping
+  const pageComponents = {
+    provisional: ChatHome,
+    shared: SharedChatPage,
+    chat: ChatPage,
+  };
 
-  if (deferredType === 'shared') {
-    return <SharedChatPage id={deferredId} />;
-  }
+  const PageComponent =
+    pageComponents[deferredType as keyof typeof pageComponents];
 
-  if (deferredType === 'chat') {
-    return <ChatPage id={deferredId} />;
-  }
-
-  return notFound();
+  return PageComponent ? <PageComponent id={deferredId} /> : notFound();
 }

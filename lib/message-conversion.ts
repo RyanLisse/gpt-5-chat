@@ -21,6 +21,7 @@ export function dbMessageToChatMessage(message: DBMessage): ChatMessage {
     id: message.id,
     parts: message.parts as ChatMessage['parts'],
     role: message.role as ChatMessage['role'],
+    annotations: (message.annotations as any[]) || [],
     metadata: {
       createdAt: message.createdAt,
       isPartial: message.isPartial,
@@ -46,7 +47,7 @@ export function chatMessageToDbMessage(
     parts: message.parts,
     attachments: [],
     createdAt: message.metadata?.createdAt || new Date(),
-    annotations: [],
+    annotations: (message.annotations as any[]) || [],
     isPartial,
     parentMessageId,
     selectedModel,

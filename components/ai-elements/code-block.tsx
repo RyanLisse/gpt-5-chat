@@ -25,6 +25,47 @@ export type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   children?: ReactNode;
 };
 
+type SyntaxHighlighterWrapperProps = {
+  code: string;
+  language: string;
+  showLineNumbers: boolean;
+  isDark: boolean;
+};
+
+const SyntaxHighlighterWrapper = ({
+  code,
+  language,
+  showLineNumbers,
+  isDark,
+}: SyntaxHighlighterWrapperProps) => (
+  <SyntaxHighlighter
+    className={cn(
+      'overflow-hidden',
+      isDark ? 'hidden dark:block' : 'dark:hidden',
+    )}
+    codeTagProps={{
+      className: 'font-mono text-sm',
+    }}
+    customStyle={{
+      margin: 0,
+      padding: '1rem',
+      fontSize: '0.875rem',
+      background: 'hsl(var(--background))',
+      color: 'hsl(var(--foreground))',
+    }}
+    language={language}
+    lineNumberStyle={{
+      color: 'hsl(var(--muted-foreground))',
+      paddingRight: '1rem',
+      minWidth: '2.5rem',
+    }}
+    showLineNumbers={showLineNumbers}
+    style={isDark ? oneDark : oneLight}
+  >
+    {code}
+  </SyntaxHighlighter>
+);
+
 export const CodeBlock = ({
   code,
   language,
@@ -42,52 +83,18 @@ export const CodeBlock = ({
       {...props}
     >
       <div className="relative">
-        <SyntaxHighlighter
-          className="overflow-hidden dark:hidden"
-          codeTagProps={{
-            className: 'font-mono text-sm',
-          }}
-          customStyle={{
-            margin: 0,
-            padding: '1rem',
-            fontSize: '0.875rem',
-            background: 'hsl(var(--background))',
-            color: 'hsl(var(--foreground))',
-          }}
+        <SyntaxHighlighterWrapper
+          code={code}
+          isDark={false}
           language={language}
-          lineNumberStyle={{
-            color: 'hsl(var(--muted-foreground))',
-            paddingRight: '1rem',
-            minWidth: '2.5rem',
-          }}
           showLineNumbers={showLineNumbers}
-          style={oneLight}
-        >
-          {code}
-        </SyntaxHighlighter>
-        <SyntaxHighlighter
-          className="hidden overflow-hidden dark:block"
-          codeTagProps={{
-            className: 'font-mono text-sm',
-          }}
-          customStyle={{
-            margin: 0,
-            padding: '1rem',
-            fontSize: '0.875rem',
-            background: 'hsl(var(--background))',
-            color: 'hsl(var(--foreground))',
-          }}
+        />
+        <SyntaxHighlighterWrapper
+          code={code}
+          isDark={true}
           language={language}
-          lineNumberStyle={{
-            color: 'hsl(var(--muted-foreground))',
-            paddingRight: '1rem',
-            minWidth: '2.5rem',
-          }}
           showLineNumbers={showLineNumbers}
-          style={oneDark}
-        >
-          {code}
-        </SyntaxHighlighter>
+        />
         {children && (
           <div className="absolute top-2 right-2 flex items-center gap-2">
             {children}

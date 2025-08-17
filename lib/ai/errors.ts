@@ -68,45 +68,81 @@ export class ChatSDKError extends Error {
   }
 }
 
+// Helper functions to group related error messages
+function getAuthMessage(errorCode: ErrorCode): string {
+  const authMessages = {
+    'unauthorized:auth': 'You need to sign in before continuing.',
+    'forbidden:auth': 'Your account does not have access to this feature.',
+  };
+  return authMessages[errorCode as keyof typeof authMessages];
+}
+
+function getChatMessage(errorCode: ErrorCode): string {
+  const chatMessages = {
+    'rate_limit:chat':
+      'You have exceeded your maximum number of messages for the day. Please try again later.',
+    'input_too_long:chat':
+      'Your message input is too long. Please shorten your message and try again.',
+    'not_found:chat':
+      'The requested chat was not found. Please check the chat ID and try again.',
+    'forbidden:chat':
+      'This chat belongs to another user. Please check the chat ID and try again.',
+    'unauthorized:chat':
+      'You need to sign in to view this chat. Please sign in and try again.',
+    'offline:chat':
+      "We're having trouble sending your message. Please check your internet connection and try again.",
+  };
+  return chatMessages[errorCode as keyof typeof chatMessages];
+}
+
+function getDocumentMessage(errorCode: ErrorCode): string {
+  const documentMessages = {
+    'not_found:document':
+      'The requested document was not found. Please check the document ID and try again.',
+    'forbidden:document':
+      'This document belongs to another user. Please check the document ID and try again.',
+    'unauthorized:document':
+      'You need to sign in to view this document. Please sign in and try again.',
+    'bad_request:document':
+      'The request to create or update the document was invalid. Please check your input and try again.',
+  };
+  return documentMessages[errorCode as keyof typeof documentMessages];
+}
+
 export function getMessageByErrorCode(errorCode: ErrorCode): string {
+  // Early return for database errors
   if (errorCode.includes('database')) {
     return 'An error occurred while executing a database query.';
   }
 
-  switch (errorCode) {
-    case 'bad_request:api':
-      return "The request couldn't be processed. Please check your input and try again.";
-
-    case 'unauthorized:auth':
-      return 'You need to sign in before continuing.';
-    case 'forbidden:auth':
-      return 'Your account does not have access to this feature.';
-
-    case 'rate_limit:chat':
-      return 'You have exceeded your maximum number of messages for the day. Please try again later.';
-    case 'input_too_long:chat':
-      return 'Your message input is too long. Please shorten your message and try again.';
-    case 'not_found:chat':
-      return 'The requested chat was not found. Please check the chat ID and try again.';
-    case 'forbidden:chat':
-      return 'This chat belongs to another user. Please check the chat ID and try again.';
-    case 'unauthorized:chat':
-      return 'You need to sign in to view this chat. Please sign in and try again.';
-    case 'offline:chat':
-      return "We're having trouble sending your message. Please check your internet connection and try again.";
-
-    case 'not_found:document':
-      return 'The requested document was not found. Please check the document ID and try again.';
-    case 'forbidden:document':
-      return 'This document belongs to another user. Please check the document ID and try again.';
-    case 'unauthorized:document':
-      return 'You need to sign in to view this document. Please sign in and try again.';
-    case 'bad_request:document':
-      return 'The request to create or update the document was invalid. Please check your input and try again.';
-
-    default:
-      return 'Something went wrong. Please try again later.';
+  // Handle API errors
+  if (errorCode === 'bad_request:api') {
+    return "The request couldn't be processed. Please check your input and try again.";
   }
+
+  // Handle grouped error types
+  if (errorCode.includes(':auth')) {
+    return (
+      getAuthMessage(errorCode) ||
+      'Something went wrong. Please try again later.'
+    );
+  }
+
+  if (errorCode.includes(':chat')) {
+    return (
+      getChatMessage(errorCode) ||
+      'Something went wrong. Please try again later.'
+    );
+  }
+
+  if (errorCode.includes(':document')) {
+    return (
+      getDocumentMessage(errorCode) ||
+      'Something went wrong. Please try again later.'
+    );
+  }
+
+  return 'Something went wrong. Please try again later.';
 }
 
 function getStatusCodeByType(type: ErrorType) {

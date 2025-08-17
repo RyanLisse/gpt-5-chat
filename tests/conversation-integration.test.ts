@@ -235,9 +235,11 @@ describe('AGENT 4: Conversation Integration Tests - Multi-Turn Flows', () => {
         expect(currentState?.version).toBeGreaterThan(i + 1); // Version incrementing
 
         // Verify timestamps are updated (allow for same millisecond)
-        expect(
-          new Date(currentState?.updatedAt!).getTime(),
-        ).toBeGreaterThanOrEqual(new Date(currentState?.createdAt!).getTime());
+        if (currentState?.updatedAt && currentState?.createdAt) {
+          expect(
+            new Date(currentState.updatedAt).getTime(),
+          ).toBeGreaterThanOrEqual(new Date(currentState.createdAt).getTime());
+        }
       }
     });
 

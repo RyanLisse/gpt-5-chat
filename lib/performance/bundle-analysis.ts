@@ -146,7 +146,8 @@ export class BundleAnalyzer {
 
     for (const line of lines) {
       // Look for size information in build output
-      const sizeMatch = line.match(/(\d+(?:\.\d+)?)\s*(kB|MB|B)/);
+      const sizeRegex = /(\d+(?:\.\d+)?)\s*(kB|MB|B)/;
+      const sizeMatch = sizeRegex.exec(line);
       if (sizeMatch) {
         const size = Number.parseFloat(sizeMatch[1]);
         const unit = sizeMatch[2];
@@ -192,22 +193,37 @@ export class BundleAnalyzer {
       const assets: BundleAsset[] = [];
 
       // Process build manifest to extract asset information
-      for (const [route, files] of Object.entries(buildManifest.pages || {})) {
-        if (Array.isArray(files)) {
-          for (const file of files) {
-            if (typeof file === 'string') {
-              const asset = await this.createAssetInfo(file, [route]);
-              if (asset) {
-                assets.push(asset);
-              }
-            }
-          }
-        }
-      }
+      await this.processManifestPages(buildManifest.pages || {}, assets);
 
       return assets;
     } catch (_error) {
       return [];
+    }
+  }
+
+  private async processManifestPages(
+    pages: Record<string, unknown>,
+    assets: BundleAsset[],
+  ): Promise<void> {
+    for (const [route, files] of Object.entries(pages)) {
+      if (Array.isArray(files)) {
+        await this.processRouteFiles(files, route, assets);
+      }
+    }
+  }
+
+  private async processRouteFiles(
+    files: unknown[],
+    route: string,
+    assets: BundleAsset[],
+  ): Promise<void> {
+    for (const file of files) {
+      if (typeof file === 'string') {
+        const asset = await this.createAssetInfo(file, [route]);
+        if (asset) {
+          assets.push(asset);
+        }
+      }
     }
   }
 
@@ -442,7 +458,10 @@ export class BundleAnalyzer {
     const changedAssets = current.assets
       .filter((a) => previousAssetMap.has(a.name))
       .map((a) => {
-        const prev = previousAssetMap.get(a.name)!;
+        const prev = previousAssetMap.get(a.name);
+        if (!prev) {
+          return null;
+        }
         return {
           name: a.name,
           oldSize: prev.size,
@@ -450,7 +469,7 @@ export class BundleAnalyzer {
           diff: a.size - prev.size,
         };
       })
-      .filter((a) => a.diff !== 0);
+      .filter((a): a is { name: string; oldSize: number; newSize: number; diff: number } => a !== null && a.diff !== 0);
 
     return {
       sizeDiff,

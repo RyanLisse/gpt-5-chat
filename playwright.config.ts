@@ -11,7 +11,7 @@ config({
 });
 
 /* Use process.env.PORT by default and fallback to port 3000 */
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
 
 /**
  * Set webServer.url and use.baseURL with the location
@@ -43,11 +43,15 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
-  /* Configure global timeout for each test */
-  timeout: 60 * 1000, // 30 seconds
+  /* Configure global timeout for each test - TDD London School optimized */
+  timeout: 30 * 1000, // 30 seconds - allow for server startup and initial load
   expect: {
-    timeout: 60 * 1000,
+    timeout: 10 * 1000, // 10 seconds - assertions with network requests
   },
+
+  /* Global test setup */
+  globalSetup: require.resolve('./tests/global-setup.ts'),
+  globalTeardown: require.resolve('./tests/global-teardown.ts'),
 
   /* Configure projects */
   projects: [
@@ -93,9 +97,18 @@ export default defineConfig({
     },
     {
       name: 'e2e-basic',
-      testMatch: /e2e-test.spec.ts/,
+      testMatch: /e2e-test.playwright.ts/,
       use: {
         ...devices['Desktop Chrome'],
+      },
+    },
+
+    {
+      name: 'guest-e2e',
+      testMatch: /guest-chat.e2e.test.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        // No storageState to ensure the session is unauthenticated
       },
     },
 
@@ -135,6 +148,8 @@ export default defineConfig({
     command: 'bun dev',
     url: baseURL,
     timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI, // Always reuse existing server in dev
+    stderr: 'pipe',
+    stdout: 'pipe',
   },
 });
